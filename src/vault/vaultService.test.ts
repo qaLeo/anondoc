@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { saveVault, loadVault, clearVault, purgeExpiredVault } from './vaultService'
 
 beforeEach(() => {
@@ -87,5 +87,11 @@ describe('purgeExpiredVault', () => {
 
   it('не бросает ошибку при отсутствии timestamp', () => {
     expect(() => purgeExpiredVault()).not.toThrow()
+  })
+
+  it('не бросает ошибку если localStorage.getItem бросает исключение', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('storage error') })
+    expect(() => purgeExpiredVault()).not.toThrow()
+    vi.restoreAllMocks()
   })
 })

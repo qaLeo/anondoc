@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { detectDocType, nextDocNumber, makeAnonymizedName, makeRestoredName } from './docNaming'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { detectDocType, nextDocNumber, currentDocNumber, makeAnonymizedName, makeRestoredName } from './docNaming'
 
 beforeEach(() => {
   localStorage.clear()
@@ -79,6 +79,28 @@ describe('nextDocNumber', () => {
     nextDocNumber('Приказ')
     // Перезагрузка не симулируется, но данные в localStorage
     expect(nextDocNumber('Приказ')).toBe(3)
+  })
+})
+
+describe('nextDocNumber — catch в loadCounters', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('возвращает 1 если localStorage.getItem бросает исключение', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('storage error') })
+    expect(nextDocNumber('Договор')).toBe(1)
+  })
+})
+
+describe('currentDocNumber', () => {
+  it('возвращает 1 если счётчик ещё не создан', () => {
+    expect(currentDocNumber('Договор')).toBe(1)
+  })
+
+  it('возвращает текущее значение без инкремента', () => {
+    nextDocNumber('Резюме')
+    nextDocNumber('Резюме')
+    expect(currentDocNumber('Резюме')).toBe(2)
+    expect(currentDocNumber('Резюме')).toBe(2) // не растёт
   })
 })
 
