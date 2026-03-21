@@ -1,5 +1,5 @@
 import type { PiiCategory } from './types'
-import { validateINN, validateSNILS } from './validators'
+import { validateINN, validateSNILS, validateLuhn } from './validators'
 
 interface RuleResult {
   category: PiiCategory
@@ -101,7 +101,7 @@ export function detectPii(text: string): RuleResult[] {
 
   for (const m of findAll(text, PHONE)) {
     const digits = m[0].replace(/\D/g, '')
-    if (digits.startsWith('8800')) continue
+    if (digits.startsWith('8800') || digits.startsWith('7800')) continue
     results.push({ category: 'ТЕЛЕФОН', original: m[0], start: m.index, end: m.index + m[0].length })
   }
 
@@ -161,7 +161,9 @@ export function detectPii(text: string): RuleResult[] {
     }
   }
   for (const m of findAll(text, DATE_WORDS)) {
-    results.push({ category: 'ДАТА_РОЖДЕНИЯ', original: m[0], start: m.index, end: m.index + m[0].length })
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, DATE_KEYWORDS)) {
+      results.push({ category: 'ДАТА_РОЖДЕНИЯ', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
   }
 
   // ОГРНИП (15 цифр) — проверяем раньше ОГРН (13 цифр), чтобы не было перекрытий
@@ -190,13 +192,15 @@ export function detectPii(text: string): RuleResult[] {
     }
   }
 
-  // Банковская карта (16 цифр с разделителями)
+  // Банковская карта (16 цифр с разделителями) — проверяем Luhn
   for (const m of findAll(text, CARD)) {
-    results.push({ category: 'КАРТА', original: m[0], start: m.index, end: m.index + m[0].length })
+    if (validateLuhn(m[0].replace(/\D/g, ''))) {
+      results.push({ category: 'КАРТА', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
   }
-  // Карта без разделителей — только с контекстом
+  // Карта без разделителей — только с контекстом + Luhn
   for (const m of findAll(text, CARD_PLAIN)) {
-    if (hasKeywordNearby(text, m.index, m.index + m[0].length, CARD_KEYWORDS)) {
+    if (validateLuhn(m[0]) && hasKeywordNearby(text, m.index, m.index + m[0].length, CARD_KEYWORDS)) {
       results.push({ category: 'КАРТА', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }

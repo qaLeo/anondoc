@@ -36,13 +36,15 @@ export function anonymizeText(text: string): { anonymized: string; vault: VaultM
   const stats: PiiStats = {}
 
   for (const m of matches) {
+    // Use original (pre-normalization) slice for vault so Ё, accents etc. are preserved
+    const originalValue = text.slice(m.start, m.end)
     if (!originalToToken.has(m.original)) {
       const prefix = CATEGORY_PREFIX[m.category]
       const count = (categoryCounters[m.category] ?? 0) + 1
       categoryCounters[m.category] = count
       const token = `[${prefix}_${count}]`
       originalToToken.set(m.original, token)
-      vault[token] = m.original
+      vault[token] = originalValue
     }
     stats[m.category] = (stats[m.category] ?? 0) + 1
   }
