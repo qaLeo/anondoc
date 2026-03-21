@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { DropZone } from './DropZone'
 import { FilenameInput } from './FilenameInput'
+import { CountryBadge } from './CountryBadge'
 import { parseFile } from '../parsers'
 import { anonymizeText, type PiiStats } from '../engine/anonymizer'
 import { saveVault } from '../vault/vaultService'
 import { detectDocType, nextDocNumber, makeAnonymizedName } from '../utils/docNaming'
+import { detectCountries, type CountryCode } from '../utils/countryDetector'
 import type { PiiCategory } from '../engine/types'
 
 const CATEGORY_LABELS: Record<PiiCategory, string> = {
@@ -32,6 +34,8 @@ export function AnonymizationTab() {
   const [saveBaseName, setSaveBaseName] = useState<string | null>(null)
   const [stats, setStats] = useState<PiiStats | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
+  const [detectedCountries, setDetectedCountries] = useState<CountryCode[]>([])
+  const [selectedCountries, setSelectedCountries] = useState<CountryCode[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Close fullscreen on Escape
@@ -47,12 +51,17 @@ export function AnonymizationTab() {
     setResult('')
     setSaveBaseName(null)
     setStats(null)
+    setDetectedCountries([])
+    setSelectedCountries([])
     setRawText('')
     setSelectedFile(file)
     setLoading(true)
     try {
       const text = await parseFile(file)
       setRawText(text)
+      const countries = detectCountries(text)
+      setDetectedCountries(countries)
+      setSelectedCountries(countries)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка чтения файла')
     } finally {
@@ -66,6 +75,8 @@ export function AnonymizationTab() {
     setResult('')
     setStats(null)
     setSaveBaseName(null)
+    setDetectedCountries([])
+    setSelectedCountries([])
     setError(null)
   }
 
@@ -172,6 +183,14 @@ export function AnonymizationTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)', fontSize: 14 }}>
           <Spinner /> Читаем файл...
         </div>
+      )}
+
+      {rawText && !loading && selectedCountries.length > 0 && (
+        <CountryBadge
+          detected={detectedCountries}
+          selected={selectedCountries}
+          onChange={setSelectedCountries}
+        />
       )}
 
       {rawText && !loading && (
