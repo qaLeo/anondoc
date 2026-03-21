@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "chcp 65001 && vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
