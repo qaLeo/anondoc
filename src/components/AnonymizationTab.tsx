@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { DropZone } from './DropZone'
+import { FilenameInput } from './FilenameInput'
 import { parseFile } from '../parsers'
 import { anonymizeText, type PiiStats } from '../engine/anonymizer'
 import { saveVault } from '../vault/vaultService'
@@ -23,7 +24,7 @@ export function AnonymizationTab() {
   const [error, setError] = useState<string | null>(null)
   const [rawText, setRawText] = useState('')
   const [copied, setCopied] = useState(false)
-  const [saveFileName, setSaveFileName] = useState<string | null>(null)
+  const [saveBaseName, setSaveBaseName] = useState<string | null>(null)
   const [stats, setStats] = useState<PiiStats | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -39,7 +40,7 @@ export function AnonymizationTab() {
   const handleFile = async (file: File) => {
     setError(null)
     setResult('')
-    setSaveFileName(null)
+    setSaveBaseName(null)
     setStats(null)
     setRawText('')
     setSelectedFile(file)
@@ -59,7 +60,7 @@ export function AnonymizationTab() {
     setRawText('')
     setResult('')
     setStats(null)
-    setSaveFileName(null)
+    setSaveBaseName(null)
     setError(null)
   }
 
@@ -73,7 +74,8 @@ export function AnonymizationTab() {
       saveVault(vault)
       const docType = detectDocType(rawText)
       const n = nextDocNumber(docType)
-      setSaveFileName(makeAnonymizedName(docType, n))
+      // makeAnonymizedName returns e.g. "Резюме_1.txt" — strip .txt for editable base
+      setSaveBaseName(makeAnonymizedName(docType, n).replace(/\.txt$/, ''))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка обезличивания')
     }
@@ -90,7 +92,7 @@ export function AnonymizationTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = saveFileName ?? 'Документ_1.txt'
+    a.download = `${saveBaseName ?? 'Документ_1'}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -212,45 +214,52 @@ export function AnonymizationTab() {
           {/* Textarea with toolbar */}
           {textareaBlock}
 
-          {/* Action buttons */}
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              onClick={handleSave}
-              style={{
-                flex: 1, padding: '12px 20px', fontSize: 14, fontWeight: 600,
-                background: 'var(--brand)', color: '#fff',
-                border: '2px solid var(--brand)',
-                borderRadius: 8, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'background 0.15s',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'var(--brand-hover)'
-                e.currentTarget.style.borderColor = 'var(--brand-hover)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'var(--brand)'
-                e.currentTarget.style.borderColor = 'var(--brand)'
-              }}
-            >
-              ↓ {saveFileName ? `Сохранить как ${saveFileName}` : 'Сохранить файл'}
-            </button>
-            <button
-              onClick={handleCopy}
-              style={{
-                padding: '12px 20px', fontSize: 14, fontWeight: 600,
-                background: '#fff', color: copied ? 'var(--green)' : 'var(--brand)',
-                border: `2px solid ${copied ? 'var(--green-border)' : 'var(--brand)'}`,
-                borderRadius: 8, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8,
-                transition: 'all 0.15s', flexShrink: 0,
-              }}
-              onMouseEnter={e => { if (!copied) e.currentTarget.style.background = 'var(--brand-light)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
-            >
-              {copied ? '✓ Скопировано' : '📋 Скопировать'}
-            </button>
+          {/* Filename + action buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {saveBaseName !== null && (
+              <FilenameInput
+                baseName={saveBaseName}
+                onChange={setSaveBaseName}
+              />
+            )}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={handleSave}
+                style={{
+                  flex: 1, padding: '12px 20px', fontSize: 14, fontWeight: 600,
+                  background: 'var(--brand)', color: '#fff',
+                  border: '2px solid var(--brand)',
+                  borderRadius: 8, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'var(--brand-hover)'
+                  e.currentTarget.style.borderColor = 'var(--brand-hover)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'var(--brand)'
+                  e.currentTarget.style.borderColor = 'var(--brand)'
+                }}
+              >
+                ↓ Сохранить
+              </button>
+              <button
+                onClick={handleCopy}
+                style={{
+                  padding: '12px 20px', fontSize: 14, fontWeight: 600,
+                  background: '#fff', color: copied ? 'var(--green)' : 'var(--brand)',
+                  border: `2px solid ${copied ? 'var(--green-border)' : 'var(--brand)'}`,
+                  borderRadius: 8, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  transition: 'all 0.15s', flexShrink: 0,
+                }}
+                onMouseEnter={e => { if (!copied) e.currentTarget.style.background = 'var(--brand-light)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
+              >
+                {copied ? '✓ Скопировано' : '📋 Скопировать'}
+              </button>
+            </div>
           </div>
         </>
       )}

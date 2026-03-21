@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { DropZone } from './DropZone'
+import { FilenameInput } from './FilenameInput'
 import { parseTextFile } from '../parsers/textParser'
 import { deanonymizeText } from '../engine/anonymizer'
 import { loadVault } from '../vault/vaultService'
@@ -11,7 +12,7 @@ export function DeanonymizationTab() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rawText, setRawText] = useState('')
-  const [saveFileName, setSaveFileName] = useState<string | null>(null)
+  const [saveBaseName, setSaveBaseName] = useState<string | null>(null)
   const [restoreStats, setRestoreStats] = useState<{ restored: number; total: number } | null>(null)
   const [copied, setCopied] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
@@ -26,7 +27,7 @@ export function DeanonymizationTab() {
   const handleFile = async (file: File) => {
     setError(null)
     setResult('')
-    setSaveFileName(null)
+    setSaveBaseName(null)
     setRestoreStats(null)
     setRawText('')
     setSelectedFile(file)
@@ -46,7 +47,7 @@ export function DeanonymizationTab() {
     setRawText('')
     setResult('')
     setRestoreStats(null)
-    setSaveFileName(null)
+    setSaveBaseName(null)
     setError(null)
   }
 
@@ -64,7 +65,7 @@ export function DeanonymizationTab() {
       setRestoreStats({ restored: restoredCount, total })
       const docType = detectDocType(restored)
       const n = currentDocNumber(docType)
-      setSaveFileName(makeRestoredName(docType, n))
+      setSaveBaseName(makeRestoredName(docType, n).replace(/\.txt$/, ''))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка деанонимизации')
     }
@@ -81,7 +82,7 @@ export function DeanonymizationTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = saveFileName ?? 'Документ_1_восстановлен.txt'
+    a.download = `${saveBaseName ?? 'Документ_1_восстановлен'}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -179,7 +180,11 @@ export function DeanonymizationTab() {
             />
           </div>
 
-          {/* Action buttons */}
+          {/* Filename + action buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {saveBaseName !== null && (
+              <FilenameInput baseName={saveBaseName} onChange={setSaveBaseName} />
+            )}
           <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={handleSave}
@@ -190,7 +195,6 @@ export function DeanonymizationTab() {
                 borderRadius: 8, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 transition: 'background 0.15s',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = 'var(--brand-hover)'
@@ -201,7 +205,7 @@ export function DeanonymizationTab() {
                 e.currentTarget.style.borderColor = 'var(--brand)'
               }}
             >
-              ↓ {saveFileName ? `Сохранить как ${saveFileName}` : 'Сохранить файл'}
+              ↓ Сохранить
             </button>
             <button
               onClick={handleCopy}
@@ -218,6 +222,7 @@ export function DeanonymizationTab() {
             >
               {copied ? '✓ Скопировано' : '📋 Скопировать'}
             </button>
+          </div>
           </div>
         </>
       )}
