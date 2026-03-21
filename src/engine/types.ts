@@ -6,6 +6,11 @@ export type PiiCategory =
   | 'СНИЛС'
   | 'ПАСПОРТ'
   | 'ДАТА_РОЖДЕНИЯ'
+  | 'ОГРН'
+  | 'ОГРНИП'
+  | 'АДРЕС'
+  | 'КАРТА'
+  | 'СЧЁТ'
 
 export interface PiiMatch {
   id: string

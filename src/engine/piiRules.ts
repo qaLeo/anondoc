@@ -57,6 +57,26 @@ const DATE_ISO = /\b\d{4}-\d{2}-\d{2}\b/g
 const DATE_WORDS = /\b\d{1,2}\s+(?:январ[яьяе]|феврал[яьяе]|март[аея]?|апрел[яьяе]|ма[яей]|июн[яьяе]|июл[яьяе]|август[аея]?|сентябр[яьяе]|октябр[яьяе]|ноябр[яьяе]|декабр[яьяе])\s+\d{4}\b/gi
 const DATE_KEYWORDS = ['дата рождения', 'д.р.', 'г.р.', 'г/р', 'рожд', 'родился', 'родилась', 'born', 'дата рожд']
 
+// ОГРН: 13 цифр, ОГРНИП: 15 цифр
+const OGRN = /\b\d{13}\b/g
+const OGRNIP = /\b\d{15}\b/g
+const OGRN_KEYWORDS = ['огрн', 'огрнип', 'основной государственный']
+
+// Адрес: маркеры типов улиц + номер дома обязателен
+const ADDRESS = /(?:г\.?\s*|город\s+)[А-ЯЁа-яё\-]+(?:[,\s]+(?:ул\.?|улица|пр\.?|просп\.?|проспект|пер\.?|переулок|б-р|бульвар|наб\.?|набережная|ш\.?|шоссе|пл\.?|площадь|пр-д|проезд|туп\.?|тупик|аллея)[.\s]+[А-ЯЁа-яё0-9\s\-]+)?(?:[,\s]+д\.?\s*\d+\w*)?(?:[,\s]+(?:кв\.?|квартира|оф\.?|офис|пом\.?|помещение)\s*\d+\w*)?/gi
+const ADDRESS_KEYWORDS = ['адрес', 'проживает', 'зарегистрирован', 'зарегистрирована', 'место регистрации', 'прописка', 'прописан', 'прописана', 'регистрации по']
+// Уличные адреса без города — тоже детектировать при наличии контекста
+const STREET_ADDRESS = /(?:ул\.?|улица|пр\.?|просп\.?|проспект|пер\.?|переулок|б-р|бульвар|наб\.?|набережная|ш\.?|шоссе|пл\.?|площадь|аллея)\s+[А-ЯЁа-яё0-9\s\-]+,?\s+д\.?\s*\d+\w*(?:\s*,?\s*(?:кв\.?|квартира|оф\.?|офис)\s*\d+\w*)?/gi
+
+// Банковская карта: 16 цифр, начинается на 2/4/5, разделители пробел/дефис
+const CARD = /\b[245]\d{3}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b/g
+const CARD_PLAIN = /\b[245]\d{15}\b/g
+const CARD_KEYWORDS = ['карта', 'карточка', 'visa', 'mastercard', 'мир', 'card']
+
+// Расчётный счёт: ровно 20 цифр, только с контекстом
+const ACCOUNT = /\b\d{20}\b/g
+const ACCOUNT_KEYWORDS = ['р/с', 'расчётный счёт', 'расчетный счет', 'р.с.', 'счёт №', 'счет №', 'счёт:', 'счет:']
+
 export function detectPii(text: string): RuleResult[] {
   const results: RuleResult[] = []
 
@@ -142,6 +162,50 @@ export function detectPii(text: string): RuleResult[] {
   }
   for (const m of findAll(text, DATE_WORDS)) {
     results.push({ category: 'ДАТА_РОЖДЕНИЯ', original: m[0], start: m.index, end: m.index + m[0].length })
+  }
+
+  // ОГРНИП (15 цифр) — проверяем раньше ОГРН (13 цифр), чтобы не было перекрытий
+  for (const m of findAll(text, OGRNIP)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, OGRN_KEYWORDS)) {
+      results.push({ category: 'ОГРНИП', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+  for (const m of findAll(text, OGRN)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, OGRN_KEYWORDS)) {
+      results.push({ category: 'ОГРН', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // Адрес — только с контекстом
+  for (const m of findAll(text, ADDRESS)) {
+    const match = m[0].trim()
+    if (match.length > 10 && hasKeywordNearby(text, m.index, m.index + m[0].length, ADDRESS_KEYWORDS)) {
+      results.push({ category: 'АДРЕС', original: match, start: m.index, end: m.index + m[0].length })
+    }
+  }
+  for (const m of findAll(text, STREET_ADDRESS)) {
+    const match = m[0].trim()
+    if (match.length > 8 && hasKeywordNearby(text, m.index, m.index + m[0].length, ADDRESS_KEYWORDS)) {
+      results.push({ category: 'АДРЕС', original: match, start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // Банковская карта (16 цифр с разделителями)
+  for (const m of findAll(text, CARD)) {
+    results.push({ category: 'КАРТА', original: m[0], start: m.index, end: m.index + m[0].length })
+  }
+  // Карта без разделителей — только с контекстом
+  for (const m of findAll(text, CARD_PLAIN)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, CARD_KEYWORDS)) {
+      results.push({ category: 'КАРТА', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // Расчётный счёт (20 цифр) — только с контекстом
+  for (const m of findAll(text, ACCOUNT)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, ACCOUNT_KEYWORDS)) {
+      results.push({ category: 'СЧЁТ', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
   }
 
   return results

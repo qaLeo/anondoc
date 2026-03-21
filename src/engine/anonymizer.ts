@@ -10,6 +10,11 @@ const CATEGORY_PREFIX: Record<PiiCategory, string> = {
   'СНИЛС': 'СНИЛС',
   'ПАСПОРТ': 'ПАС',
   'ДАТА_РОЖДЕНИЯ': 'ДР',
+  'ОГРН': 'ОГРН',
+  'ОГРНИП': 'ОГРНИП',
+  'АДРЕС': 'АДРЕС',
+  'КАРТА': 'КАРТА',
+  'СЧЁТ': 'СЧЁТ',
 }
 
 export type PiiStats = Partial<Record<PiiCategory, number>>
