@@ -22,6 +22,9 @@ const CATEGORY_LABELS: Record<PiiCategory, string> = {
   'АДРЕС': 'Адрес',
   'КАРТА': 'Карта',
   'СЧЁТ': 'Счёт',
+  'ИИН': 'ИИН (KZ)',
+  'ПИНФЛ': 'ПИНФЛ (UZ)',
+  'ЛИЧНЫЙ_НОМЕР': 'Личный номер (BY)',
 }
 
 export function AnonymizationTab() {

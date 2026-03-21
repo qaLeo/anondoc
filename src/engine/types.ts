@@ -11,6 +11,9 @@ export type PiiCategory =
   | 'АДРЕС'
   | 'КАРТА'
   | 'СЧЁТ'
+  | 'ИИН'
+  | 'ПИНФЛ'
+  | 'ЛИЧНЫЙ_НОМЕР'
 
 export interface PiiMatch {
   id: string

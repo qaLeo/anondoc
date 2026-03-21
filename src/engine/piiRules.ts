@@ -77,6 +77,18 @@ const CARD_KEYWORDS = ['карта', 'карточка', 'visa', 'mastercard', '
 const ACCOUNT = /\b\d{20}\b/g
 const ACCOUNT_KEYWORDS = ['р/с', 'расчётный счёт', 'расчетный счет', 'р.с.', 'счёт №', 'счет №', 'счёт:', 'счет:']
 
+// ИИН Казахстан: 12 цифр + ключевое слово
+const KZ_IIN = /\b\d{12}\b/g
+const KZ_IIN_KEYWORDS = ['иин', 'iin', 'жеке', 'казахстан', 'kz']
+
+// ПИНФЛ Узбекистан: 14 цифр + ключевое слово
+const UZ_PINFL = /\b\d{14}\b/g
+const UZ_PINFL_KEYWORDS = ['пинфл', 'pinfl', 'узбекистан', 'uz']
+
+// Личный номер Беларусь: 7 цифр + буква + 3 цифры + 2 буквы + цифра
+const BY_PERSONAL = /\b\d{7}[A-Za-z]\d{3}[A-Za-z]{2}\d\b/g
+const BY_PERSONAL_KEYWORDS = ['личный номер', 'личны нумар', 'беларусь', 'by', 'рб']
+
 export function detectPii(text: string): RuleResult[] {
   const results: RuleResult[] = []
 
@@ -209,6 +221,27 @@ export function detectPii(text: string): RuleResult[] {
   for (const m of findAll(text, ACCOUNT)) {
     if (hasKeywordNearby(text, m.index, m.index + m[0].length, ACCOUNT_KEYWORDS)) {
       results.push({ category: 'СЧЁТ', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // ПИНФЛ (14 цифр) — раньше ИИН (12 цифр), чтобы длинный паттерн имел приоритет
+  for (const m of findAll(text, UZ_PINFL)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, UZ_PINFL_KEYWORDS)) {
+      results.push({ category: 'ПИНФЛ', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // ИИН Казахстан (12 цифр) + ключевое слово
+  for (const m of findAll(text, KZ_IIN)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, KZ_IIN_KEYWORDS)) {
+      results.push({ category: 'ИИН', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // Личный номер Беларусь (7 цифр + буква + 3 цифры + 2 буквы + цифра)
+  for (const m of findAll(text, BY_PERSONAL)) {
+    if (hasKeywordNearby(text, m.index, m.index + m[0].length, BY_PERSONAL_KEYWORDS)) {
+      results.push({ category: 'ЛИЧНЫЙ_НОМЕР', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
 
