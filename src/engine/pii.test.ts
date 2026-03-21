@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectPii, deduplicateMatches } from './piiRules'
+import { detectPii, deduplicateMatches, findAll } from './piiRules'
 
 function detect(text: string) {
   return deduplicateMatches(detectPii(text))
@@ -300,5 +300,25 @@ describe('Дедупликация', () => {
     const fio = matches.filter(m => m.category === 'ФИО')
     expect(fio).toHaveLength(1)
     expect(fio[0].original).toBe('Иванов Иван Иванович')
+  })
+})
+
+// ── findAll — внутренние ветки ─────────────────────────────────────────────────
+
+describe('findAll — ветки покрытия', () => {
+  it('паттерн без флага g: findAll сам добавляет g', () => {
+    // Паттерн /\d+/ без g — findAll добавляет g и находит все совпадения
+    const matches = findAll('abc 123 def 456', /\d+/)
+    expect(matches).toHaveLength(2)
+    expect(matches[0][0]).toBe('123')
+    expect(matches[1][0]).toBe('456')
+  })
+
+  it('паттерн с нулевым совпадением: lastIndex инкрементируется', () => {
+    // /a*/ на строке "bb" даёт нулевые совпадения на каждой позиции
+    const matches = findAll('bb', /a*/)
+    // Ожидаем совпадения "" на позициях 0, 1, 2 (после каждого символа и в конце)
+    expect(matches.length).toBeGreaterThan(0)
+    expect(matches.every(m => m[0] === '')).toBe(true)
   })
 })

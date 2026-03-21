@@ -8,7 +8,7 @@ interface RuleResult {
   end: number
 }
 
-function findAll(text: string, pattern: RegExp): RegExpExecArray[] {
+export function findAll(text: string, pattern: RegExp): RegExpExecArray[] {
   const results: RegExpExecArray[] = []
   const re = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g')
   let m: RegExpExecArray | null
