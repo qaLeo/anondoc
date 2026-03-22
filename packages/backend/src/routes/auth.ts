@@ -24,32 +24,52 @@ const REFRESH_TTL = '30d'
 export async function authRoutes(app: FastifyInstance) {
   // POST /auth/register
   app.post('/register', async (req, reply) => {
-    const body = RegisterBody.parse(req.body)
-    const user = await registerUser(body.email, body.password, body.name)
-    const payload = buildTokenPayload(user)
-    const accessToken = app.jwt.sign(payload, { expiresIn: ACCESS_TTL })
-    const refreshToken = app.jwt.sign(payload, { expiresIn: REFRESH_TTL })
-
-    reply
-      .setCookie('refreshToken', refreshToken, {
-        httpOnly: true, secure: true, sameSite: 'strict', path: '/auth/refresh',
-      })
-      .send({ accessToken, user: { id: user.id, email: user.email, plan: user.plan } })
+    let body: z.infer<typeof RegisterBody>
+    try {
+      body = RegisterBody.parse(req.body)
+    } catch {
+      return reply.status(400).send({ error: 'Invalid input' })
+    }
+    try {
+      const user = await registerUser(body.email, body.password, body.name)
+      const payload = buildTokenPayload(user)
+      const accessToken = app.jwt.sign(payload, { expiresIn: ACCESS_TTL })
+      const refreshToken = app.jwt.sign(payload, { expiresIn: REFRESH_TTL })
+      reply
+        .setCookie('refreshToken', refreshToken, {
+          httpOnly: true, secure: true, sameSite: 'strict', path: '/auth/refresh',
+        })
+        .send({ accessToken, user: { id: user.id, email: user.email, plan: user.plan } })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error'
+      if (msg === 'EMAIL_TAKEN') return reply.status(409).send({ error: 'EMAIL_TAKEN' })
+      throw e
+    }
   })
 
   // POST /auth/login
   app.post('/login', async (req, reply) => {
-    const body = LoginBody.parse(req.body)
-    const user = await loginUser(body.email, body.password)
-    const payload = buildTokenPayload(user)
-    const accessToken = app.jwt.sign(payload, { expiresIn: ACCESS_TTL })
-    const refreshToken = app.jwt.sign(payload, { expiresIn: REFRESH_TTL })
-
-    reply
-      .setCookie('refreshToken', refreshToken, {
-        httpOnly: true, secure: true, sameSite: 'strict', path: '/auth/refresh',
-      })
-      .send({ accessToken, user: { id: user.id, email: user.email, plan: user.plan } })
+    let body: z.infer<typeof LoginBody>
+    try {
+      body = LoginBody.parse(req.body)
+    } catch {
+      return reply.status(400).send({ error: 'Invalid input' })
+    }
+    try {
+      const user = await loginUser(body.email, body.password)
+      const payload = buildTokenPayload(user)
+      const accessToken = app.jwt.sign(payload, { expiresIn: ACCESS_TTL })
+      const refreshToken = app.jwt.sign(payload, { expiresIn: REFRESH_TTL })
+      reply
+        .setCookie('refreshToken', refreshToken, {
+          httpOnly: true, secure: true, sameSite: 'strict', path: '/auth/refresh',
+        })
+        .send({ accessToken, user: { id: user.id, email: user.email, plan: user.plan } })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error'
+      if (msg === 'INVALID_CREDENTIALS') return reply.status(401).send({ error: 'INVALID_CREDENTIALS' })
+      throw e
+    }
   })
 
   // POST /auth/refresh
