@@ -4,6 +4,17 @@ import axios from 'axios'
 // In production set VITE_API_URL to your backend origin.
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
+// Access token lives in memory only — never touches localStorage
+let _accessToken: string | null = null
+
+export function setAccessToken(token: string | null) {
+  _accessToken = token
+}
+
+export function getAccessToken(): string | null {
+  return _accessToken
+}
+
 export const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // send refresh token cookie
@@ -11,7 +22,7 @@ export const api = axios.create({
 
 // Attach access token to every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -47,13 +58,13 @@ api.interceptors.response.use(
           {},
         )
         const newToken = data.accessToken
-        localStorage.setItem('accessToken', newToken)
+        setAccessToken(newToken)
         refreshQueue.forEach((cb) => cb(newToken))
         refreshQueue = []
         original.headers.Authorization = `Bearer ${newToken}`
         return api(original)
       } catch {
-        localStorage.removeItem('accessToken')
+        setAccessToken(null)
         refreshQueue = []
         window.location.href = '/auth'
         return Promise.reject(error)

@@ -36,6 +36,8 @@ export async function createCheckoutSession(userId: string, plan: Plan, returnUr
     success_url: `${returnUrl}?success=1`,
     cancel_url: `${returnUrl}?canceled=1`,
     metadata: { userId, plan },
+  }, {
+    idempotencyKey: `checkout-${userId}-${plan}`,
   })
 
   return session

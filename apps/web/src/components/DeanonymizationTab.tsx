@@ -51,11 +51,11 @@ export function DeanonymizationTab() {
     setError(null)
   }
 
-  const handleDeanonymize = () => {
+  const handleDeanonymize = async () => {
     if (!rawText) return
     setError(null)
     try {
-      const vault = loadVault()
+      const vault = await loadVault()
       if (Object.keys(vault).length === 0) {
         setError('Карта замен не найдена. Сначала выполните анонимизацию документа в этом браузере.')
         return

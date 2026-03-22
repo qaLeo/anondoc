@@ -47,8 +47,10 @@ export async function authRoutes(app: FastifyInstance) {
     }
   })
 
-  // POST /auth/login
-  app.post('/login', async (req, reply) => {
+  // POST /auth/login — brute-force protection: 5 attempts per 15 min per IP
+  app.post('/login', {
+    config: { rateLimit: { max: 5, timeWindow: '15 minutes', keyGenerator: (req) => req.ip } },
+  }, async (req, reply) => {
     let body: z.infer<typeof LoginBody>
     try {
       body = LoginBody.parse(req.body)

@@ -95,7 +95,7 @@ export function AnonymizationTab() {
       const { anonymized, vault, stats: newStats } = anonymizeText(rawText)
       setResult(anonymized)
       setStats(newStats)
-      saveVault(vault)
+      await saveVault(vault)
       const docType = detectDocType(rawText)
       const n = nextDocNumber(docType)
       // makeAnonymizedName returns e.g. "Резюме_1.txt" — strip .txt for editable base

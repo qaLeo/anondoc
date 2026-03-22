@@ -21,7 +21,11 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: >
+      sh -c "redis-server --appendonly yes
+      $${REDIS_PASSWORD:+--requirepass $${REDIS_PASSWORD}}"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     volumes:
       - redis_data:/data
     ports:
@@ -44,7 +48,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://anondoc:${POSTGRES_PASSWORD:-anondoc_dev}@postgres:5432/anondoc
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       JWT_SECRET: ${JWT_SECRET}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}

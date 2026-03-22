@@ -30,4 +30,14 @@ export async function usageRoutes(app: FastifyInstance) {
     const usage = await getUsage(req.userId)
     reply.send(usage)
   })
+
+  // DELETE /me/account — permanently delete the authenticated user's account
+  app.delete('/account', {
+    preHandler: [app.authenticate],
+  }, async (req, reply) => {
+    await app.prisma.user.delete({ where: { id: req.userId } })
+    reply
+      .clearCookie('refreshToken', { path: '/auth/refresh' })
+      .status(204).send()
+  })
 }

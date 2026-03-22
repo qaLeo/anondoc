@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
-import { authApi, type UserProfile } from '../api/client'
+import { authApi, setAccessToken, type UserProfile } from '../api/client'
 
 interface AuthState {
   user: UserProfile | null
@@ -16,28 +16,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // On mount — restore session from localStorage token
+  // On mount — restore session via httpOnly refresh cookie (token never touches localStorage)
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
-    authApi.profile()
+    authApi.refresh()
+      .then(({ data }) => {
+        setAccessToken(data.accessToken)
+        return authApi.profile()
+      })
       .then(({ data }) => setUser(data))
-      .catch(() => localStorage.removeItem('accessToken'))
+      .catch(() => setAccessToken(null))
       .finally(() => setIsLoading(false))
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
     const { data } = await authApi.login(email, password)
-    localStorage.setItem('accessToken', data.accessToken)
+    setAccessToken(data.accessToken)
     setUser(data.user)
   }, [])
 
   const register = useCallback(async (email: string, password: string, name?: string) => {
     const { data } = await authApi.register(email, password, name)
-    localStorage.setItem('accessToken', data.accessToken)
+    setAccessToken(data.accessToken)
     setUser(data.user)
   }, [])
 
@@ -47,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore — clear local state regardless
     }
-    localStorage.removeItem('accessToken')
+    setAccessToken(null)
     setUser(null)
   }, [])
 
