@@ -1,46 +1,19 @@
 {
-  "name": "anondoc",
+  "name": "anondoc-monorepo",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
   "scripts": {
-    "dev": "chcp 65001 && vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
-  },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.469.0",
-    "mammoth": "^1.8.0",
-    "pdfjs-dist": "^5.5.207",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwind-merge": "^2.6.0",
-    "xlsx": "^0.18.5"
+    "dev": "pnpm --filter @anondoc/web dev",
+    "dev:backend": "pnpm --filter @anondoc/backend dev",
+    "build": "pnpm --filter @anondoc/engine build && pnpm --filter @anondoc/backend build && pnpm --filter @anondoc/web build",
+    "test": "pnpm -r test",
+    "test:engine": "pnpm --filter @anondoc/engine test",
+    "test:web": "pnpm --filter @anondoc/web test",
+    "typecheck": "pnpm -r typecheck",
+    "db:migrate": "pnpm --filter @anondoc/backend db:migrate",
+    "db:generate": "pnpm --filter @anondoc/backend db:generate"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.1.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.19.0",
-    "@typescript-eslint/parser": "^8.19.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.17.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.16",
-    "globals": "^15.14.0",
-    "jsdom": "^25.0.1",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.19.0",
-    "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }
