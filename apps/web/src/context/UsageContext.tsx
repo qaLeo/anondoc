@@ -6,7 +6,9 @@ interface UsageState {
   usage: UsageData | null
   isLoading: boolean
   isLimitReached: boolean
-  isNearLimit: boolean   // > 80%
+  isNearLimit: boolean       // > 80%
+  isTrial: boolean
+  trialDaysLeft: number | null
   refresh: () => Promise<void>
   trackDocument: () => Promise<void>
 }
@@ -55,6 +57,8 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
   const isLimitReached = limit !== -1 && limit > 0 && requests >= limit
   const isNearLimit = limit !== -1 && limit > 0 && requests / limit > 0.8
+  const isTrial = usage?.isTrial ?? false
+  const trialDaysLeft = usage?.trialDaysLeft ?? null
 
   return (
     <UsageContext.Provider value={{
@@ -62,6 +66,8 @@ export function UsageProvider({ children }: { children: ReactNode }) {
       isLoading,
       isLimitReached,
       isNearLimit,
+      isTrial,
+      trialDaysLeft,
       refresh,
       trackDocument,
     }}>

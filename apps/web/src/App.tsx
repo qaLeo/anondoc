@@ -64,7 +64,7 @@ function MainPage() {
 
 function Header() {
   const { user, logout } = useAuth()
-  const { usage, isNearLimit, isLimitReached } = useUsage()
+  const { usage, isNearLimit, isLimitReached, isTrial, trialDaysLeft } = useUsage()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -82,6 +82,7 @@ function Header() {
     : user?.email?.[0]?.toUpperCase() ?? '?'
 
   return (
+    <>
     <header style={{
       background: '#fff',
       borderBottom: '1px solid var(--border)',
@@ -250,6 +251,49 @@ function Header() {
         </button>
       </div>
     </header>
+
+    {/* Trial banner */}
+    {isTrial && trialDaysLeft !== null && trialDaysLeft > 0 && (
+      <TrialBanner days={trialDaysLeft} onUpgrade={() => navigate('/pricing')} />
+    )}
+    </>
+  )
+}
+
+function TrialBanner({ days, onUpgrade }: { days: number; onUpgrade: () => void }) {
+  const isRed = days <= 2
+  const isYellow = days <= 7 && days > 2
+
+  const bg = isRed ? '#FFF3F3' : isYellow ? '#FFFDE7' : '#E3F2FD'
+  const border = isRed ? '#FFCDD2' : isYellow ? '#FFF176' : '#90CAF9'
+  const color = isRed ? '#C62828' : isYellow ? '#E65100' : '#1565C0'
+
+  return (
+    <div style={{
+      background: bg,
+      borderBottom: `1px solid ${border}`,
+      padding: '8px 32px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+    }}>
+      <span style={{ fontSize: 13, fontWeight: 500, color }}>
+        🎁 Пробный период Pro: осталось {days} {days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'}
+      </span>
+      {isRed && (
+        <button
+          onClick={onUpgrade}
+          style={{
+            padding: '4px 12px', fontSize: 12, fontWeight: 600,
+            background: '#C62828', color: '#fff', border: 'none',
+            borderRadius: 5, cursor: 'pointer',
+          }}
+        >
+          Подключить
+        </button>
+      )}
+    </div>
   )
 }
 

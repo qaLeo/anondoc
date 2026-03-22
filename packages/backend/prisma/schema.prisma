@@ -16,6 +16,7 @@ model User {
   provider     String?  // "google" | "microsoft" | "local"
   providerId   String?
   plan         Plan     @default(FREE)
+  trialUsed    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -28,18 +29,20 @@ model User {
 }
 
 model Subscription {
-  id                   String    @id @default(cuid())
-  userId               String    @unique
-  plan                 Plan
-  status               String    // "active" | "canceled" | "past_due"
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  plan                  Plan
+  status                String    // "active" | "canceled" | "past_due" | "trialing"
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
   yokassaSubscriptionId String?
-  currentPeriodStart   DateTime
-  currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean   @default(false)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean   @default(false)
+  isTrial               Boolean   @default(false)
+  trialEndsAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

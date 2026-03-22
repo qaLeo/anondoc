@@ -127,8 +127,13 @@ export interface UsageData {
   requests: number
   chars: number
   plan: string
-  limit: number   // -1 = unlimited
+  limit: number       // -1 = unlimited
   remaining: number
+  isTrial: boolean
+  trialEndsAt: string | null
+  trialDaysLeft: number | null
+  trialUsed: boolean
+  trialDays: number
 }
 
 export interface SubscriptionData {
