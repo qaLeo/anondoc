@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+// In dev, Vite proxies /auth /me /billing /api → localhost:3000 (no CORS needed).
+// In production set VITE_API_URL to your backend origin.
+const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -40,10 +42,9 @@ api.interceptors.response.use(
 
       isRefreshing = true
       try {
-        const { data } = await axios.post<{ accessToken: string }>(
-          `${BASE_URL}/auth/refresh`,
+        const { data } = await api.post<{ accessToken: string }>(
+          '/auth/refresh',
           {},
-          { withCredentials: true },
         )
         const newToken = data.accessToken
         localStorage.setItem('accessToken', newToken)
