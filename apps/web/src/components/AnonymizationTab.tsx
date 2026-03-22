@@ -8,6 +8,8 @@ import { saveVault } from '../vault/vaultService'
 import { detectDocType, nextDocNumber, makeAnonymizedName } from '../utils/docNaming'
 import { detectCountries, type CountryCode } from '@anondoc/engine'
 import type { PiiCategory } from '@anondoc/engine'
+import { useAuth } from '../context/AuthContext'
+import { useUsage } from '../context/UsageContext'
 
 const CATEGORY_LABELS: Record<PiiCategory, string> = {
   'ФИО': 'ФИО',
@@ -28,6 +30,8 @@ const CATEGORY_LABELS: Record<PiiCategory, string> = {
 }
 
 export function AnonymizationTab() {
+  const { isAuthenticated } = useAuth()
+  const { isLimitReached, trackDocument } = useUsage()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [result, setResult] = useState('')
   const [loading, setLoading] = useState(false)
@@ -83,8 +87,9 @@ export function AnonymizationTab() {
     setError(null)
   }
 
-  const handleAnonymize = () => {
+  const handleAnonymize = async () => {
     if (!rawText) return
+    if (isAuthenticated && isLimitReached) return
     setError(null)
     try {
       const { anonymized, vault, stats: newStats } = anonymizeText(rawText)
@@ -95,6 +100,10 @@ export function AnonymizationTab() {
       const n = nextDocNumber(docType)
       // makeAnonymizedName returns e.g. "Резюме_1.txt" — strip .txt for editable base
       setSaveBaseName(makeAnonymizedName(docType, n).replace(/\.txt$/, ''))
+      // Track usage on backend (fire-and-forget)
+      if (isAuthenticated) {
+        trackDocument().catch(() => {})
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка обезличивания')
     }
@@ -197,19 +206,37 @@ export function AnonymizationTab() {
       )}
 
       {rawText && !loading && (
-        <button
-          onClick={handleAnonymize}
-          style={{
-            width: '100%', padding: '13px', fontSize: 15, fontWeight: 600,
-            background: 'var(--brand)', color: '#fff', border: 'none',
-            borderRadius: 8, cursor: 'pointer', letterSpacing: '0.2px',
-            transition: 'background 0.15s',
+        isAuthenticated && isLimitReached ? (
+          <div style={{
+            padding: '13px 16px',
+            borderRadius: 8,
+            background: '#FFF3F3',
+            border: '1px solid #FFCDD2',
+            color: '#C62828',
+            fontSize: 14,
+            fontWeight: 600,
+            textAlign: 'center',
+            cursor: 'pointer',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}
-        >
-          {result ? 'Анонимизировать повторно' : 'Анонимизировать'}
-        </button>
+            onClick={() => alert('Переход к выбору плана — Coming Soon')}
+          >
+            Лимит исчерпан. Обновите план →
+          </div>
+        ) : (
+          <button
+            onClick={handleAnonymize}
+            style={{
+              width: '100%', padding: '13px', fontSize: 15, fontWeight: 600,
+              background: 'var(--brand)', color: '#fff', border: 'none',
+              borderRadius: 8, cursor: 'pointer', letterSpacing: '0.2px',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}
+          >
+            {result ? 'Анонимизировать повторно' : 'Анонимизировать'}
+          </button>
+        )
       )}
 
       {result && (

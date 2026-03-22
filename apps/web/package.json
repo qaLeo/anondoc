@@ -13,12 +13,14 @@
   },
   "dependencies": {
     "@anondoc/engine": "workspace:*",
+    "axios": "^1.13.6",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
     "mammoth": "^1.8.0",
     "pdfjs-dist": "^5.5.207",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.13.1",
     "tailwind-merge": "^2.6.0",
     "xlsx": "^0.18.5"
   },

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { getUsage } from '../services/usageService.js'
+import { getUsage, incrementUsage } from '../services/usageService.js'
 
 export async function usageRoutes(app: FastifyInstance) {
   // GET /me/profile
@@ -18,6 +18,15 @@ export async function usageRoutes(app: FastifyInstance) {
   app.get('/usage', {
     preHandler: [app.authenticate],
   }, async (req, reply) => {
+    const usage = await getUsage(req.userId)
+    reply.send(usage)
+  })
+
+  // POST /me/usage/track — called by frontend after local anonymization
+  app.post('/usage/track', {
+    preHandler: [app.authenticate],
+  }, async (req, reply) => {
+    await incrementUsage(req.userId, 0)
     const usage = await getUsage(req.userId)
     reply.send(usage)
   })
