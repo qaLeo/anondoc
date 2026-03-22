@@ -3,6 +3,12 @@ import fp from 'fastify-plugin'
 import fastifyRateLimit from '@fastify/rate-limit'
 import Redis from 'ioredis'
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    redis: Redis | null
+  }
+}
+
 const PLAN_LIMITS: Record<string, number> = {
   FREE: 100,
   PRO: 1000,
@@ -12,12 +18,19 @@ const PLAN_LIMITS: Record<string, number> = {
 
 export const rateLimitPlugin = fp(async (app: FastifyInstance) => {
   const redis = process.env.REDIS_URL
-    ? new Redis(process.env.REDIS_URL)
-    : undefined
+    ? new Redis(process.env.REDIS_URL, { lazyConnect: true })
+    : null
+
+  if (redis) await redis.connect().catch(() => {})
+  app.decorate('redis', redis)
+
+  app.addHook('onClose', async () => {
+    await redis?.quit().catch(() => {})
+  })
 
   await app.register(fastifyRateLimit, {
     global: false, // apply per-route via config
-    redis,
+    redis: redis ?? undefined,
     keyGenerator: (req) => {
       // Use userId if authenticated, else IP
       return (req as any).userId ?? req.ip

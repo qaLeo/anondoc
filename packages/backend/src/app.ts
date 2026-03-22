@@ -38,8 +38,10 @@ export async function buildApp() {
   await app.register(fastifyHelmet, {
     contentSecurityPolicy: false,
   })
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+    .split(',').map(s => s.trim())
   await app.register(fastifyCors, {
-    origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173'],
+    origin: allowedOrigins,
     credentials: true,
   })
   await app.register(fastifyCookie)
@@ -79,7 +81,21 @@ export async function buildApp() {
   await app.register(keysRoutes, { prefix: '/api/v1' })
 
   // Health check
-  app.get('/health', async () => ({ status: 'ok', ts: Date.now() }))
+  app.get('/health', async () => {
+    const [dbStatus, redisStatus] = await Promise.all([
+      app.prisma.$queryRaw`SELECT 1`.then(() => 'connected').catch(() => 'error'),
+      app.redis
+        ? app.redis.ping().then(() => 'connected').catch(() => 'error')
+        : 'not configured',
+    ])
+    return {
+      status: dbStatus === 'connected' ? 'ok' : 'degraded',
+      version: '1.0.0',
+      db: dbStatus,
+      redis: redisStatus,
+      timestamp: new Date().toISOString(),
+    }
+  })
 
   return app
 }
