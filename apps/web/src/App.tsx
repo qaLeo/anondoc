@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom'
 import { AnonymizationTab } from './components/AnonymizationTab'
 import { DeanonymizationTab } from './components/DeanonymizationTab'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { UsageProvider, useUsage } from './context/UsageContext'
 import Auth from './pages/Auth'
+import Pricing from './pages/Pricing'
+import BillingSuccess from './pages/BillingSuccess'
+import Profile from './pages/Profile'
 
 type Tab = 'anonymize' | 'deanonymize'
 
@@ -89,17 +92,30 @@ function Header() {
       justifyContent: 'space-between',
       gap: 16,
     }}>
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect width="28" height="28" rx="7" fill="#1976D2" />
-          <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="21" cy="18" r="4" fill="#fff" />
-          <path d="M19.5 18l1 1 2-2" stroke="#1976D2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
-          AnonDoc
-        </span>
+      {/* Logo + nav */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="7" fill="#1976D2" />
+            <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="21" cy="18" r="4" fill="#fff" />
+            <path d="M19.5 18l1 1 2-2" stroke="#1976D2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+            AnonDoc
+          </span>
+        </div>
+        <Link
+          to="/pricing"
+          style={{
+            fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)',
+            textDecoration: 'none', transition: 'color 0.15s',
+          }}
+          onMouseEnter={(e) => { (e.target as HTMLElement).style.color = 'var(--brand)' }}
+          onMouseLeave={(e) => { (e.target as HTMLElement).style.color = 'var(--text-secondary)' }}
+        >
+          Тарифы
+        </Link>
       </div>
 
       {/* Usage counter */}
@@ -157,7 +173,7 @@ function Header() {
             }}
             onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
             onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-            onClick={() => alert('Переход к выбору плана — Coming Soon')}
+            onClick={() => navigate('/pricing')}
           >
             {isLimitReached ? 'Лимит исчерпан →' : 'Обновить план'}
           </button>
@@ -177,39 +193,35 @@ function Header() {
           </span>
         )}
 
-        {/* Avatar */}
-        <div style={{
-          width: 34,
-          height: 34,
-          borderRadius: '50%',
-          background: '#1976D2',
-          color: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 13,
-          fontWeight: 700,
-          flexShrink: 0,
-          overflow: 'hidden',
-        }}>
-          {user?.avatarUrl
-            ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : initials
-          }
-        </div>
-
-        {/* Name */}
-        <span style={{
-          fontSize: 14,
-          fontWeight: 500,
-          color: 'var(--text-primary)',
-          maxWidth: 120,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {user?.name ?? user?.email?.split('@')[0]}
-        </span>
+        {/* Avatar + name — click goes to /profile */}
+        <button
+          onClick={() => navigate('/profile')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
+            borderRadius: 8, transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--page-bg)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}
+        >
+          <div style={{
+            width: 34, height: 34, borderRadius: '50%',
+            background: '#1976D2', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 13, fontWeight: 700, flexShrink: 0, overflow: 'hidden',
+          }}>
+            {user?.avatarUrl
+              ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : initials
+            }
+          </div>
+          <span style={{
+            fontSize: 14, fontWeight: 500, color: 'var(--text-primary)',
+            maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {user?.name ?? user?.email?.split('@')[0]}
+          </span>
+        </button>
 
         {/* Logout */}
         <button
@@ -250,12 +262,22 @@ export default function App() {
         <UsageProvider>
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/billing/success" element={<ProtectedRoute><BillingSuccess /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/*" element={<AppLayout />} />
           </Routes>
         </UsageProvider>
       </AuthProvider>
     </BrowserRouter>
   )
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth()
+  if (isLoading) return <Loader />
+  if (!isAuthenticated) return <Navigate to="/auth" replace />
+  return <>{children}</>
 }
 
 // Redirect to / if already authenticated

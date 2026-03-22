@@ -93,6 +93,21 @@ export const usageApi = {
   track: () => api.post('/me/usage/track'),
 }
 
+// Billing endpoints
+export const billingApi = {
+  subscribe: (plan: string, returnUrl: string) =>
+    api.post<{ url: string }>('/billing/subscribe', { plan, returnUrl }),
+  cancel: () => api.post('/billing/cancel'),
+  subscription: () => api.get<SubscriptionData>('/billing/subscription'),
+}
+
+// API Keys endpoints
+export const keysApi = {
+  list: () => api.get<ApiKey[]>('/api/v1/keys'),
+  create: (name: string) => api.post<ApiKeyCreated>('/api/v1/keys', { name }),
+  revoke: (id: string) => api.delete(`/api/v1/keys/${id}`),
+}
+
 // Types
 export interface AuthResponse {
   accessToken: string
@@ -114,4 +129,25 @@ export interface UsageData {
   plan: string
   limit: number   // -1 = unlimited
   remaining: number
+}
+
+export interface SubscriptionData {
+  plan: string
+  status: string
+  currentPeriodEnd?: string
+  cancelAtPeriodEnd?: boolean
+}
+
+export interface ApiKey {
+  id: string
+  name: string
+  keyPrefix: string
+  scopes: string[]
+  lastUsedAt?: string
+  expiresAt?: string
+  createdAt: string
+}
+
+export interface ApiKeyCreated extends ApiKey {
+  key: string  // raw key, shown once
 }
