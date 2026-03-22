@@ -1,9 +1,11 @@
 # ── Builder stage ─────────────────────────────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
+
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@latest
 
 # Copy workspace manifests for dependency install
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -23,11 +25,13 @@ RUN pnpm --filter @anondoc/backend db:generate
 RUN pnpm --filter @anondoc/backend build
 
 # ── Runner stage ──────────────────────────────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM node:20-alpine AS runner
+
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@latest
 
 # Production deps only
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
