@@ -15,7 +15,7 @@ export async function parsePdfFile(file: File): Promise<string> {
 
   const buffer = await file.arrayBuffer()
 
-  let pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>>['promise']
+  let pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>
   try {
     pdf = await pdfjsLib.getDocument({ data: buffer }).promise
   } catch (e) {

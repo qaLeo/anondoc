@@ -1,97 +1,86 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { IDBFactory } from 'fake-indexeddb'
 import { saveVault, loadVault, clearVault, purgeExpiredVault } from './vaultService'
 
+// Reset IndexedDB state between tests
 beforeEach(() => {
-  localStorage.clear()
+  // Replace the global indexedDB with a fresh instance each test
+  ;(globalThis as any).indexedDB = new IDBFactory()
 })
 
 describe('loadVault', () => {
-  it('возвращает пустой объект если vault не существует', () => {
-    expect(loadVault()).toEqual({})
+  it('возвращает пустой объект если vault не существует', async () => {
+    expect(await loadVault()).toEqual({})
   })
 
-  it('возвращает сохранённые данные', () => {
-    saveVault({ '[ТЕЛ_1]': '+7 916 000 00 00' })
-    expect(loadVault()).toEqual({ '[ТЕЛ_1]': '+7 916 000 00 00' })
-  })
-
-  it('возвращает пустой объект при повреждённом JSON', () => {
-    localStorage.setItem('anondoc_vault', '{broken json')
-    expect(loadVault()).toEqual({})
+  it('возвращает сохранённые данные', async () => {
+    await saveVault({ '[ТЕЛ_1]': '+7 916 000 00 00' })
+    expect(await loadVault()).toEqual({ '[ТЕЛ_1]': '+7 916 000 00 00' })
   })
 })
 
 describe('saveVault', () => {
-  it('сохраняет новые записи', () => {
-    saveVault({ '[EMAIL_1]': 'user@example.com' })
-    expect(loadVault()['[EMAIL_1]']).toBe('user@example.com')
+  it('сохраняет новые записи', async () => {
+    await saveVault({ '[EMAIL_1]': 'user@example.com' })
+    expect((await loadVault())['[EMAIL_1]']).toBe('user@example.com')
   })
 
-  it('мёрджит с существующими записями', () => {
-    saveVault({ '[ТЕЛ_1]': '+7 916 000 00 00' })
-    saveVault({ '[EMAIL_1]': 'user@example.com' })
-    const vault = loadVault()
+  it('мёрджит с существующими записями', async () => {
+    await saveVault({ '[ТЕЛ_1]': '+7 916 000 00 00' })
+    await saveVault({ '[EMAIL_1]': 'user@example.com' })
+    const vault = await loadVault()
     expect(vault['[ТЕЛ_1]']).toBe('+7 916 000 00 00')
     expect(vault['[EMAIL_1]']).toBe('user@example.com')
   })
 
-  it('новая запись перезаписывает старую при совпадении токена', () => {
-    saveVault({ '[ТЕЛ_1]': 'старый' })
-    saveVault({ '[ТЕЛ_1]': 'новый' })
-    expect(loadVault()['[ТЕЛ_1]']).toBe('новый')
-  })
-
-  it('обновляет timestamp при сохранении', () => {
-    const before = Date.now()
-    saveVault({ '[ТЕЛ_1]': 'тест' })
-    const ts = parseInt(localStorage.getItem('anondoc_vault_ts')!, 10)
-    expect(ts).toBeGreaterThanOrEqual(before)
-    expect(ts).toBeLessThanOrEqual(Date.now())
+  it('новая запись перезаписывает старую при совпадении токена', async () => {
+    await saveVault({ '[ТЕЛ_1]': 'старый' })
+    await saveVault({ '[ТЕЛ_1]': 'новый' })
+    expect((await loadVault())['[ТЕЛ_1]']).toBe('новый')
   })
 })
 
 describe('clearVault', () => {
-  it('удаляет все данные vault', () => {
-    saveVault({ '[ТЕЛ_1]': '+7 916 000 00 00' })
-    clearVault()
-    expect(loadVault()).toEqual({})
+  it('удаляет все данные vault', async () => {
+    await saveVault({ '[ТЕЛ_1]': '+7 916 000 00 00' })
+    await clearVault()
+    expect(await loadVault()).toEqual({})
   })
 
-  it('удаляет timestamp', () => {
-    saveVault({ '[ТЕЛ_1]': 'тест' })
-    clearVault()
-    expect(localStorage.getItem('anondoc_vault_ts')).toBeNull()
-  })
-
-  it('не бросает ошибку при пустом vault', () => {
-    expect(() => clearVault()).not.toThrow()
+  it('не бросает ошибку при пустом vault', async () => {
+    await expect(clearVault()).resolves.toBeUndefined()
   })
 })
 
 describe('purgeExpiredVault', () => {
-  it('не удаляет vault младше 30 дней', () => {
-    saveVault({ '[ТЕЛ_1]': 'тест' })
-    purgeExpiredVault()
-    expect(loadVault()).toEqual({ '[ТЕЛ_1]': 'тест' })
+  it('не удаляет vault младше 30 дней', async () => {
+    await saveVault({ '[ТЕЛ_1]': 'тест' })
+    await purgeExpiredVault()
+    expect(await loadVault()).toEqual({ '[ТЕЛ_1]': 'тест' })
   })
 
-  it('удаляет vault старше 30 дней', () => {
-    saveVault({ '[ТЕЛ_1]': 'тест' })
-    // Подменяем timestamp на 31 день назад
+  it('удаляет vault старше 30 дней', async () => {
+    // Manually write an expired record directly via IndexedDB
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const req = indexedDB.open('anondoc', 1)
+      req.onupgradeneeded = () => req.result.createObjectStore('vault', { keyPath: 'id' })
+      req.onsuccess = () => resolve(req.result)
+      req.onerror = () => reject(req.error)
+    })
     const expired = Date.now() - 31 * 24 * 60 * 60 * 1000
-    localStorage.setItem('anondoc_vault_ts', expired.toString())
-    purgeExpiredVault()
-    expect(loadVault()).toEqual({})
-    expect(localStorage.getItem('anondoc_vault_ts')).toBeNull()
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction('vault', 'readwrite')
+      tx.objectStore('vault').put({ id: 'current', data: { '[ТЕЛ_1]': 'тест' }, savedAt: expired })
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+    db.close()
+
+    await purgeExpiredVault()
+    expect(await loadVault()).toEqual({})
   })
 
-  it('не бросает ошибку при отсутствии timestamp', () => {
-    expect(() => purgeExpiredVault()).not.toThrow()
-  })
-
-  it('не бросает ошибку если localStorage.getItem бросает исключение', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('storage error') })
-    expect(() => purgeExpiredVault()).not.toThrow()
-    vi.restoreAllMocks()
+  it('не бросает ошибку при отсутствии данных', async () => {
+    await expect(purgeExpiredVault()).resolves.toBeUndefined()
   })
 })
