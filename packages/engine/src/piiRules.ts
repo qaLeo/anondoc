@@ -1,5 +1,5 @@
-import type { PiiCategory } from './types'
-import { validateINN, validateSNILS, validateLuhn } from './validators'
+import type { PiiCategory } from './types.js'
+import { validateINN, validateSNILS, validateLuhn } from './validators.js'
 
 interface RuleResult {
   category: PiiCategory

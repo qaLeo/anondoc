@@ -1,6 +1,6 @@
-import type { PiiCategory, VaultMap } from './types'
-import { normalizeText } from './normalizer'
-import { detectPii, deduplicateMatches } from './piiRules'
+import type { PiiCategory, VaultMap } from './types.js'
+import { normalizeText } from './normalizer.js'
+import { detectPii, deduplicateMatches } from './piiRules.js'
 
 const CATEGORY_PREFIX: Record<PiiCategory, string> = {
   'ФИО': 'ФИО',
