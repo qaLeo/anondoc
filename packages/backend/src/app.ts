@@ -34,12 +34,11 @@ export async function buildApp() {
     },
   })
 
-  // CORS must be registered before helmet so its headers aren't overridden
+  // CORS — registered before helmet so headers aren't overridden
   const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? process.env.CORS_ORIGIN ?? 'http://localhost:5173')
     .split(',').map(s => s.trim())
   await app.register(fastifyCors, {
     origin: (origin, cb) => {
-      // cb(error, allow) — passing an Error causes 500; pass null always
       if (!origin || allowedOrigins.includes(origin)) {
         cb(null, true)
       } else {
@@ -49,8 +48,18 @@ export async function buildApp() {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    // When origin is rejected, @fastify/cors skips reply and falls through
+    // to routing — which returns 404 since no OPTIONS routes exist.
+    // Hook below catches all OPTIONS before routing and short-circuits them.
+  })
+
+  // Catch-all OPTIONS handler — must run before routes are matched.
+  // @fastify/cors sets Access-Control-Allow-* headers via onRequest hook,
+  // this just ensures preflight never hits a 404.
+  app.addHook('onRequest', async (req, reply) => {
+    if (req.method === 'OPTIONS') {
+      await reply.status(204).send()
+    }
   })
 
   // Security headers — disable CORP so cross-origin API responses aren't blocked
