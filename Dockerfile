@@ -19,10 +19,13 @@ RUN pnpm install --frozen-lockfile
 COPY packages/engine/  ./packages/engine/
 COPY packages/backend/ ./packages/backend/
 
+# Build engine first — backend imports its compiled JS output
+RUN cd packages/engine && pnpm run build
+
 # Prisma generate must come before tsc so generated types are available
 RUN cd packages/backend && pnpm exec prisma generate
 
-# Build TypeScript
+# Build backend
 RUN cd packages/backend && pnpm run build
 
 # ── Runner ────────────────────────────────────────────────────────────────────
@@ -38,8 +41,9 @@ RUN npm install -g pnpm
 COPY --from=builder /app/package.json          ./
 COPY --from=builder /app/pnpm-workspace.yaml   ./
 
-# Engine (runtime dep of backend)
-COPY --from=builder /app/packages/engine/      ./packages/engine/
+# Engine — compiled JS only (no .ts sources needed at runtime)
+COPY --from=builder /app/packages/engine/package.json  ./packages/engine/
+COPY --from=builder /app/packages/engine/dist/         ./packages/engine/dist/
 
 # Backend — built artifacts + prisma schema + node_modules
 COPY --from=builder /app/packages/backend/package.json  ./packages/backend/
