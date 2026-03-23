@@ -39,14 +39,18 @@ export async function buildApp() {
     .split(',').map(s => s.trim())
   await app.register(fastifyCors, {
     origin: (origin, cb) => {
-      // Allow requests with no origin (server-to-server, curl, health checks)
-      if (!origin) return cb(null, true)
-      if (allowedOrigins.includes(origin)) return cb(null, true)
-      cb(new Error('Not allowed by CORS'), false)
+      // cb(error, allow) — passing an Error causes 500; pass null always
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true)
+      } else {
+        cb(null, false)
+      }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 
   // Security headers — disable CORP so cross-origin API responses aren't blocked
