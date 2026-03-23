@@ -34,15 +34,25 @@ export async function buildApp() {
     },
   })
 
-  // Security
-  await app.register(fastifyHelmet, {
-    contentSecurityPolicy: false,
-  })
+  // CORS must be registered before helmet so its headers aren't overridden
   const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? process.env.CORS_ORIGIN ?? 'http://localhost:5173')
     .split(',').map(s => s.trim())
   await app.register(fastifyCors, {
-    origin: allowedOrigins,
+    origin: (origin, cb) => {
+      // Allow requests with no origin (server-to-server, curl, health checks)
+      if (!origin) return cb(null, true)
+      if (allowedOrigins.includes(origin)) return cb(null, true)
+      cb(new Error('Not allowed by CORS'), false)
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  })
+
+  // Security headers — disable CORP so cross-origin API responses aren't blocked
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
   await app.register(fastifyCookie)
 
