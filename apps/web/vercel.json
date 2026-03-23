@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm run vercel-build",
-  "outputDirectory": "apps/web/dist",
+  "outputDirectory": "dist",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
