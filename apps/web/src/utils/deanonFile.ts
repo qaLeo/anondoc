@@ -25,7 +25,7 @@ export async function deanonymizeFile(
 
 async function deanonText(file: File, vault: VaultMap): Promise<DeanonResult> {
   const raw = await file.text()
-  const { result, restored, total } = deanonymizeText(raw, vault)
+  const { result, restored } = deanonymizeText(raw, vault)
   const notFoundCount = countRemainingTokens(result)
   const blob = new Blob([result], { type: 'text/plain;charset=utf-8' })
   const filename = restoredName(file.name)
