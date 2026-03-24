@@ -8,6 +8,7 @@ import Auth from './pages/Auth'
 import Pricing from './pages/Pricing'
 import BillingSuccess from './pages/BillingSuccess'
 import Profile from './pages/Profile'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 type Tab = 'anonymize' | 'deanonymize'
 
@@ -53,7 +54,11 @@ function MainPage() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 20 }}>
-          Обработка выполняется локально · данные не передаются на серверы
+          Обработка выполняется локально · данные не передаются на серверы · соответствует ФЗ-152
+          {' · '}
+          <Link to="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>
+            Политика конфиденциальности
+          </Link>
         </p>
       </main>
     </div>
@@ -307,6 +312,7 @@ export default function App() {
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/billing/success" element={<ProtectedRoute><BillingSuccess /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/*" element={<AppLayout />} />
