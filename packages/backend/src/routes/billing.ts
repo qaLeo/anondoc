@@ -29,56 +29,74 @@ export async function billingRoutes(app: FastifyInstance) {
   // POST /billing/trial — activate 10-day Pro trial (no card)
   app.post('/trial', {
     preHandler: [app.authenticate],
+    config: { rateLimit: { max: 10, timeWindow: '15 minutes', keyGenerator: (req) => req.ip } },
   }, async (req, reply) => {
-    const user = await app.prisma.user.findUniqueOrThrow({ where: { id: req.userId } })
+    // Resolve domain outside transaction (read-only, no TOCTOU risk)
+    const userSnap = await app.prisma.user.findUniqueOrThrow({
+      where: { id: req.userId },
+      select: { email: true, trialUsed: true },
+    })
+    const domain = userSnap.email.split('@')[1]?.toLowerCase() ?? ''
+    const isCorporate = !FREE_EMAIL_DOMAINS.has(domain)
 
-    if (user.trialUsed) {
-      return reply.status(400).send({ error: 'TRIAL_ALREADY_USED' })
-    }
+    const trialEndsAt = new Date()
+    trialEndsAt.setDate(trialEndsAt.getDate() + TRIAL_DAYS)
 
-    // Fraud protection: limit corporate domain trials to 10 per domain
-    const domain = user.email.split('@')[1]?.toLowerCase() ?? ''
-    if (!FREE_EMAIL_DOMAINS.has(domain)) {
-      const domainTrialCount = await app.prisma.user.count({
-        where: { email: { endsWith: `@${domain}` }, trialUsed: true },
+    try {
+      await app.prisma.$transaction(async (tx) => {
+        // Re-read trialUsed inside the transaction to prevent races
+        const user = await tx.user.findUniqueOrThrow({
+          where: { id: req.userId },
+          select: { trialUsed: true },
+        })
+        if (user.trialUsed) throw Object.assign(new Error('TRIAL_ALREADY_USED'), { status: 400 })
+
+        // Atomic domain-trial limit check for corporate addresses
+        if (isCorporate) {
+          const domainTrialCount = await tx.user.count({
+            where: { email: { endsWith: `@${domain}` }, trialUsed: true },
+          })
+          if (domainTrialCount >= 10) {
+            throw Object.assign(new Error('DOMAIN_TRIAL_LIMIT'), { status: 400 })
+          }
+        }
+
+        await tx.user.update({
+          where: { id: req.userId },
+          data: { plan: Plan.PRO, trialUsed: true },
+        })
+        await tx.subscription.upsert({
+          where: { userId: req.userId },
+          create: {
+            userId: req.userId,
+            plan: Plan.PRO,
+            status: 'trialing',
+            isTrial: true,
+            trialEndsAt,
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: trialEndsAt,
+          },
+          update: {
+            plan: Plan.PRO,
+            status: 'trialing',
+            isTrial: true,
+            trialEndsAt,
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: trialEndsAt,
+          },
+        })
       })
-      if (domainTrialCount >= 10) {
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'TRIAL_ALREADY_USED') return reply.status(400).send({ error: 'TRIAL_ALREADY_USED' })
+      if (msg === 'DOMAIN_TRIAL_LIMIT') {
         return reply.status(400).send({
           error: 'DOMAIN_TRIAL_LIMIT',
           message: 'лимит пробных периодов для вашей организации исчерпан',
         })
       }
+      throw e
     }
-
-    const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + TRIAL_DAYS)
-
-    await app.prisma.$transaction([
-      app.prisma.user.update({
-        where: { id: req.userId },
-        data: { plan: Plan.PRO, trialUsed: true },
-      }),
-      app.prisma.subscription.upsert({
-        where: { userId: req.userId },
-        create: {
-          userId: req.userId,
-          plan: Plan.PRO,
-          status: 'trialing',
-          isTrial: true,
-          trialEndsAt,
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: trialEndsAt,
-        },
-        update: {
-          plan: Plan.PRO,
-          status: 'trialing',
-          isTrial: true,
-          trialEndsAt,
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: trialEndsAt,
-        },
-      }),
-    ])
 
     reply.send({ ok: true })
   })

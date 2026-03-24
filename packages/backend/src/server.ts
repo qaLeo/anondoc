@@ -9,7 +9,7 @@ const host = process.env.HOST ?? '0.0.0.0'
 try {
   await app.listen({ port, host })
   console.log(`AnonDoc backend running at http://${host}:${port}`)
-  scheduleUsageCleanup(app.prisma, app.log)
+  scheduleUsageCleanup(app.prisma, app.log, app.redis)
 } catch (err) {
   app.log.error(err)
   process.exit(1)
