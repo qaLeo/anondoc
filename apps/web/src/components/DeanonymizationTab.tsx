@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { DropZone } from './DropZone'
-import { FilenameInput } from './FilenameInput'
 import { parseTextFile } from '../parsers/textParser'
 import { deanonymizeText } from '@anondoc/engine'
 import { loadVault } from '../vault/vaultService'
 import { detectDocType, currentDocNumber, makeRestoredName } from '../utils/docNaming'
+import { getAllDocs, getDocById, markRestored, parseVault, type DocRecord } from '../lib/documentHistory'
 
 export function DeanonymizationTab() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -16,6 +16,29 @@ export function DeanonymizationTab() {
   const [restoreStats, setRestoreStats] = useState<{ restored: number; total: number } | null>(null)
   const [copied, setCopied] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
+  const [historyDocs, setHistoryDocs] = useState<DocRecord[]>([])
+  const [foundInHistory, setFoundInHistory] = useState<DocRecord | null>(null)
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string>('')
+  const [showPicker, setShowPicker] = useState(false)
+
+  // Load history on mount
+  useEffect(() => {
+    getAllDocs().then(setHistoryDocs).catch(() => {})
+  }, [])
+
+  // Check for pending deanonymization from history page
+  useEffect(() => {
+    const pendingId = sessionStorage.getItem('pendingDeanon')
+    if (pendingId) {
+      sessionStorage.removeItem('pendingDeanon')
+      getDocById(pendingId).then((doc) => {
+        if (doc) {
+          setSelectedHistoryId(doc.id)
+          setFoundInHistory(doc)
+        }
+      }).catch(() => {})
+    }
+  }, [])
 
   useEffect(() => {
     if (!fullscreen) return
@@ -31,12 +54,19 @@ export function DeanonymizationTab() {
     setRestoreStats(null)
     setRawText('')
     setSelectedFile(file)
+    setFoundInHistory(null)
+    setSelectedHistoryId('')
+    setShowPicker(false)
     setLoading(true)
     try {
       const text = await parseTextFile(file)
       setRawText(text)
+      // Auto-search history by filename
+      const found = historyDocs.find((d) => d.name === file.name) ?? null
+      setFoundInHistory(found)
+      if (found) setSelectedHistoryId(found.id)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка чтения файла')
+      setError(e instanceof Error ? e.message : 'ошибка чтения файла')
     } finally {
       setLoading(false)
     }
@@ -48,6 +78,9 @@ export function DeanonymizationTab() {
     setResult('')
     setRestoreStats(null)
     setSaveBaseName(null)
+    setFoundInHistory(null)
+    setSelectedHistoryId('')
+    setShowPicker(false)
     setError(null)
   }
 
@@ -55,11 +88,23 @@ export function DeanonymizationTab() {
     if (!rawText) return
     setError(null)
     try {
-      const vault = await loadVault()
+      let vault: Record<string, string>
+
+      // Resolve vault source
+      if (selectedHistoryId) {
+        const doc = historyDocs.find((d) => d.id === selectedHistoryId)
+        vault = doc ? parseVault(doc.vault) : {}
+        if (doc) await markRestored(doc.id)
+      } else {
+        // Fallback to global vault
+        vault = await loadVault()
+      }
+
       if (Object.keys(vault).length === 0) {
-        setError('Карта замен не найдена. Сначала выполните анонимизацию документа в этом браузере.')
+        setError('vault не найден · загрузите vault.enc')
         return
       }
+
       const { result: restored, restored: restoredCount, total } = deanonymizeText(rawText, vault)
       setResult(restored)
       setRestoreStats({ restored: restoredCount, total })
@@ -67,7 +112,7 @@ export function DeanonymizationTab() {
       const n = currentDocNumber(docType)
       setSaveBaseName(makeRestoredName(docType, n).replace(/\.txt$/, ''))
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка деанонимизации')
+      setError(e instanceof Error ? e.message : 'ошибка деанонимизации')
     }
   }
 
@@ -82,34 +127,103 @@ export function DeanonymizationTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${saveBaseName ?? 'Документ_1_восстановлен'}.txt`
+    a.download = `${saveBaseName ?? 'документ_1_восстановлен'}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* DropZone — always visible */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <DropZone
         accept={['txt']}
         selectedFile={selectedFile}
         onFile={handleFile}
         onReset={handleReset}
+        showPrivacyHint={false}
       />
 
       {error && (
-        <div style={{
-          padding: '12px 16px', borderRadius: 8,
-          background: '#FFF3F3', border: '1px solid #FFCDD2',
-          color: '#C62828', fontSize: 14,
-        }}>
-          {error}
-        </div>
+        <div style={{ fontSize: 13, color: '#C00', padding: '6px 0' }}>{error}</div>
       )}
 
       {loading && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)', fontSize: 14 }}>
-          <Spinner /> Читаем файл...
+        <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>читаем файл...</div>
+      )}
+
+      {/* Vault source indicator */}
+      {rawText && !loading && (
+        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+          {foundInHistory || selectedHistoryId ? (
+            <span>
+              vault найден в истории ✓
+              {' · '}
+              <span
+                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={() => setShowPicker(!showPicker)}
+              >
+                изменить
+              </span>
+            </span>
+          ) : historyDocs.length > 0 ? (
+            <span>
+              vault не найден по имени файла
+              {' · '}
+              <span
+                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={() => setShowPicker(!showPicker)}
+              >
+                выбрать из истории
+              </span>
+            </span>
+          ) : (
+            <span style={{ color: 'var(--text-hint)' }}>
+              история пуста · будет использован текущий vault
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* History picker */}
+      {showPicker && historyDocs.length > 0 && (
+        <div style={{
+          border: '1px solid var(--border-light)',
+          borderRadius: 8,
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '8px 12px', borderBottom: '1px solid var(--border-light)',
+            fontSize: 12, color: 'var(--text-muted)',
+          }}>
+            выберите документ из истории
+          </div>
+          <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+            {historyDocs.map((doc) => (
+              <div
+                key={doc.id}
+                onClick={() => {
+                  setSelectedHistoryId(doc.id)
+                  setFoundInHistory(doc)
+                  setShowPicker(false)
+                }}
+                style={{
+                  padding: '9px 12px', cursor: 'pointer',
+                  borderBottom: '1px solid var(--border-light)',
+                  background: selectedHistoryId === doc.id ? '#F5F5F2' : 'var(--bg)',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}
+                onMouseEnter={e => { if (selectedHistoryId !== doc.id) e.currentTarget.style.background = '#F9F9F6' }}
+                onMouseLeave={e => { if (selectedHistoryId !== doc.id) e.currentTarget.style.background = 'var(--bg)' }}
+              >
+                <span style={{ fontSize: 13, color: 'var(--text)', flex: 1 }}>{doc.name}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+                  {new Date(doc.date).toLocaleDateString('ru-RU')}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+                  {doc.tokensCount} токенов
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -117,154 +231,135 @@ export function DeanonymizationTab() {
         <button
           onClick={handleDeanonymize}
           style={{
-            width: '100%', padding: '13px', fontSize: 15, fontWeight: 600,
-            background: 'var(--brand)', color: '#fff', border: 'none',
-            borderRadius: 8, cursor: 'pointer', letterSpacing: '0.2px',
-            transition: 'background 0.15s',
+            width: '100%', padding: '11px 20px',
+            fontSize: 14, fontWeight: 500,
+            background: 'var(--accent)', color: 'var(--bg)',
+            border: 'none', borderRadius: 6, cursor: 'pointer',
+            transition: 'opacity 0.15s',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
-          {result ? 'Деанонимизировать повторно' : 'Деанонимизировать'}
+          {result ? '→ деанонимизировать повторно' : '→ деанонимизировать'}
         </button>
       )}
 
       {result && (
         <>
-          {/* Restore stats */}
           {restoreStats && (
-            <div style={{
-              padding: '12px 16px', borderRadius: 8,
-              background: 'var(--green-light)', border: '1px solid var(--green-border)',
-              fontSize: 14, color: 'var(--green)', fontWeight: 500,
-            }}>
-              ✓ Восстановлено токенов: {restoreStats.restored} из {restoreStats.total}
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              восстановлено: {restoreStats.restored} из {restoreStats.total} токенов
             </div>
           )}
 
-          {/* Textarea with toolbar */}
-          <div style={{ borderRadius: 8, overflow: 'hidden', border: '1.5px solid var(--border)' }}>
+          {/* Textarea */}
+          <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-light)' }}>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '6px 12px', background: '#F5F5F5', borderBottom: '1px solid var(--border)',
+              padding: '5px 10px', borderBottom: '1px solid var(--border-light)',
             }}>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>
                 {result.length.toLocaleString('ru')} символов
               </span>
               <button
                 onClick={() => setFullscreen(true)}
-                title="Развернуть на весь экран"
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500,
-                  display: 'flex', alignItems: 'center', gap: 5, padding: '2px 6px',
-                  borderRadius: 4, transition: 'background 0.1s',
+                  fontSize: 11, color: 'var(--text-hint)', padding: '2px 4px',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#E0E0E0')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
               >
-                <ExpandIcon /> Развернуть
+                развернуть
               </button>
             </div>
             <textarea
               value={result}
               onChange={(e) => setResult(e.target.value)}
               style={{
-                width: '100%', height: 300, resize: 'vertical',
-                border: 'none', borderRadius: 0,
-                padding: '14px 16px', fontSize: 14, lineHeight: 1.75,
-                color: 'var(--text-primary)', outline: 'none',
-                fontFamily: 'inherit', background: '#fff', display: 'block',
+                width: '100%', height: 240, resize: 'vertical',
+                border: 'none', padding: '12px 14px',
+                fontSize: 13, lineHeight: 1.7, color: 'var(--text)',
+                background: 'var(--bg)', outline: 'none', display: 'block',
               }}
               spellCheck={false}
             />
           </div>
 
-          {/* Filename + action buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {saveBaseName !== null && (
-              <FilenameInput baseName={saveBaseName} onChange={setSaveBaseName} />
-            )}
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              onClick={handleSave}
-              style={{
-                flex: 1, padding: '12px 20px', fontSize: 14, fontWeight: 600,
-                background: 'var(--brand)', color: '#fff',
-                border: '2px solid var(--brand)',
-                borderRadius: 8, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'var(--brand-hover)'
-                e.currentTarget.style.borderColor = 'var(--brand-hover)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'var(--brand)'
-                e.currentTarget.style.borderColor = 'var(--brand)'
-              }}
-            >
-              ↓ Сохранить
-            </button>
+          {/* Export */}
+          <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={handleCopy}
               style={{
-                padding: '12px 20px', fontSize: 14, fontWeight: 600,
-                background: '#fff', color: copied ? 'var(--green)' : 'var(--brand)',
-                border: `2px solid ${copied ? 'var(--green-border)' : 'var(--brand)'}`,
-                borderRadius: 8, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8,
-                transition: 'all 0.15s', flexShrink: 0,
+                padding: '8px 16px', fontSize: 13,
+                background: 'transparent', color: copied ? 'var(--text-muted)' : 'var(--text)',
+                border: '1px solid var(--border-light)', borderRadius: 6,
+                cursor: 'pointer', transition: 'border-color 0.1s',
               }}
-              onMouseEnter={e => { if (!copied) e.currentTarget.style.background = 'var(--brand-light)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
             >
-              {copied ? '✓ Скопировано' : '📋 Скопировать'}
+              {copied ? 'скопировано' : '→ скопировать'}
+            </button>
+            <button
+              onClick={handleSave}
+              style={{
+                padding: '8px 16px', fontSize: 13,
+                background: 'transparent', color: 'var(--text)',
+                border: '1px solid var(--border-light)', borderRadius: 6,
+                cursor: 'pointer', transition: 'border-color 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+            >
+              → сохранить как...
             </button>
           </div>
-          </div>
+          {saveBaseName && (
+            <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: -8 }}>
+              {saveBaseName}.txt
+            </div>
+          )}
         </>
       )}
 
       {/* Fullscreen overlay */}
       {fullscreen && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
           zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 24,
         }}>
           <div style={{
-            background: '#fff', borderRadius: 12, width: '100%', maxWidth: 960,
+            background: '#fff', borderRadius: 8, width: '100%', maxWidth: 960,
             maxHeight: '95vh', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            border: '1px solid var(--border-light)',
           }}>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+              padding: '10px 16px', borderBottom: '1px solid var(--border-light)',
             }}>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
-                Просмотр документа · {result.length.toLocaleString('ru')} символов
+              <span style={{ fontSize: 12, color: 'var(--text-hint)' }}>
+                {result.length.toLocaleString('ru')} символов
               </span>
               <button
                 onClick={() => setFullscreen(false)}
                 style={{
-                  background: 'none', border: '1px solid var(--border)', borderRadius: 6,
-                  padding: '4px 12px', fontSize: 13, cursor: 'pointer',
-                  color: 'var(--text-secondary)', fontWeight: 500,
+                  background: 'none', border: '1px solid var(--border-light)', borderRadius: 5,
+                  padding: '3px 10px', fontSize: 12, cursor: 'pointer', color: 'var(--text-muted)',
                 }}
               >
-                Закрыть Esc
+                закрыть esc
               </button>
             </div>
             <textarea
               value={result}
               onChange={(e) => setResult(e.target.value)}
               style={{
-                flex: 1, width: '100%', border: 'none', padding: '20px 24px',
-                fontSize: 14, lineHeight: 1.8, color: 'var(--text-primary)',
-                fontFamily: 'inherit', outline: 'none', resize: 'none',
-                background: '#fff', borderRadius: '0 0 12px 12px',
+                flex: 1, width: '100%', border: 'none', padding: '18px 20px',
+                fontSize: 13, lineHeight: 1.8, color: 'var(--text)',
+                outline: 'none', resize: 'none', background: '#fff',
+                borderRadius: '0 0 8px 8px',
               }}
               spellCheck={false}
               autoFocus
@@ -273,23 +368,5 @@ export function DeanonymizationTab() {
         </div>
       )}
     </div>
-  )
-}
-
-function ExpandIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <path d="M1 5V1h4M9 1h3v4M12 8v4H8M4 12H1V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function Spinner() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" style={{ animation: 'spin 0.8s linear infinite' }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      <circle cx="8" cy="8" r="6" fill="none" stroke="#BDBDBD" strokeWidth="2" />
-      <path d="M8 2a6 6 0 0 1 6 6" stroke="#1976D2" strokeWidth="2" strokeLinecap="round" fill="none" />
-    </svg>
   )
 }

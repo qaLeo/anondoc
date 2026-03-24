@@ -109,6 +109,7 @@ export const usageApi = {
 export const billingApi = {
   subscribe: (plan: string, returnUrl: string) =>
     api.post<{ url: string }>('/billing/subscribe', { plan, returnUrl }),
+  startTrial: () => api.post<{ ok: boolean }>('/billing/trial'),
   cancel: () => api.post('/billing/cancel'),
   subscription: () => api.get<SubscriptionData>('/billing/subscription'),
 }

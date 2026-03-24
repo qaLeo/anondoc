@@ -1,37 +1,38 @@
 import { useState, useRef, useEffect } from 'react'
 import { DropZone } from './DropZone'
-import { FilenameInput } from './FilenameInput'
-import { CountryBadge } from './CountryBadge'
 import { parseFile } from '../parsers'
 import { anonymizeText, type PiiStats } from '@anondoc/engine'
 import { saveVault } from '../vault/vaultService'
 import { detectDocType, nextDocNumber, makeAnonymizedName } from '../utils/docNaming'
-import { detectCountries, type CountryCode } from '@anondoc/engine'
 import type { PiiCategory } from '@anondoc/engine'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
+import { saveDoc } from '../lib/documentHistory'
+import { useNavigate } from 'react-router-dom'
+import { randomUUID } from '../lib/uuid'
 
 const CATEGORY_LABELS: Record<PiiCategory, string> = {
-  'ФИО': 'ФИО',
-  'ТЕЛЕФОН': 'Телефон',
-  'EMAIL': 'Email',
-  'ИНН': 'ИНН',
-  'СНИЛС': 'СНИЛС',
-  'ПАСПОРТ': 'Паспорт',
-  'ДАТА_РОЖДЕНИЯ': 'Дата рождения',
-  'ОГРН': 'ОГРН',
-  'ОГРНИП': 'ОГРНИП',
-  'АДРЕС': 'Адрес',
-  'КАРТА': 'Карта',
-  'СЧЁТ': 'Счёт',
-  'ИИН': 'ИИН (KZ)',
-  'ПИНФЛ': 'ПИНФЛ (UZ)',
-  'ЛИЧНЫЙ_НОМЕР': 'Личный номер (BY)',
+  'ФИО': 'фио',
+  'ТЕЛЕФОН': 'телефон',
+  'EMAIL': 'email',
+  'ИНН': 'инн',
+  'СНИЛС': 'снилс',
+  'ПАСПОРТ': 'паспорт',
+  'ДАТА_РОЖДЕНИЯ': 'дата рождения',
+  'ОГРН': 'огрн',
+  'ОГРНИП': 'огрнип',
+  'АДРЕС': 'адрес',
+  'КАРТА': 'карта',
+  'СЧЁТ': 'счёт',
+  'ИИН': 'иин',
+  'ПИНФЛ': 'пинфл',
+  'ЛИЧНЫЙ_НОМЕР': 'личный номер',
 }
 
 export function AnonymizationTab() {
   const { isAuthenticated } = useAuth()
-  const { isLimitReached, trackDocument } = useUsage()
+  const { isLimitReached, trackDocument, usage } = useUsage()
+  const navigate = useNavigate()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [result, setResult] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,11 +42,9 @@ export function AnonymizationTab() {
   const [saveBaseName, setSaveBaseName] = useState<string | null>(null)
   const [stats, setStats] = useState<PiiStats | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
-  const [detectedCountries, setDetectedCountries] = useState<CountryCode[]>([])
-  const [selectedCountries, setSelectedCountries] = useState<CountryCode[]>([])
+  const [showWarning, setShowWarning] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Close fullscreen on Escape
   useEffect(() => {
     if (!fullscreen) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false) }
@@ -58,19 +57,14 @@ export function AnonymizationTab() {
     setResult('')
     setSaveBaseName(null)
     setStats(null)
-    setDetectedCountries([])
-    setSelectedCountries([])
     setRawText('')
     setSelectedFile(file)
     setLoading(true)
     try {
       const text = await parseFile(file)
       setRawText(text)
-      const countries = detectCountries(text)
-      setDetectedCountries(countries)
-      setSelectedCountries(countries)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка чтения файла')
+      setError(e instanceof Error ? e.message : 'ошибка чтения файла')
     } finally {
       setLoading(false)
     }
@@ -82,8 +76,6 @@ export function AnonymizationTab() {
     setResult('')
     setStats(null)
     setSaveBaseName(null)
-    setDetectedCountries([])
-    setSelectedCountries([])
     setError(null)
   }
 
@@ -96,16 +88,39 @@ export function AnonymizationTab() {
       setResult(anonymized)
       setStats(newStats)
       await saveVault(vault)
+
       const docType = detectDocType(rawText)
       const n = nextDocNumber(docType)
-      // makeAnonymizedName returns e.g. "Резюме_1.txt" — strip .txt for editable base
-      setSaveBaseName(makeAnonymizedName(docType, n).replace(/\.txt$/, ''))
+      const fullName = makeAnonymizedName(docType, n) // e.g. "Резюме_1.txt"
+      const baseName = fullName.replace(/\.txt$/, '')
+      setSaveBaseName(baseName)
+
+      // Auto-save to history
+      const plan = usage?.plan ?? 'FREE'
+      const totalTokens = Object.values(newStats as Record<string, number>).reduce((s, v) => s + v, 0)
+      await saveDoc({
+        id: randomUUID(),
+        name: fullName,
+        date: Date.now(),
+        anonText: anonymized,
+        vault: JSON.stringify(vault),
+        tokensCount: totalTokens,
+        size: anonymized.length,
+        restored: false,
+      }, plan)
+
+      // Show one-time warning about browser-local storage
+      if (!localStorage.getItem('history_warning_shown')) {
+        localStorage.setItem('history_warning_shown', '1')
+        setShowWarning(true)
+      }
+
       // Track usage on backend (fire-and-forget)
       if (isAuthenticated) {
         trackDocument().catch(() => {})
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ошибка обезличивания')
+      setError(e instanceof Error ? e.message : 'ошибка обезличивания')
     }
   }
 
@@ -120,7 +135,7 @@ export function AnonymizationTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${saveBaseName ?? 'Документ_1'}.txt`
+    a.download = `${saveBaseName ?? 'документ_1'}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -128,52 +143,8 @@ export function AnonymizationTab() {
   const statsEntries = stats ? (Object.entries(stats) as [PiiCategory, number][]) : []
   const hasStats = statsEntries.length > 0
 
-  const textareaBlock = result ? (
-    <div style={{ borderRadius: 8, overflow: 'hidden', border: '1.5px solid var(--border)' }}>
-      {/* Toolbar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 12px', background: '#F5F5F5', borderBottom: '1px solid var(--border)',
-      }}>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          {result.length.toLocaleString('ru')} символов
-        </span>
-        <button
-          onClick={() => setFullscreen(true)}
-          title="Развернуть на весь экран"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500,
-            display: 'flex', alignItems: 'center', gap: 5, padding: '2px 6px',
-            borderRadius: 4, transition: 'background 0.1s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#E0E0E0')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-        >
-          <ExpandIcon /> Развернуть
-        </button>
-      </div>
-      {/* textarea without its own border (border is on the wrapper) */}
-      <textarea
-        ref={textareaRef}
-        value={result}
-        onChange={(e) => setResult(e.target.value)}
-        style={{
-          width: '100%', height: 300, resize: 'vertical',
-          border: 'none', borderRadius: 0,
-          padding: '14px 16px', fontSize: 14, lineHeight: 1.75,
-          color: 'var(--text-primary)', outline: 'none',
-          fontFamily: 'inherit', background: '#fff', display: 'block',
-        }}
-        spellCheck={false}
-        placeholder="Анонимизированный текст появится здесь..."
-      />
-    </div>
-  ) : null
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* DropZone — always visible */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <DropZone
         accept={['txt', 'docx', 'xlsx', 'csv', 'pdf']}
         selectedFile={selectedFile}
@@ -182,59 +153,35 @@ export function AnonymizationTab() {
       />
 
       {error && (
-        <div style={{
-          padding: '12px 16px', borderRadius: 8,
-          background: '#FFF3F3', border: '1px solid #FFCDD2',
-          color: '#C62828', fontSize: 14,
-        }}>
-          {error}
-        </div>
+        <div style={{ fontSize: 13, color: '#C00', padding: '6px 0' }}>{error}</div>
       )}
 
       {loading && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)', fontSize: 14 }}>
-          <Spinner /> Читаем файл...
-        </div>
-      )}
-
-      {rawText && !loading && selectedCountries.length > 0 && (
-        <CountryBadge
-          detected={detectedCountries}
-          selected={selectedCountries}
-          onChange={setSelectedCountries}
-        />
+        <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>читаем файл...</div>
       )}
 
       {rawText && !loading && (
         isAuthenticated && isLimitReached ? (
-          <div style={{
-            padding: '13px 16px',
-            borderRadius: 8,
-            background: '#FFF3F3',
-            border: '1px solid #FFCDD2',
-            color: '#C62828',
-            fontSize: 14,
-            fontWeight: 600,
-            textAlign: 'center',
-            cursor: 'pointer',
-          }}
-            onClick={() => alert('Переход к выбору плана — Coming Soon')}
+          <div
+            style={{ fontSize: 14, color: 'var(--text)', cursor: 'pointer' }}
+            onClick={() => navigate('/pricing')}
           >
-            Лимит исчерпан. Обновите план →
+            лимит 10 документов исчерпан · попробовать pro →
           </div>
         ) : (
           <button
             onClick={handleAnonymize}
             style={{
-              width: '100%', padding: '13px', fontSize: 15, fontWeight: 600,
-              background: 'var(--brand)', color: '#fff', border: 'none',
-              borderRadius: 8, cursor: 'pointer', letterSpacing: '0.2px',
-              transition: 'background 0.15s',
+              width: '100%', padding: '11px 20px',
+              fontSize: 14, fontWeight: 500,
+              background: 'var(--accent)', color: 'var(--bg)',
+              border: 'none', borderRadius: 6, cursor: 'pointer',
+              transition: 'opacity 0.15s', letterSpacing: '0.1px',
             }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-hover)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            {result ? 'Анонимизировать повторно' : 'Анонимизировать'}
+            {result ? '→ анонимизировать повторно' : '→ анонимизировать'}
           </button>
         )
       )}
@@ -242,123 +189,143 @@ export function AnonymizationTab() {
       {result && (
         <>
           {/* Stats */}
-          <div style={{
-            padding: '12px 16px', borderRadius: 8,
-            background: 'var(--green-light)', border: '1px solid var(--green-border)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--green)', whiteSpace: 'nowrap' }}>
-                {hasStats ? '✓ Найдено и заменено:' : '— Персональные данные не обнаружены'}
-              </span>
-              {statsEntries.map(([cat, count]) => (
-                <span key={cat} style={{
-                  padding: '2px 10px', borderRadius: 12,
-                  background: '#fff', border: '1px solid var(--green-border)',
-                  fontSize: 13, color: 'var(--green)', fontWeight: 500,
-                }}>
+          {hasStats && (
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              {'найдено: '}
+              {statsEntries.map(([cat, count], i) => (
+                <span key={cat}>
+                  {i > 0 && ' · '}
                   {CATEGORY_LABELS[cat]} × {count}
                 </span>
               ))}
             </div>
-            <div style={{ fontSize: 12, color: '#558B2F', marginTop: 6 }}>
-              Проверьте документ и при необходимости внесите правки вручную
-            </div>
-          </div>
+          )}
+          {!hasStats && (
+            <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>персональные данные не обнаружены</div>
+          )}
 
-          {/* Textarea with toolbar */}
-          {textareaBlock}
-
-          {/* Filename + action buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {saveBaseName !== null && (
-              <FilenameInput
-                baseName={saveBaseName}
-                onChange={setSaveBaseName}
-              />
-            )}
-            <div style={{ display: 'flex', gap: 10 }}>
+          {/* Textarea */}
+          <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '5px 10px', borderBottom: '1px solid var(--border-light)',
+            }}>
+              <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+                {result.length.toLocaleString('ru')} символов
+              </span>
               <button
-                onClick={handleSave}
+                onClick={() => setFullscreen(true)}
                 style={{
-                  flex: 1, padding: '12px 20px', fontSize: 14, fontWeight: 600,
-                  background: 'var(--brand)', color: '#fff',
-                  border: '2px solid var(--brand)',
-                  borderRadius: 8, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  transition: 'background 0.15s',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 11, color: 'var(--text-hint)', padding: '2px 4px',
                 }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'var(--brand-hover)'
-                  e.currentTarget.style.borderColor = 'var(--brand-hover)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'var(--brand)'
-                  e.currentTarget.style.borderColor = 'var(--brand)'
-                }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
               >
-                ↓ Сохранить
-              </button>
-              <button
-                onClick={handleCopy}
-                style={{
-                  padding: '12px 20px', fontSize: 14, fontWeight: 600,
-                  background: '#fff', color: copied ? 'var(--green)' : 'var(--brand)',
-                  border: `2px solid ${copied ? 'var(--green-border)' : 'var(--brand)'}`,
-                  borderRadius: 8, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  transition: 'all 0.15s', flexShrink: 0,
-                }}
-                onMouseEnter={e => { if (!copied) e.currentTarget.style.background = 'var(--brand-light)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
-              >
-                {copied ? '✓ Скопировано' : '📋 Скопировать'}
+                развернуть
               </button>
             </div>
+            <textarea
+              ref={textareaRef}
+              value={result}
+              onChange={(e) => setResult(e.target.value)}
+              style={{
+                width: '100%', height: 240, resize: 'vertical',
+                border: 'none', padding: '12px 14px',
+                fontSize: 13, lineHeight: 1.7, color: 'var(--text)',
+                background: 'var(--bg)', outline: 'none', display: 'block',
+              }}
+              spellCheck={false}
+              placeholder="проверьте документ и внесите правки при необходимости"
+            />
           </div>
+          <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+            проверьте документ и внесите правки при необходимости
+          </div>
+
+          {/* Export buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleCopy}
+              style={{
+                padding: '8px 16px', fontSize: 13,
+                background: 'transparent', color: copied ? 'var(--text-muted)' : 'var(--text)',
+                border: '1px solid var(--border-light)', borderRadius: 6,
+                cursor: 'pointer', transition: 'border-color 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+            >
+              {copied ? 'скопировано' : '→ скопировать'}
+            </button>
+            <button
+              onClick={handleSave}
+              style={{
+                padding: '8px 16px', fontSize: 13,
+                background: 'transparent', color: 'var(--text)',
+                border: '1px solid var(--border-light)', borderRadius: 6,
+                cursor: 'pointer', transition: 'border-color 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+            >
+              → сохранить как...
+            </button>
+          </div>
+          {saveBaseName && (
+            <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: -8 }}>
+              {saveBaseName}.txt
+            </div>
+          )}
+
+          {/* One-time warning */}
+          {showWarning && (
+            <div style={{ fontSize: 11, color: 'var(--text-hint)', lineHeight: 1.6, marginTop: 4 }}>
+              история и ключи хранятся только в этом браузере.
+              при очистке кэша или смене компьютера данные будут потеряны.
+              для важных документов скачивайте vault.enc
+            </div>
+          )}
         </>
       )}
 
       {/* Fullscreen overlay */}
       {fullscreen && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
           zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 24,
         }}>
           <div style={{
-            background: '#fff', borderRadius: 12, width: '100%', maxWidth: 960,
+            background: '#fff', borderRadius: 8, width: '100%', maxWidth: 960,
             maxHeight: '95vh', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            border: '1px solid var(--border-light)',
           }}>
-            {/* Fullscreen header */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 20px', borderBottom: '1px solid var(--border)',
-              flexShrink: 0,
+              padding: '10px 16px', borderBottom: '1px solid var(--border-light)',
             }}>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
-                Просмотр документа · {result.length.toLocaleString('ru')} символов
+              <span style={{ fontSize: 12, color: 'var(--text-hint)' }}>
+                {result.length.toLocaleString('ru')} символов
               </span>
               <button
                 onClick={() => setFullscreen(false)}
                 style={{
-                  background: 'none', border: '1px solid var(--border)', borderRadius: 6,
-                  padding: '4px 12px', fontSize: 13, cursor: 'pointer',
-                  color: 'var(--text-secondary)', fontWeight: 500,
+                  background: 'none', border: '1px solid var(--border-light)', borderRadius: 5,
+                  padding: '3px 10px', fontSize: 12, cursor: 'pointer', color: 'var(--text-muted)',
                 }}
               >
-                Закрыть Esc
+                закрыть esc
               </button>
             </div>
-            {/* Fullscreen textarea */}
             <textarea
               value={result}
               onChange={(e) => setResult(e.target.value)}
               style={{
-                flex: 1, width: '100%', border: 'none', padding: '20px 24px',
-                fontSize: 14, lineHeight: 1.8, color: 'var(--text-primary)',
-                fontFamily: 'inherit', outline: 'none', resize: 'none',
-                background: '#fff', borderRadius: '0 0 12px 12px',
+                flex: 1, width: '100%', border: 'none', padding: '18px 20px',
+                fontSize: 13, lineHeight: 1.8, color: 'var(--text)',
+                outline: 'none', resize: 'none', background: '#fff',
+                borderRadius: '0 0 8px 8px',
               }}
               spellCheck={false}
               autoFocus
@@ -369,22 +336,3 @@ export function AnonymizationTab() {
     </div>
   )
 }
-
-function ExpandIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <path d="M1 5V1h4M9 1h3v4M12 8v4H8M4 12H1V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function Spinner() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" style={{ animation: 'spin 0.8s linear infinite' }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      <circle cx="8" cy="8" r="6" fill="none" stroke="#BDBDBD" strokeWidth="2" />
-      <path d="M8 2a6 6 0 0 1 6 6" stroke="#1976D2" strokeWidth="2" strokeLinecap="round" fill="none" />
-    </svg>
-  )
-}
-

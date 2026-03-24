@@ -1,18 +1,16 @@
 import { useRef, useState } from 'react'
 import type { DragEvent, ChangeEvent } from 'react'
 
-const EXT_ICONS: Record<string, string> = {
-  pdf: '📕', docx: '📘', xlsx: '📗', txt: '📄', csv: '📄', md: '📄',
-}
-
 interface DropZoneProps {
   accept: string[]
   selectedFile: File | null
   onFile: (file: File) => void
   onReset: () => void
+  /** whether to show "данные не покидают ваш компьютер" hint */
+  showPrivacyHint?: boolean
 }
 
-export function DropZone({ accept, selectedFile, onFile, onReset }: DropZoneProps) {
+export function DropZone({ accept, selectedFile, onFile, onReset, showPrivacyHint = true }: DropZoneProps) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -29,7 +27,6 @@ export function DropZone({ accept, selectedFile, onFile, onReset }: DropZoneProp
     e.target.value = ''
   }
 
-  // Hidden input always mounted so we can trigger it from compact view too
   const input = (
     <input
       ref={inputRef}
@@ -41,45 +38,42 @@ export function DropZone({ accept, selectedFile, onFile, onReset }: DropZoneProp
   )
 
   if (selectedFile) {
-    const ext = selectedFile.name.split('.').pop()?.toLowerCase() ?? ''
-    const icon = EXT_ICONS[ext] ?? '📄'
     return (
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12,
-        padding: '12px 16px',
-        background: 'var(--brand-light)',
-        border: '1.5px solid #90CAF9',
+        padding: '10px 14px',
+        border: '1px solid var(--border-light)',
         borderRadius: 8,
+        background: 'var(--bg)',
       }}>
-        <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontWeight: 500, fontSize: 14, color: 'var(--text-primary)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {selectedFile.name}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
+        <span style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0 }}>файл</span>
+        <span style={{
+          flex: 1, fontSize: 13, color: 'var(--text)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {selectedFile.name}
+          <span style={{ color: 'var(--text-hint)', marginLeft: 8 }}>
             {formatSize(selectedFile.size)}
-            <span
-              onClick={() => inputRef.current?.click()}
-              style={{
-                marginLeft: 12, color: 'var(--brand)', cursor: 'pointer',
-                textDecoration: 'underline', fontWeight: 500,
-              }}
-            >
-              Заменить
-            </span>
-          </div>
-        </div>
+          </span>
+        </span>
+        <button
+          onClick={() => inputRef.current?.click()}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 12, color: 'var(--text-muted)', padding: '2px 6px',
+            borderRadius: 4, transition: 'color 0.1s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+        >
+          заменить
+        </button>
         <button
           onClick={onReset}
-          title="Убрать файл"
           style={{
-            width: 28, height: 28, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'none', border: '1px solid #90CAF9',
-            borderRadius: 6, color: '#1976D2', fontSize: 14, cursor: 'pointer',
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 12, color: 'var(--text-hint)', padding: '2px 4px',
+            lineHeight: 1,
           }}
         >
           ✕
@@ -90,29 +84,35 @@ export function DropZone({ accept, selectedFile, onFile, onReset }: DropZoneProp
   }
 
   return (
-    <div
-      onClick={() => inputRef.current?.click()}
-      onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-      style={{
-        border: `2px dashed ${dragging ? 'var(--brand)' : '#BDBDBD'}`,
-        borderRadius: 8, padding: '40px 24px', textAlign: 'center', cursor: 'pointer',
-        background: dragging ? 'var(--brand-light)' : '#FAFAFA',
-        transition: 'border-color 0.15s, background 0.15s',
-      }}
-    >
-      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" style={{ margin: '0 auto 14px', display: 'block' }}>
-        <path d="M19 26V14M19 14L14 19M19 14L24 19" stroke={dragging ? '#1976D2' : '#9E9E9E'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M10 29h18" stroke={dragging ? '#1976D2' : '#9E9E9E'} strokeWidth="2" strokeLinecap="round" />
-      </svg>
-      <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>
-        Перетащите файл или нажмите для выбора
+    <div>
+      <div
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        style={{
+          border: `1px solid ${dragging ? 'var(--border)' : 'var(--border-light)'}`,
+          borderRadius: 8,
+          padding: '36px 24px',
+          textAlign: 'center',
+          cursor: 'pointer',
+          background: dragging ? '#F5F5F2' : 'var(--bg)',
+          transition: 'border-color 0.15s, background 0.15s',
+        }}
+      >
+        <div style={{ fontSize: 14, color: dragging ? 'var(--text)' : 'var(--text-muted)', marginBottom: 6 }}>
+          перетащите файл или нажмите для выбора
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>
+          {accept.map(a => a.toUpperCase()).join(' · ')}
+        </div>
+        {input}
       </div>
-      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-        {accept.map(a => a.toUpperCase()).join(' · ')}
-      </div>
-      {input}
+      {showPrivacyHint && (
+        <div style={{ fontSize: 11, color: 'var(--text-hint)', textAlign: 'center', marginTop: 8 }}>
+          данные не покидают ваш компьютер
+        </div>
+      )}
     </div>
   )
 }

@@ -5,5 +5,5 @@ export const PLAN_LIMITS: Record<string, number> = {
   ENTERPRISE: -1, // unlimited
 }
 
-export const TRIAL_DAYS = 14
+export const TRIAL_DAYS = 10
 export const TRIAL_PLAN = 'PRO' as const

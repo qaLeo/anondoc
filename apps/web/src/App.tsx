@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
 import { AnonymizationTab } from './components/AnonymizationTab'
 import { DeanonymizationTab } from './components/DeanonymizationTab'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -9,6 +9,7 @@ import Pricing from './pages/Pricing'
 import BillingSuccess from './pages/BillingSuccess'
 import Profile from './pages/Profile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
+import History from './pages/History'
 
 type Tab = 'anonymize' | 'deanonymize'
 
@@ -16,61 +17,47 @@ type Tab = 'anonymize' | 'deanonymize'
 
 function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth()
-
   if (isLoading) return <Loader />
   if (!isAuthenticated) return <Navigate to="/auth" replace />
   return <MainPage />
 }
 
 function MainPage() {
-  const [tab, setTab] = useState<Tab>('anonymize')
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const [tab, setTab] = useState<Tab>(params.get('deanon') === '1' ? 'deanonymize' : 'anonymize')
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--page-bg)' }}>
-      <Header />
-
-      <main style={{ maxWidth: 740, margin: '0 auto', padding: '36px 20px 60px' }}>
-        <div style={{
-          display: 'flex',
-          borderBottom: '2px solid var(--border)',
-          marginBottom: 28,
-        }}>
-          <TabBtn active={tab === 'anonymize'} onClick={() => setTab('anonymize')}>
-            Анонимизация
-          </TabBtn>
-          <TabBtn active={tab === 'deanonymize'} onClick={() => setTab('deanonymize')}>
-            Деанонимизация
-          </TabBtn>
-        </div>
-
-        <div style={{
-          background: '#fff',
-          borderRadius: 12,
-          border: '1px solid var(--border)',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
-          padding: '32px 36px',
-        }}>
-          {tab === 'anonymize' ? <AnonymizationTab /> : <DeanonymizationTab />}
-        </div>
-
-        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 20 }}>
-          Обработка выполняется локально · данные не передаются на серверы · соответствует ФЗ-152
-          {' · '}
-          <Link to="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>
-            Политика конфиденциальности
-          </Link>
-        </p>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <AppHeader activeTab={tab} onTabChange={setTab} />
+      <main style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 80px' }}>
+        {tab === 'anonymize' ? <AnonymizationTab /> : <DeanonymizationTab />}
       </main>
+      <footer style={{
+        textAlign: 'center', fontSize: 11, color: 'var(--text-footer)',
+        paddingBottom: 32,
+      }}>
+        offline · ФЗ-152 · aes-256 ·{' '}
+        <Link to="/privacy" style={{ color: 'var(--text-footer)', textDecoration: 'underline' }}>
+          политика конфиденциальности
+        </Link>
+      </footer>
     </div>
   )
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
+// ─── App Header ───────────────────────────────────────────────────────────────
 
-function Header() {
+interface AppHeaderProps {
+  activeTab?: Tab
+  onTabChange?: (tab: Tab) => void
+}
+
+function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
   const { user, logout } = useAuth()
-  const { usage, isNearLimit, isLimitReached, isTrial, trialDaysLeft } = useUsage()
+  const { usage, isTrial, trialDaysLeft } = useUsage()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleLogout = async () => {
     await logout()
@@ -80,225 +67,143 @@ function Header() {
   const docsUsed = usage?.requests ?? 0
   const docsLimit = usage?.limit ?? 0
   const unlimited = docsLimit === -1
-  const progress = unlimited ? 0 : docsLimit > 0 ? Math.min(1, docsUsed / docsLimit) : 0
 
-  const initials = user?.name
-    ? user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
-    : user?.email?.[0]?.toUpperCase() ?? '?'
+  const displayName = user?.name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? ''
+  const docsText = unlimited ? '∞' : `${docsUsed}/${docsLimit}`
+
+  const isOnMain = location.pathname === '/' || location.pathname === ''
+
+  // Nav link style
+  const navStyle = (active: boolean): React.CSSProperties => ({
+    fontSize: 13,
+    color: active ? 'var(--text)' : 'var(--text-muted)',
+    cursor: 'pointer',
+    background: 'none',
+    border: 'none',
+    padding: '0 2px',
+    textDecoration: 'none',
+    transition: 'color 0.1s',
+    fontFamily: 'inherit',
+    letterSpacing: 0,
+  })
 
   return (
     <>
-    <header style={{
-      background: '#fff',
-      borderBottom: '1px solid var(--border)',
-      padding: '0 32px',
-      height: 64,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
-    }}>
-      {/* Logo + nav */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect width="28" height="28" rx="7" fill="#1976D2" />
-            <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="21" cy="18" r="4" fill="#fff" />
-            <path d="M19.5 18l1 1 2-2" stroke="#1976D2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
-            AnonDoc
-          </span>
-        </div>
-        <Link
-          to="/pricing"
-          style={{
-            fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)',
-            textDecoration: 'none', transition: 'color 0.15s',
-          }}
-          onMouseEnter={(e) => { (e.target as HTMLElement).style.color = 'var(--brand)' }}
-          onMouseLeave={(e) => { (e.target as HTMLElement).style.color = 'var(--text-secondary)' }}
+      <header style={{
+        borderBottom: '1px solid var(--border)',
+        padding: '0 28px',
+        height: 52,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 24,
+        background: 'var(--bg)',
+      }}>
+        {/* Logo */}
+        <button
+          onClick={() => navigate('/')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
         >
-          Тарифы
-        </Link>
-      </div>
-
-      {/* Usage counter */}
-      {usage && (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 3,
-          flex: '0 1 200px',
-        }}>
-          <span style={{
-            fontSize: 12,
-            color: isLimitReached ? '#C62828' : isNearLimit ? '#E65100' : 'var(--text-secondary)',
-            fontWeight: 500,
-          }}>
-            Документов: {docsUsed} / {unlimited ? '∞' : docsLimit}
+          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.3px' }}>
+            anon<span style={{ color: 'var(--text-muted)' }}>doc</span>
           </span>
-          {!unlimited && (
-            <div style={{
-              width: '100%',
-              height: 4,
-              background: 'var(--border)',
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                height: '100%',
-                width: `${progress * 100}%`,
-                background: isLimitReached ? '#C62828' : isNearLimit ? '#FF6D00' : 'var(--brand)',
-                borderRadius: 2,
-                transition: 'width 0.3s',
-              }} />
-            </div>
+        </button>
+
+        {/* Nav */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 1 }}>
+          <button
+            onClick={() => { if (isOnMain && onTabChange) onTabChange('anonymize'); else navigate('/') }}
+            style={navStyle(isOnMain && activeTab === 'anonymize')}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'anonymize' ? 'var(--text)' : 'var(--text-muted)' }}
+          >
+            анонимизация
+          </button>
+          <button
+            onClick={() => { if (isOnMain && onTabChange) onTabChange('deanonymize'); else navigate('/?deanon=1') }}
+            style={navStyle(isOnMain && activeTab === 'deanonymize')}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'deanonymize' ? 'var(--text)' : 'var(--text-muted)' }}
+          >
+            деанонимизация
+          </button>
+          <button
+            onClick={() => navigate('/history')}
+            style={navStyle(location.pathname === '/history')}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/history' ? 'var(--text)' : 'var(--text-muted)' }}
+          >
+            история
+          </button>
+          <button
+            onClick={() => navigate('/pricing')}
+            style={navStyle(location.pathname === '/pricing')}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/pricing' ? 'var(--text)' : 'var(--text-muted)' }}
+          >
+            тарифы
+          </button>
+        </nav>
+
+        {/* Right: name · docs · logout */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+          <button
+            onClick={() => navigate('/profile')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontSize: 12, color: 'var(--text-muted)',
+              display: 'flex', gap: 10, alignItems: 'center',
+            }}
+          >
+            {displayName && <span>{displayName}</span>}
+            {usage && (
+              <span>{docsText} документов</span>
+            )}
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontSize: 12, color: 'var(--text-muted)',
+              transition: 'color 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
+            выйти
+          </button>
+        </div>
+      </header>
+
+      {/* Trial banner */}
+      {isTrial && trialDaysLeft !== null && trialDaysLeft > 0 && (
+        <div style={{
+          borderBottom: '1px solid var(--border)',
+          padding: '6px 28px',
+          fontSize: 12,
+          color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          background: 'var(--bg)',
+        }}>
+          <span>
+            pro · осталось {trialDaysLeft} {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}
+          </span>
+          {trialDaysLeft <= 2 && (
+            <button
+              onClick={() => navigate('/pricing')}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontSize: 12, color: 'var(--text-muted)', textDecoration: 'underline',
+              }}
+            >
+              продлить →
+            </button>
           )}
         </div>
       )}
-
-      {/* Right side */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        {/* Upgrade button if near limit */}
-        {(isNearLimit || isLimitReached) && (
-          <button
-            style={{
-              padding: '6px 14px',
-              fontSize: 13,
-              fontWeight: 600,
-              background: isLimitReached ? '#C62828' : 'var(--brand)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              transition: 'opacity 0.15s',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-            onClick={() => navigate('/pricing')}
-          >
-            {isLimitReached ? 'Лимит исчерпан →' : 'Обновить план'}
-          </button>
-        )}
-
-        {/* Plan badge */}
-        {usage && !isNearLimit && !isLimitReached && (
-          <span style={{
-            padding: '4px 10px',
-            borderRadius: 12,
-            background: '#E3F2FD',
-            color: '#1976D2',
-            fontSize: 12,
-            fontWeight: 600,
-          }}>
-            {usage.plan}
-          </span>
-        )}
-
-        {/* Avatar + name — click goes to /profile */}
-        <button
-          onClick={() => navigate('/profile')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
-            borderRadius: 8, transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--page-bg)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}
-        >
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: '#1976D2', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 13, fontWeight: 700, flexShrink: 0, overflow: 'hidden',
-          }}>
-            {user?.avatarUrl
-              ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : initials
-            }
-          </div>
-          <span style={{
-            fontSize: 14, fontWeight: 500, color: 'var(--text-primary)',
-            maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {user?.name ?? user?.email?.split('@')[0]}
-          </span>
-        </button>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: '6px 12px',
-            fontSize: 13,
-            fontWeight: 500,
-            background: 'none',
-            color: 'var(--text-secondary)',
-            border: '1.5px solid var(--border)',
-            borderRadius: 6,
-            cursor: 'pointer',
-            transition: 'border-color 0.15s, color 0.15s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#BDBDBD'
-            e.currentTarget.style.color = 'var(--text-primary)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border)'
-            e.currentTarget.style.color = 'var(--text-secondary)'
-          }}
-        >
-          Выйти
-        </button>
-      </div>
-    </header>
-
-    {/* Trial banner */}
-    {isTrial && trialDaysLeft !== null && trialDaysLeft > 0 && (
-      <TrialBanner days={trialDaysLeft} onUpgrade={() => navigate('/pricing')} />
-    )}
     </>
-  )
-}
-
-function TrialBanner({ days, onUpgrade }: { days: number; onUpgrade: () => void }) {
-  const isRed = days <= 2
-  const isYellow = days <= 7 && days > 2
-
-  const bg = isRed ? '#FFF3F3' : isYellow ? '#FFFDE7' : '#E3F2FD'
-  const border = isRed ? '#FFCDD2' : isYellow ? '#FFF176' : '#90CAF9'
-  const color = isRed ? '#C62828' : isYellow ? '#E65100' : '#1565C0'
-
-  return (
-    <div style={{
-      background: bg,
-      borderBottom: `1px solid ${border}`,
-      padding: '8px 32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 12,
-    }}>
-      <span style={{ fontSize: 13, fontWeight: 500, color }}>
-        🎁 Пробный период Pro: осталось {days} {days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'}
-      </span>
-      {isRed && (
-        <button
-          onClick={onUpgrade}
-          style={{
-            padding: '4px 12px', fontSize: 12, fontWeight: 600,
-            background: '#C62828', color: '#fff', border: 'none',
-            borderRadius: 5, cursor: 'pointer',
-          }}
-        >
-          Подключить
-        </button>
-      )}
-    </div>
   )
 }
 
@@ -315,6 +220,7 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/billing/success" element={<ProtectedRoute><BillingSuccess /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/*" element={<AppLayout />} />
           </Routes>
         </UsageProvider>
@@ -330,7 +236,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// Redirect to / if already authenticated
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth()
   if (isLoading) return <Loader />
@@ -338,49 +243,13 @@ function AuthGate() {
   return <Auth />
 }
 
-// ─── Shared components ────────────────────────────────────────────────────────
-
-function TabBtn({ children, active, onClick }: {
-  children: React.ReactNode
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: '10px 24px',
-        fontSize: 14,
-        fontWeight: 600,
-        border: 'none',
-        background: 'none',
-        cursor: 'pointer',
-        color: active ? 'var(--brand)' : 'var(--text-secondary)',
-        borderBottom: `2px solid ${active ? 'var(--brand)' : 'transparent'}`,
-        marginBottom: -2,
-        transition: 'color 0.15s, border-color 0.15s',
-        letterSpacing: '0.2px',
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
 function Loader() {
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'var(--page-bg)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      minHeight: '100vh', background: 'var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <svg width="32" height="32" viewBox="0 0 32 32" style={{ animation: 'spin 0.8s linear infinite' }}>
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-        <circle cx="16" cy="16" r="12" fill="none" stroke="#E0E0E0" strokeWidth="3" />
-        <path d="M16 4a12 12 0 0 1 12 12" stroke="#1976D2" strokeWidth="3" strokeLinecap="round" fill="none" />
-      </svg>
+      <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>загрузка...</div>
     </div>
   )
 }

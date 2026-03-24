@@ -4,19 +4,30 @@
 
 @layer base {
   :root {
+    /* ── New design tokens ── */
+    --bg: #FAFAF8;
+    --border: #E8E8E4;
+    --border-light: #DEDED8;
+    --text: #1A1A1A;
+    --text-muted: #888;
+    --text-hint: #AAA;
+    --text-footer: #BBB;
+    --accent: #1A1A1A;
+
+    /* ── Legacy aliases (Auth, BillingSuccess, PrivacyPolicy) ── */
     --brand: #1976D2;
     --brand-hover: #1565C0;
     --brand-light: #E3F2FD;
-    --green: #2E7D32;
-    --green-light: #E8F5E9;
-    --green-border: #A5D6A7;
-    --page-bg: #F5F7FA;
+    --page-bg: #FAFAF8;
     --card-bg: #FFFFFF;
-    --border: #E0E0E0;
-    --text-primary: #1A1A2E;
-    --text-secondary: #616161;
-    --text-muted: #9E9E9E;
+    --text-primary: #1A1A1A;
+    --text-secondary: #555;
     --radius: 8px;
+
+    /* ── Status colors ── */
+    --green: #2E7D32;
+    --green-light: #F0F7F0;
+    --green-border: #C8E6C9;
   }
 
   * {
@@ -29,8 +40,8 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
     line-height: 1.6;
-    color: var(--text-primary);
-    background-color: var(--page-bg);
+    color: var(--text);
+    background-color: var(--bg);
     -webkit-font-smoothing: antialiased;
   }
 
