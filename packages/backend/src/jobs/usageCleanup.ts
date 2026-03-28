@@ -21,9 +21,16 @@ async function runCleanup(
 ): Promise<void> {
   // Distributed lock: only one replica runs cleanup per day
   if (redis) {
-    const lock = await redis.set(LOCK_KEY, '1', 'EX', LOCK_TTL_SEC, 'NX')
-    if (!lock) {
-      logger.info('usage-cleanup: skipped (lock held by another instance)')
+    try {
+      const existing = await redis.get(LOCK_KEY)
+      if (existing) {
+        logger.info('usage-cleanup: skipped (lock held by another instance)')
+        return
+      }
+      await redis.set(LOCK_KEY, '1')
+      await redis.expire(LOCK_KEY, LOCK_TTL_SEC)
+    } catch (err) {
+      logger.error({ err }, 'usage-cleanup: redis lock error, skipping')
       return
     }
   }
