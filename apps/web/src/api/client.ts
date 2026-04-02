@@ -3,6 +3,7 @@ import axios from 'axios'
 // In dev, Vite proxies /auth /me /billing /api → localhost:3000 (no CORS needed).
 // In production set VITE_API_URL to your backend origin.
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
+console.log('API URL:', BASE_URL || '(empty — using Vite proxy)')
 
 // Access token lives in memory only — never touches localStorage
 let _accessToken: string | null = null

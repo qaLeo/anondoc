@@ -27,8 +27,9 @@ const REFRESH_TTL_SEC = 30 * 24 * 60 * 60 // 30 days in seconds
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: true,
-  sameSite: 'strict' as const,
+  sameSite: 'none' as const,
   path: '/auth/refresh',
+  maxAge: 60 * 60 * 24 * 30,
 }
 
 async function issueTokens(
@@ -137,7 +138,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
     }
     reply
-      .clearCookie('refreshToken', { path: '/auth/refresh' })
+      .clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none', path: '/auth/refresh' })
       .send({ ok: true })
   })
 
