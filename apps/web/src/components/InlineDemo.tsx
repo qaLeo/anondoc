@@ -3,7 +3,7 @@ import { createAnonymizer } from '@anondoc/engine'
 import { useNavigate } from 'react-router-dom'
 
 const DEMO_COUNT_KEY = 'anondoc_demo_count'
-const DEMO_LIMIT = 5
+const DEMO_LIMIT = 8
 
 const SAMPLES = [
   {
@@ -266,11 +266,16 @@ export function InlineDemo() {
         >
           анонимизировать
         </button>
-        {result && (
-          <span style={{ fontSize: 12, color: 'var(--text-hint)' }}>
-            {DEMO_LIMIT - result.count} из {DEMO_LIMIT} попыток осталось
-          </span>
-        )}
+        {result && (() => {
+          const remaining = DEMO_LIMIT - result.count
+          if (remaining > 2) return null
+          const isOne = remaining === 1
+          return (
+            <span style={{ fontSize: 12, color: isOne ? '#c2410c' : 'var(--text-hint)' }}>
+              {isOne ? `осталась ${remaining} попытка` : `осталось ${remaining} попытки`}
+            </span>
+          )
+        })()}
       </div>
 
       {/* Result */}

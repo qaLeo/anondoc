@@ -18,6 +18,7 @@ const CATEGORY_PREFIX: Record<PiiCategory, string> = {
   'ИИН': 'ИИН',
   'ПИНФЛ': 'ПИНФЛ',
   'ЛИЧНЫЙ_НОМЕР': 'ЛИЧН',
+  'ОМС': 'ОМС',
 }
 
 export type PiiStats = Partial<Record<PiiCategory, number>>

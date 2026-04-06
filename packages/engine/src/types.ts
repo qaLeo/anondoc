@@ -14,6 +14,7 @@ export type PiiCategory =
   | 'ИИН'
   | 'ПИНФЛ'
   | 'ЛИЧНЫЙ_НОМЕР'
+  | 'ОМС'
 
 export interface PiiMatch {
   id: string
