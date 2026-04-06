@@ -1,9 +1,13 @@
-import type { VaultMap } from '@anondoc/engine'
+import type { VaultMap, PiiStats } from '@anondoc/engine'
 
 const DB_NAME = 'anondoc'
+const DB_VERSION = 2
 const STORE_NAME = 'vault'
 const VAULT_KEY = 'current'
 const TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+const SESSION_STORE = 'anonymization_sessions'
+const SESSION_KEY = 'current'
 
 interface VaultRecord {
   id: string
@@ -11,11 +15,32 @@ interface VaultRecord {
   savedAt: number
 }
 
+export interface SessionFile {
+  id: string
+  name: string
+  replacements: number
+  stats: PiiStats
+  anonymizedText: string
+}
+
+export interface SessionRecord {
+  id: 'current'
+  createdAt: number
+  files: SessionFile[]
+  sharedVault: VaultMap
+}
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1)
+    const req = indexedDB.open(DB_NAME, DB_VERSION)
     req.onupgradeneeded = () => {
-      req.result.createObjectStore(STORE_NAME, { keyPath: 'id' })
+      const db = req.result
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' })
+      }
+      if (!db.objectStoreNames.contains(SESSION_STORE)) {
+        db.createObjectStore(SESSION_STORE, { keyPath: 'id' })
+      }
     }
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
@@ -87,6 +112,57 @@ export async function clearVault(): Promise<void> {
     const db = await openDb()
     const tx = db.transaction(STORE_NAME, 'readwrite')
     tx.objectStore(STORE_NAME).delete(VAULT_KEY)
+    await new Promise<void>((resolve) => {
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => resolve()
+    })
+    db.close()
+  } catch {
+    // ignore
+  }
+}
+
+// ── Session CRUD ──────────────────────────────────────────────────────────────
+
+/** Load the current anonymization session */
+export async function loadCurrentSession(): Promise<SessionRecord | null> {
+  try {
+    const db = await openDb()
+    const tx = db.transaction(SESSION_STORE, 'readonly')
+    const req = tx.objectStore(SESSION_STORE).get(SESSION_KEY)
+    const record = await new Promise<SessionRecord | undefined>((resolve) => {
+      req.onsuccess = () => resolve(req.result as SessionRecord | undefined)
+      req.onerror = () => resolve(undefined)
+    })
+    db.close()
+    return record ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Persist the current session */
+export async function saveCurrentSession(session: SessionRecord): Promise<void> {
+  try {
+    const db = await openDb()
+    const tx = db.transaction(SESSION_STORE, 'readwrite')
+    tx.objectStore(SESSION_STORE).put(session)
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+    db.close()
+  } catch {
+    // ignore
+  }
+}
+
+/** Remove the current session */
+export async function clearCurrentSession(): Promise<void> {
+  try {
+    const db = await openDb()
+    const tx = db.transaction(SESSION_STORE, 'readwrite')
+    tx.objectStore(SESSION_STORE).delete(SESSION_KEY)
     await new Promise<void>((resolve) => {
       tx.oncomplete = () => resolve()
       tx.onerror = () => resolve()
