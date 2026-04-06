@@ -10,6 +10,7 @@ import BillingSuccess from './pages/BillingSuccess'
 import Profile from './pages/Profile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import History from './pages/History'
+import Landing from './pages/Landing'
 
 type Tab = 'anonymize' | 'deanonymize'
 
@@ -18,7 +19,7 @@ type Tab = 'anonymize' | 'deanonymize'
 function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth()
   if (isLoading) return <Loader />
-  if (!isAuthenticated) return <Navigate to="/auth" replace />
+  if (!isAuthenticated) return <Landing />
   return <MainPage />
 }
 
