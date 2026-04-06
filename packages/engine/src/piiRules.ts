@@ -44,9 +44,10 @@ const FIO_STOPLIST = new Set([
 const PHONE = /(?:\+7|8)[\s\-]{0,4}\(?\d{3}\)?[\s\-]{0,4}\d{3}[\s\-]{0,4}\d{2}[\s\-]{0,4}\d{2}/g
 const EMAIL = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
 const EMAIL_NOREPLY = /^(?:noreply|no-reply|info|support|admin|postmaster|webmaster|donotreply)@/i
-const INN_12 = /\b\d{12}\b/g
-const INN_10 = /\b\d{10}\b/g
-const INN_KEYWORDS = ['инн', 'идентификационный номер']
+// Нет соседних цифр/точек/дефисов — исключает даты (12.03.1978) и форматированные номера (2024-115)
+const INN_12 = /(?<![\d.\-])\d{12}(?![\d.\-])/g
+const INN_10 = /(?<![\d.\-])\d{10}(?![\d.\-])/g
+const INN_KEYWORDS = ['инн', 'идентификационный номер', 'inn']
 const SNILS_DASHED = /\b\d{3}-\d{3}-\d{3}\s?\d{2}\b/g
 const SNILS_SPACED = /\b\d{3}\s\d{3}\s\d{3}\s\d{2}\b/g
 const SNILS_PLAIN = /\b\d{11}\b/g
@@ -141,7 +142,9 @@ export function detectPii(text: string): RuleResult[] {
     }
   }
   for (const m of findAll(text, INN_10)) {
-    if (validateINN(m[0]) || hasKeywordNearby(text, m.index, m.index + m[0].length, INN_KEYWORDS)) {
+    // "(7701234567)" — 10 цифр в скобках: формат из резюме, достаточно специфичен без ключевого слова
+    const inParens = m.index > 0 && text[m.index - 1] === '(' && text[m.index + m[0].length] === ')'
+    if (inParens || validateINN(m[0]) || hasKeywordNearby(text, m.index, m.index + m[0].length, INN_KEYWORDS)) {
       results.push({ category: 'ИНН', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
