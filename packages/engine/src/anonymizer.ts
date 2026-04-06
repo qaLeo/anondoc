@@ -109,7 +109,36 @@ export function createAnonymizer() {
     originalToToken.clear()
   }
 
-  return { anonymize, reset }
+  /**
+   * Rebuilds counters and dedup map from an existing vault.
+   * Call this when continuing a previously saved session so new files
+   * get token numbers that continue from where the session left off.
+   */
+  function restoreFromVault(vault: VaultMap): void {
+    // Build prefix → category reverse map
+    const prefixToCategory: Partial<Record<string, PiiCategory>> = {}
+    for (const [cat, pfx] of Object.entries(CATEGORY_PREFIX)) {
+      prefixToCategory[pfx] = cat as PiiCategory
+    }
+
+    // Restore categoryCounters from the highest index seen per prefix
+    for (const token of Object.keys(vault)) {
+      const m = token.match(/^\[(.+)_(\d+)\]$/)
+      if (!m) continue
+      const cat = prefixToCategory[m[1]]
+      if (cat) {
+        const n = parseInt(m[2], 10)
+        if (n > (categoryCounters[cat] ?? 0)) categoryCounters[cat] = n
+      }
+    }
+
+    // Restore originalToToken so known PII values keep their existing tokens
+    for (const [token, original] of Object.entries(vault)) {
+      originalToToken.set(normalizeText(original), token)
+    }
+  }
+
+  return { anonymize, reset, restoreFromVault }
 }
 
 /**

@@ -4,6 +4,15 @@ import { useAnonymizationSession } from '../hooks/useAnonymizationSession'
 import type { SessionFile } from '../vault/vaultService'
 import { useNavigate } from 'react-router-dom'
 
+/** Formats Date.now() as YYYY-MM-DD in local time */
+function fmtDate(ts: number): string {
+  const d = new Date(ts)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
 export function AnonymizationTab() {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -24,15 +33,12 @@ export function AnonymizationTab() {
   const files = session?.files ?? []
   const isEmpty = files.length === 0
 
-  const handlePickFile = () => {
-    fileInputRef.current?.click()
-  }
+  const handlePickFile = () => fileInputRef.current?.click()
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       await addFile(file)
-      // reset so same file can be re-added in another session
       e.target.value = ''
     }
   }
@@ -44,13 +50,26 @@ export function AnonymizationTab() {
 
   const handleDownloadKey = () => {
     if (!session) return
-    const blob = new Blob([JSON.stringify(session.sharedVault, null, 2)], {
+    const date = fmtDate(session.createdAt)
+    const shortId = session.id.slice(0, 8)
+    const totalReplacements = session.files.reduce((s, f) => s + f.replacements, 0)
+
+    const payload = {
+      version: '1.0',
+      createdAt: new Date(session.createdAt).toISOString(),
+      sessionId: session.id,
+      filesCount: session.files.length,
+      replacementsCount: totalReplacements,
+      vault: session.sharedVault,
+    }
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: 'application/json;charset=utf-8',
     })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'session-key.json'
+    a.download = `ключ_документа_${date}_${shortId}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -69,6 +88,13 @@ export function AnonymizationTab() {
     ? `Загрузка до ${FILE_LIMITS_NEXT[nextPlan]} файлов доступна на ${nextPlan} →`
     : undefined
 
+  const keyBtnDisabled = !session || session.files.length === 0
+  const keyBtnTitle = !canDownloadKey
+    ? 'Доступно на Pro · от 990 ₽/мес'
+    : keyBtnDisabled
+      ? 'Добавьте файлы для скачивания ключа'
+      : undefined
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <input
@@ -79,7 +105,7 @@ export function AnonymizationTab() {
         onChange={handleInputChange}
       />
 
-      {/* Empty state: show DropZone */}
+      {/* Empty state: DropZone */}
       {isEmpty && (
         <DropZone
           accept={['txt', 'docx', 'xlsx', 'csv', 'pdf']}
@@ -91,24 +117,20 @@ export function AnonymizationTab() {
 
       {/* File list */}
       {!isEmpty && (
-        <div style={{
-          border: '1px solid var(--border-light)',
-          borderRadius: 8,
-          overflow: 'hidden',
-        }}>
+        <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
           {files.map((f, i) => (
             <div
               key={f.id}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: 'flex', alignItems: 'center', gap: 12,
                 padding: '9px 14px',
                 borderTop: i > 0 ? '1px solid var(--border-light)' : undefined,
-                gap: 12,
               }}
             >
-              <span style={{ fontSize: 13, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{
+                fontSize: 13, color: 'var(--text)',
+                flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
                 {f.name}
               </span>
               <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
@@ -131,19 +153,16 @@ export function AnonymizationTab() {
       )}
 
       {/* Error */}
-      {error && (
-        <div style={{ fontSize: 13, color: '#C00', padding: '2px 0' }}>{error}</div>
-      )}
+      {error && <div style={{ fontSize: 13, color: '#C00', padding: '2px 0' }}>{error}</div>}
 
-      {/* Add file row */}
+      {/* Add file + counter row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <button
           onClick={handlePickFile}
           disabled={isLimitReached || isProcessing}
           title={addBtnTooltip}
           style={{
-            padding: '10px 20px',
-            fontSize: 14, fontWeight: 500,
+            padding: '10px 20px', fontSize: 14, fontWeight: 500,
             background: isLimitReached ? 'var(--bg)' : 'var(--accent)',
             color: isLimitReached ? 'var(--text-muted)' : 'var(--bg)',
             border: isLimitReached ? '1px solid var(--border-light)' : 'none',
@@ -159,14 +178,13 @@ export function AnonymizationTab() {
         </button>
 
         <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
-          {fileCount} / {fileLimit} файлов
+          {fileCount}&thinsp;/&thinsp;{fileLimit} файлов
           {plan === 'FREE' && (
             <button
               onClick={() => navigate('/pricing')}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 12, color: 'var(--text-hint)', padding: '0 0 0 6px',
-                textDecoration: 'underline',
+                fontSize: 12, color: 'var(--text-hint)', paddingLeft: 6, textDecoration: 'underline',
               }}
             >
               Free
@@ -175,7 +193,7 @@ export function AnonymizationTab() {
         </span>
       </div>
 
-      {/* Limit tooltip as visible hint */}
+      {/* Upgrade hint when limit reached */}
       {isLimitReached && nextPlan && (
         <div
           style={{ fontSize: 12, color: 'var(--text-hint)', cursor: 'pointer' }}
@@ -185,46 +203,52 @@ export function AnonymizationTab() {
         </div>
       )}
 
-      {/* Actions row */}
+      {/* Actions row — shown once there are files */}
       {!isEmpty && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <button
             onClick={handleNewSession}
-            style={{
-              background: 'none', border: '1px solid var(--border-light)',
-              borderRadius: 6, padding: '7px 14px',
-              fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer',
-              transition: 'border-color 0.1s',
-            }}
+            style={secondaryBtn()}
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
           >
             ↺ новая сессия
           </button>
 
-          {canDownloadKey && (
-            <button
-              onClick={handleDownloadKey}
-              style={{
-                background: 'none', border: '1px solid var(--border-light)',
-                borderRadius: 6, padding: '7px 14px',
-                fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer',
-                transition: 'border-color 0.1s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
-            >
-              → скачать ключ
-            </button>
-          )}
+          {/* Key download — always visible; disabled for Free or empty session */}
+          <button
+            onClick={canDownloadKey ? handleDownloadKey : () => navigate('/pricing')}
+            disabled={canDownloadKey && keyBtnDisabled}
+            title={keyBtnTitle}
+            style={{
+              ...secondaryBtn(),
+              opacity: canDownloadKey && !keyBtnDisabled ? 1 : 0.5,
+              cursor: canDownloadKey && !keyBtnDisabled ? 'pointer' : !canDownloadKey ? 'pointer' : 'not-allowed',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+          >
+            → скачать ключ документа
+          </button>
         </div>
       )}
     </div>
   )
 }
 
-// Limits for the upgrade tooltip copy
-const FILE_LIMITS_NEXT: Record<string, number> = {
-  Pro: 50,
-  Team: 200,
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const FILE_LIMITS_NEXT: Record<string, number> = { Pro: 50, Team: 200 }
+
+function secondaryBtn(): React.CSSProperties {
+  return {
+    background: 'none',
+    border: '1px solid var(--border-light)',
+    borderRadius: 6,
+    padding: '7px 14px',
+    fontSize: 13,
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+    transition: 'border-color 0.1s',
+  }
 }

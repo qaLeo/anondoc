@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { createAnonymizer } from '@anondoc/engine'
 import { parseFile } from '../parsers'
 import {
-  loadCurrentSession,
-  saveCurrentSession,
-  clearCurrentSession,
+  loadActiveSession,
+  saveSession,
+  createSession,
   saveVault,
   clearVault,
   type SessionRecord,
@@ -44,8 +44,14 @@ export function useAnonymizationSession() {
   const [error, setError] = useState<string | null>(null)
   const anonymizerRef = useRef(createAnonymizer())
 
+  // Load active session on mount; restore counters so numbering continues
   useEffect(() => {
-    loadCurrentSession().then(setSession)
+    loadActiveSession().then((s) => {
+      if (s && Object.keys(s.sharedVault).length > 0) {
+        anonymizerRef.current.restoreFromVault(s.sharedVault)
+      }
+      setSession(s)
+    })
   }, [])
 
   const fileCount = session?.files.length ?? 0
@@ -69,16 +75,12 @@ export function useAnonymizationSession() {
         anonymizedText: anonymized,
       }
 
-      const prev = session ?? {
-        id: 'current' as const,
-        createdAt: Date.now(),
-        files: [],
-        sharedVault: {},
-      }
+      // Use existing active session or create a new one
+      const prev = session ?? await createSession()
       const sharedVault = { ...prev.sharedVault, ...fileVault }
       const next: SessionRecord = { ...prev, files: [...prev.files, sessionFile], sharedVault }
 
-      await saveCurrentSession(next)
+      await saveSession(next)
       await saveVault(fileVault)
 
       const docType = detectDocType(text)
@@ -108,11 +110,13 @@ export function useAnonymizationSession() {
     }
   }
 
+  /** Archive the current session and start a fresh one with reset counters. */
   async function newSession(): Promise<void> {
     anonymizerRef.current.reset()
-    await clearCurrentSession()
+    // Create a new active session (old one stays in history)
+    const fresh = await createSession()
     await clearVault()
-    setSession(null)
+    setSession(fresh)
     setError(null)
   }
 
