@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { createAnonymizer } from '@anondoc/engine'
 import { useNavigate } from 'react-router-dom'
+import { parseFile } from '../parsers'
 
 const DEMO_COUNT_KEY = 'anondoc_demo_count'
 const DEMO_LIMIT = 8
@@ -154,9 +155,10 @@ export function InlineDemo() {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
-    plausible('demo_file_uploaded', { ext: file.name.split('.').pop() ?? '' })
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+    plausible('demo_file_uploaded', { ext })
     try {
-      const text = await file.text()
+      const text = await parseFile(file)
       setInputText(text.slice(0, 3000))
       setActiveSample(-1)
       setResult(null)
@@ -218,7 +220,7 @@ export function InlineDemo() {
         >
           + свой файл
         </button>
-        <input ref={fileInputRef} type="file" accept=".txt" style={{ display: 'none' }} onChange={handleFileUpload} />
+        <input ref={fileInputRef} type="file" accept=".txt,.pdf,.docx,.xlsx,.csv" style={{ display: 'none' }} onChange={handleFileUpload} />
       </div>
 
       {/* Input area */}
