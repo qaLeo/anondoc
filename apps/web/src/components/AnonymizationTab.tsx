@@ -19,6 +19,7 @@ export function AnonymizationTab() {
   const {
     session,
     addFile,
+    removeFile,
     newSession,
     isProcessing,
     error,
@@ -46,6 +47,11 @@ export function AnonymizationTab() {
   const handleNewSession = async () => {
     if (!window.confirm('Начать новую сессию? Текущие результаты будут очищены.')) return
     await newSession()
+  }
+
+  const handleRemoveFile = async (fileId: string, fileName: string) => {
+    if (!window.confirm(`Удалить «${fileName}» из сессии?\nОстальные файлы и ключ сессии не изменятся.`)) return
+    await removeFile(fileId)
   }
 
   const handleDownloadKey = () => {
@@ -146,6 +152,19 @@ export function AnonymizationTab() {
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
               >
                 скачать
+              </button>
+              <button
+                onClick={() => handleRemoveFile(f.id, f.name)}
+                title="Удалить файл из сессии"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 14, color: 'var(--text-hint)', padding: '2px 4px', flexShrink: 0,
+                  lineHeight: 1,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#C00')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
+              >
+                ×
               </button>
             </div>
           ))}

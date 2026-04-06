@@ -110,6 +110,15 @@ export function useAnonymizationSession() {
     }
   }
 
+  /** Remove a single file from the current session. Vault entries are kept
+   *  because tokens may be shared across files (dedup). */
+  async function removeFile(fileId: string): Promise<void> {
+    if (!session) return
+    const next: SessionRecord = { ...session, files: session.files.filter(f => f.id !== fileId) }
+    await saveSession(next)
+    setSession(next)
+  }
+
   /** Archive the current session and start a fresh one with reset counters. */
   async function newSession(): Promise<void> {
     anonymizerRef.current.reset()
@@ -123,6 +132,7 @@ export function useAnonymizationSession() {
   return {
     session,
     addFile,
+    removeFile,
     newSession,
     isProcessing,
     error,
