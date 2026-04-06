@@ -47,9 +47,9 @@ const TOKEN_COLORS: Record<string, { bg: string; color: string }> = {
   ТЕЛ:    { bg: 'rgba(16,185,129,0.12)',  color: '#059669' },
   EMAIL:  { bg: 'rgba(245,158,11,0.12)',  color: '#b45309' },
   ИНН:    { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  ПАСПОРТ:{ bg: 'rgba(236,72,153,0.12)', color: '#be185d' },
+  ПАС:    { bg: 'rgba(236,72,153,0.12)', color: '#be185d' },
   АДРЕС:  { bg: 'rgba(14,165,233,0.12)', color: '#0369a1' },
-  ДАТА:   { bg: 'rgba(168,85,247,0.12)', color: '#7c3aed' },
+  ДР:     { bg: 'rgba(168,85,247,0.12)', color: '#7c3aed' },
   ОМС:    { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
   ОРГ:    { bg: 'rgba(234,88,12,0.12)',   color: '#c2410c' },
 }

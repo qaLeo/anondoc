@@ -64,6 +64,10 @@ const OGRN = /\b\d{13}\b/g
 const OGRNIP = /\b\d{15}\b/g
 const OGRN_KEYWORDS = ['огрн', 'огрнип', 'основной государственный']
 
+// Организации: ООО/ОАО/ЗАО/АО/ПАО/ИП + название в кавычках или одно слово с заглавной
+// Негативный lookbehind исключает вхождения внутри слов
+const ORG = /(?<![А-ЯЁа-яёA-Za-z0-9])(?:ООО|ОАО|ЗАО|ПАО|НАО|АО|ИП)\s+(?:«[^»]{1,80}»|"[^"]{1,80}"|[А-ЯЁ][А-ЯЁа-яёA-Za-z0-9\-]{1,50})/g
+
 // Адрес: маркеры типов улиц + номер дома обязателен
 // г\. — требуем точку чтобы не захватывать «г» внутри слов (зарегистрирован и т.п.)
 const ADDRESS = /(?:(?<![а-яА-ЯЁё])г\.[ \t]*|город[ \t]+)[А-ЯЁа-яё\-]+(?:[,\s]+(?:ул\.?|улица|пр\.?|просп\.?|проспект|пер\.?|переулок|б-р|бульвар|наб\.?|набережная|ш\.?|шоссе|пл\.?|площадь|пр-д|проезд|туп\.?|тупик|аллея)[.\s]+[А-ЯЁа-яё0-9\s\-]+)?(?:[,\s]+д\.?\s*\d+\w*)?(?:[,\s]+(?:кв\.?|квартира|оф\.?|офис|пом\.?|помещение)\s*\d+\w*)?/gi
@@ -132,12 +136,12 @@ export function detectPii(text: string): RuleResult[] {
   }
 
   for (const m of findAll(text, INN_12)) {
-    if (validateINN(m[0])) {
+    if (validateINN(m[0]) || hasKeywordNearby(text, m.index, m.index + m[0].length, INN_KEYWORDS)) {
       results.push({ category: 'ИНН', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
   for (const m of findAll(text, INN_10)) {
-    if (validateINN(m[0])) {
+    if (validateINN(m[0]) || hasKeywordNearby(text, m.index, m.index + m[0].length, INN_KEYWORDS)) {
       results.push({ category: 'ИНН', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
@@ -193,6 +197,11 @@ export function detectPii(text: string): RuleResult[] {
     if (hasKeywordNearby(text, m.index, m.index + m[0].length, OGRN_KEYWORDS)) {
       results.push({ category: 'ОГРН', original: m[0], start: m.index, end: m.index + m[0].length })
     }
+  }
+
+  // Организации (ООО/ОАО/ЗАО/АО/ПАО/ИП + название) — без ключевых слов, паттерн специфичен
+  for (const m of findAll(text, ORG)) {
+    results.push({ category: 'ОРГ', original: m[0].trim(), start: m.index, end: m.index + m[0].length })
   }
 
   // Адрес — только с контекстом
