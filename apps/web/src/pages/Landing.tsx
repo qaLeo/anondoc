@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { InlineDemo } from '../components/InlineDemo'
 
 const FEATURES = [
@@ -222,7 +222,10 @@ export default function Landing() {
         color: 'var(--text-footer)',
         paddingBottom: 32,
       }}>
-        offline · ФЗ-152 · aes-256
+        offline · ФЗ-152 · aes-256 ·{' '}
+        <Link to="/privacy" style={{ color: 'var(--text-footer)', textDecoration: 'underline' }}>
+          политика конфиденциальности
+        </Link>
       </footer>
     </div>
   )

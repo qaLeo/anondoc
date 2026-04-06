@@ -12,6 +12,7 @@ export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -49,6 +50,7 @@ export default function Auth() {
   const switchMode = (next: Mode) => {
     setMode(next)
     setError(null)
+    setPrivacyAccepted(false)
   }
 
   return (
@@ -155,6 +157,28 @@ export default function Auth() {
               />
             </Field>
 
+            {mode === 'register' && (
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, cursor: 'pointer', marginTop: 2 }}>
+                <input
+                  type="checkbox"
+                  checked={privacyAccepted}
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  style={{ marginTop: 2, cursor: 'pointer', flexShrink: 0 }}
+                />
+                <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Я принимаю{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--brand)', textDecoration: 'underline' }}
+                  >
+                    политику конфиденциальности
+                  </a>
+                </span>
+              </label>
+            )}
+
             {error && (
               <div style={{
                 padding: '10px 14px',
@@ -170,16 +194,16 @@ export default function Auth() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (mode === 'register' && !privacyAccepted)}
               style={{
                 padding: '13px',
                 fontSize: 15,
                 fontWeight: 600,
-                background: loading ? '#90CAF9' : 'var(--brand)',
+                background: (loading || (mode === 'register' && !privacyAccepted)) ? '#90CAF9' : 'var(--brand)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
-                cursor: loading ? 'default' : 'pointer',
+                cursor: (loading || (mode === 'register' && !privacyAccepted)) ? 'not-allowed' : 'pointer',
                 letterSpacing: '0.2px',
                 transition: 'background 0.15s',
                 marginTop: 4,

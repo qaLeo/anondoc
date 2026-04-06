@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
           Политика конфиденциальности
         </h1>
         <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 40 }}>
-          Последнее обновление: 1 января 2025 г.
+          Последнее обновление: апрель 2026 г.
         </p>
 
         <Section title="1. Общие положения">
