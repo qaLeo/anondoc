@@ -273,7 +273,7 @@ export default function Auth() {
 
         {/* Bottom note */}
         <p style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-          Данные обрабатываются локально · GDPR / ФЗ-152
+          Работает офлайн · Соответствует ФЗ-152 · Шифрование AES-256
         </p>
       </div>
     </div>

@@ -47,7 +47,7 @@ function MainPage() {
         textAlign: 'center', fontSize: 11, color: 'var(--text-footer)',
         paddingBottom: 32,
       }}>
-        offline · ФЗ-152 · aes-256 ·{' '}
+        Работает офлайн · Соответствует ФЗ-152 · Шифрование AES-256 ·{' '}
         <Link to="/privacy" style={{ color: 'var(--text-footer)', textDecoration: 'underline' }}>
           политика конфиденциальности
         </Link>

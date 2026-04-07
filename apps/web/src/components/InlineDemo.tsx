@@ -255,18 +255,18 @@ export function InlineDemo() {
           style={{
             padding: '10px 24px',
             fontSize: 14,
-            fontWeight: 500,
-            background: (!inputText.trim() || limitReached) ? 'var(--border-light)' : 'var(--accent)',
-            color: (!inputText.trim() || limitReached) ? 'var(--text-muted)' : 'var(--bg)',
+            fontWeight: 600,
+            background: (!inputText.trim() || limitReached) ? '#e5e7eb' : '#1a56db',
+            color: (!inputText.trim() || limitReached) ? '#9ca3af' : '#ffffff',
             border: 'none',
-            borderRadius: 6,
+            borderRadius: 8,
             cursor: (!inputText.trim() || limitReached) ? 'not-allowed' : 'pointer',
             transition: 'opacity 0.15s',
           }}
           onMouseEnter={e => { if (!limitReached && inputText.trim()) e.currentTarget.style.opacity = '0.85' }}
           onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
         >
-          анонимизировать
+          Анонимизировать →
         </button>
         {result && (() => {
           const remaining = DEMO_LIMIT - result.count
