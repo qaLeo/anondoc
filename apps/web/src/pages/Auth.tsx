@@ -4,6 +4,15 @@ import { useAuth } from '../context/AuthContext'
 
 type Mode = 'login' | 'register'
 
+function AppIcon({ size = 40 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="7" fill="#1a56db" />
+      <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 export default function Auth() {
   const { login, register } = useAuth()
   const navigate = useNavigate()
@@ -15,6 +24,7 @@ export default function Auth() {
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const validate = (): string | null => {
     if (!email.includes('@')) return 'Введите корректный email'
@@ -53,47 +63,57 @@ export default function Auth() {
     setPrivacyAccepted(false)
   }
 
+  const inputStyle = (fieldName: string): React.CSSProperties => ({
+    width: '100%',
+    padding: '10px 14px',
+    fontSize: 14,
+    border: `1.5px solid ${focusedField === fieldName ? '#1a56db' : '#e5e7eb'}`,
+    borderRadius: 8,
+    outline: 'none',
+    color: '#111827',
+    background: '#ffffff',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.15s',
+  })
+
+  const isDisabled = loading || (mode === 'register' && !privacyAccepted)
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--page-bg)',
+      background: '#f9fafb',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px',
     }}>
-      <div style={{ width: '100%', maxWidth: 420 }}>
-        {/* Logo */}
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        {/* Logo block */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="7" fill="#1976D2" />
-              <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="21" cy="18" r="4" fill="#fff" />
-              <path d="M19.5 18l1 1 2-2" stroke="#1976D2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
-              AnonDoc
-            </span>
+          <div style={{ display: 'block', margin: '0 auto 12px', width: 'fit-content' }}>
+            <AppIcon size={40} />
           </div>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 6 }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
+            AnonDoc
+          </div>
+          <p style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
             Обезличивание документов
           </p>
         </div>
 
         {/* Card */}
         <div style={{
-          background: '#fff',
-          borderRadius: 12,
-          border: '1px solid var(--border)',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
-          padding: '32px 36px',
+          background: '#ffffff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+          padding: '32px 32px',
         }}>
-          {/* Tabs */}
+          {/* Mode switcher — pill style */}
           <div style={{
-            display: 'flex',
-            borderBottom: '2px solid var(--border)',
-            marginBottom: 24,
+            background: '#f3f4f6', borderRadius: 10, padding: 4,
+            display: 'flex', marginBottom: 24,
           }}>
             {(['login', 'register'] as Mode[]).map((m) => (
               <button
@@ -101,16 +121,16 @@ export default function Auth() {
                 onClick={() => switchMode(m)}
                 style={{
                   flex: 1,
-                  padding: '8px',
+                  padding: '8px 0',
                   fontSize: 14,
-                  fontWeight: 600,
+                  fontWeight: 500,
                   border: 'none',
-                  background: 'none',
+                  borderRadius: 7,
                   cursor: 'pointer',
-                  color: mode === m ? 'var(--brand)' : 'var(--text-secondary)',
-                  borderBottom: `2px solid ${mode === m ? 'var(--brand)' : 'transparent'}`,
-                  marginBottom: -2,
-                  transition: 'color 0.15s',
+                  transition: 'all 0.15s',
+                  background: mode === m ? '#ffffff' : 'transparent',
+                  color: mode === m ? '#111827' : '#6b7280',
+                  boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                 }}
               >
                 {m === 'login' ? 'Вход' : 'Регистрация'}
@@ -119,43 +139,58 @@ export default function Auth() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {mode === 'register' && (
-              <Field label="Имя">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+                  Имя
+                </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Иван Иванов"
-                  style={inputStyle}
+                  style={inputStyle('name')}
+                  onFocus={() => setFocusedField('name')}
+                  onBlur={() => setFocusedField(null)}
                   autoComplete="name"
                 />
-              </Field>
+              </div>
             )}
 
-            <Field label="Email">
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                style={inputStyle}
+                style={inputStyle('email')}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
                 autoComplete="email"
                 required
               />
-            </Field>
+            </div>
 
-            <Field label="Пароль">
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
+                Пароль
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={mode === 'register' ? 'Минимум 8 символов' : '••••••••'}
-                style={inputStyle}
+                style={inputStyle('password')}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 required
               />
-            </Field>
+            </div>
 
             {mode === 'register' && (
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, cursor: 'pointer', marginTop: 2 }}>
@@ -165,13 +200,13 @@ export default function Auth() {
                   onChange={(e) => setPrivacyAccepted(e.target.checked)}
                   style={{ marginTop: 2, cursor: 'pointer', flexShrink: 0 }}
                 />
-                <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
                   Я принимаю{' '}
                   <a
                     href="/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: 'var(--brand)', textDecoration: 'underline' }}
+                    style={{ color: '#1a56db', textDecoration: 'underline' }}
                   >
                     политику конфиденциальности
                   </a>
@@ -181,11 +216,11 @@ export default function Auth() {
 
             {error && (
               <div style={{
-                padding: '10px 14px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
                 borderRadius: 8,
-                background: '#FFF3F3',
-                border: '1px solid #FFCDD2',
-                color: '#C62828',
+                padding: '10px 14px',
+                color: '#dc2626',
                 fontSize: 13,
               }}>
                 {error}
@@ -194,19 +229,20 @@ export default function Auth() {
 
             <button
               type="submit"
-              disabled={loading || (mode === 'register' && !privacyAccepted)}
+              disabled={isDisabled}
               style={{
-                padding: '13px',
+                padding: '12px',
                 fontSize: 15,
                 fontWeight: 600,
-                background: (loading || (mode === 'register' && !privacyAccepted)) ? '#90CAF9' : 'var(--brand)',
-                color: '#fff',
+                background: isDisabled ? '#93c5fd' : '#1a56db',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: 8,
-                cursor: (loading || (mode === 'register' && !privacyAccepted)) ? 'not-allowed' : 'pointer',
-                letterSpacing: '0.2px',
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                letterSpacing: '0.1px',
                 transition: 'background 0.15s',
                 marginTop: 4,
+                width: '100%',
               }}
             >
               {loading ? 'Загрузка...' : mode === 'login' ? 'Войти' : 'Создать аккаунт'}
@@ -214,12 +250,10 @@ export default function Auth() {
           </form>
 
           {/* Divider */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0',
-          }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>или</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+            <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+            <span style={{ fontSize: 12, color: '#6b7280' }}>или</span>
+            <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
           </div>
 
           {/* OAuth buttons */}
@@ -237,37 +271,13 @@ export default function Auth() {
           </div>
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>
+        {/* Bottom note */}
+        <p style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
           Данные обрабатываются локально · GDPR / ФЗ-152
         </p>
       </div>
     </div>
   )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
-        {label}
-      </label>
-      {children}
-    </div>
-  )
-}
-
-const inputStyle: React.CSSProperties = {
-  padding: '10px 12px',
-  fontSize: 14,
-  border: '1.5px solid var(--border)',
-  borderRadius: 8,
-  outline: 'none',
-  color: 'var(--text-primary)',
-  background: '#fff',
-  width: '100%',
-  boxSizing: 'border-box',
-  transition: 'border-color 0.15s',
-  fontFamily: 'inherit',
 }
 
 function OAuthButton({ icon, label, onClick }: {
@@ -287,20 +297,18 @@ function OAuthButton({ icon, label, onClick }: {
         padding: '10px 14px',
         fontSize: 14,
         fontWeight: 500,
-        background: '#fff',
-        color: 'var(--text-primary)',
-        border: '1.5px solid var(--border)',
+        background: '#ffffff',
+        color: '#111827',
+        border: '1.5px solid #e5e7eb',
         borderRadius: 8,
         cursor: 'pointer',
         transition: 'border-color 0.15s, background 0.15s',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'var(--page-bg)'
-        e.currentTarget.style.borderColor = '#BDBDBD'
+        e.currentTarget.style.background = '#f9fafb'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = '#fff'
-        e.currentTarget.style.borderColor = 'var(--border)'
+        e.currentTarget.style.background = '#ffffff'
       }}
     >
       {icon}

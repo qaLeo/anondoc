@@ -4,9 +4,19 @@ import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 import { billingApi } from '../api/client'
 
+function AppIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="7" fill="#1a56db"/>
+      <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 interface PlanDef {
   id: string
   name: string
+  subtitle: string
   price: string
   period?: string
   features: string[]
@@ -15,39 +25,43 @@ interface PlanDef {
 const PLANS: PlanDef[] = [
   {
     id: 'FREE',
-    name: 'free',
+    name: 'Free',
+    subtitle: 'Попробуйте без ограничений по времени',
     price: '0 ₽',
     period: '/ мес',
     features: [
       '10 документов в месяц',
-      'txt, docx, xlsx, pdf',
-      'только россия (фз-152)',
-      'локальная обработка',
+      'TXT, DOCX, XLSX, PDF',
+      'Только Россия (ФЗ-152)',
+      'Локальная обработка',
     ],
   },
   {
     id: 'PRO',
-    name: 'pro',
+    name: 'Pro',
+    subtitle: 'Для активной работы с документами',
     price: '990 ₽',
     period: '/ мес',
     features: [
-      'безлимит документов',
-      'все форматы файлов',
-      'все страны снг',
-      'история документов',
-      'приоритетная поддержка',
+      'Безлимит документов',
+      'Все форматы файлов',
+      'Все страны СНГ',
+      'История документов',
+      'Ключ документа',
+      'Приоритетная поддержка',
     ],
   },
   {
     id: 'TEAM',
-    name: 'team',
+    name: 'Team',
+    subtitle: 'Для команд и отделов',
     price: '4 900 ₽',
     period: '/ мес',
     features: [
-      'до 10 пользователей',
-      'всё из pro',
-      'брендинг',
-      'отчёты и статистика',
+      'До 10 пользователей',
+      'Всё из Pro',
+      'Брендинг',
+      'Отчёты и статистика',
     ],
   },
 ]
@@ -102,27 +116,28 @@ export default function Pricing() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: '#ffffff' }}>
       {/* Header */}
       <header style={{
-        borderBottom: '1px solid var(--border)',
-        padding: '0 28px', height: 52,
+        borderBottom: '1px solid #e5e7eb',
+        padding: '0 28px', height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'var(--bg)',
+        background: '#ffffff',
       }}>
         <button
           onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }}
         >
-          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.3px' }}>
-            anon<span style={{ color: 'var(--text-muted)' }}>doc</span>
+          <AppIcon size={22} />
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.3px' }}>
+            AnonDoc
           </span>
         </button>
         <button
           onClick={() => navigate(isAuthenticated ? '/' : '/auth')}
           style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            fontSize: 13, color: 'var(--text-muted)',
+            fontSize: 13, color: '#6b7280',
           }}
         >
           {isAuthenticated ? '← назад' : 'войти'}
@@ -130,18 +145,20 @@ export default function Pricing() {
       </header>
 
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 80px' }}>
-        <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>тарифы</div>
-        <div style={{ fontSize: 12, color: 'var(--text-hint)', marginBottom: 32 }}>
-          без скрытых платежей · оплата через stripe · отмена в любой момент
+        <h1 style={{ fontSize: 32, fontWeight: 700, color: '#111827', marginBottom: 8, margin: '0 0 8px' }}>
+          Тарифы
+        </h1>
+        <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 32 }}>
+          Без скрытых платежей · Оплата через Stripe · Отмена в любой момент
         </div>
 
         {error && (
-          <div style={{ fontSize: 13, color: '#C00', marginBottom: 20 }}>{error}</div>
+          <div style={{ fontSize: 13, color: '#dc2626', marginBottom: 20 }}>{error}</div>
         )}
 
         {trialStarted && (
-          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
-            пробный период pro активирован на 10 дней ✓
+          <div style={{ fontSize: 13, color: '#374151', marginBottom: 20 }}>
+            Пробный период Pro активирован на 10 дней ✓
           </div>
         )}
 
@@ -149,44 +166,66 @@ export default function Pricing() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 1,
-          border: '1px solid var(--border)',
-          borderRadius: 8,
-          overflow: 'hidden',
-          background: 'var(--border)',
+          gap: 16,
         }}>
           {PLANS.map((plan) => {
             const isCurrent = isAuthenticated && plan.id === currentUiPlan && !isTrial
             const isCurrentTrial = isAuthenticated && plan.id === 'PRO' && isTrial
             const canActivateTrial = isAuthenticated && plan.id === 'PRO' && !trialUsed && !isTrial && !trialStarted
             const isLoadingThis = loading === plan.id
+            const isPro = plan.id === 'PRO'
 
             return (
-              <div key={plan.id} style={{
-                background: 'var(--bg)',
-                padding: '24px 20px',
-              }}>
+              <div
+                key={plan.id}
+                style={{
+                  position: 'relative',
+                  background: isPro ? '#f8fbff' : '#ffffff',
+                  border: isPro ? '2px solid #1a56db' : '1px solid #e5e7eb',
+                  borderRadius: 12,
+                  padding: '24px 20px',
+                  overflow: 'visible',
+                }}
+              >
+                {/* PRO badge */}
+                {isPro && (
+                  <div style={{
+                    position: 'absolute', top: -12, left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#1a56db', color: '#ffffff',
+                    fontSize: 11, fontWeight: 600, padding: '3px 12px', borderRadius: 20,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    Популярный выбор
+                  </div>
+                )}
+
                 {/* Plan name */}
                 <div style={{
-                  fontSize: 14, color: 'var(--text)',
+                  fontSize: 16, fontWeight: 700, color: '#111827',
                   textDecoration: (isCurrent || isCurrentTrial) ? 'underline' : 'none',
-                  marginBottom: 12,
+                  marginBottom: 4,
                 }}>
                   {plan.name}
                   {isCurrentTrial && trialDaysLeft !== null && (
-                    <span style={{ fontSize: 11, color: 'var(--text-hint)', marginLeft: 6 }}>
+                    <span style={{ fontSize: 11, color: '#6b7280', marginLeft: 6 }}>
                       · {trialDaysLeft} дн.
                     </span>
                   )}
                 </div>
 
+                {/* Subtitle */}
+                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+                  {plan.subtitle}
+                </div>
+
                 {/* Price */}
                 <div style={{ marginBottom: 20 }}>
-                  <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.5px' }}>
+                  <span style={{ fontSize: 20, fontWeight: 600, color: '#111827', letterSpacing: '-0.5px' }}>
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span style={{ fontSize: 12, color: 'var(--text-hint)', marginLeft: 4 }}>
+                    <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 4 }}>
                       {plan.period}
                     </span>
                   )}
@@ -195,7 +234,8 @@ export default function Pricing() {
                 {/* Features */}
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {plan.features.map((f) => (
-                    <li key={f} style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    <li key={f} style={{ fontSize: 13, color: '#374151' }}>
+                      <span style={{ color: '#1a56db', marginRight: 6 }}>✓</span>
                       {f}
                     </li>
                   ))}
@@ -203,37 +243,34 @@ export default function Pricing() {
 
                 {/* CTA */}
                 {(isCurrent || isCurrentTrial) ? (
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>текущий план</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>текущий план</div>
                 ) : canActivateTrial ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <button
                       onClick={handleTrial}
                       disabled={loading === 'TRIAL'}
                       style={{
-                        padding: '7px 0', fontSize: 12,
-                        background: 'none', color: 'var(--text)',
-                        border: '1px solid var(--border-light)', borderRadius: 5,
+                        padding: '10px 0', fontSize: 14, fontWeight: 500,
+                        background: 'none', color: '#1a56db',
+                        border: '1.5px solid #1a56db', borderRadius: 8,
                         cursor: loading === 'TRIAL' ? 'default' : 'pointer',
                         opacity: loading === 'TRIAL' ? 0.6 : 1, width: '100%',
-                        transition: 'border-color 0.1s',
                       }}
-                      onMouseEnter={e => { if (loading !== 'TRIAL') e.currentTarget.style.borderColor = 'var(--border)' }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)' }}
                     >
-                      {loading === 'TRIAL' ? '...' : 'попробовать pro бесплатно 10 дней'}
+                      {loading === 'TRIAL' ? '...' : 'Попробовать Pro бесплатно 10 дней'}
                     </button>
                     <button
                       onClick={() => handleSubscribe(plan)}
                       disabled={!!isLoadingThis}
                       style={{
-                        padding: '7px 0', fontSize: 12,
-                        background: 'none', color: 'var(--text-muted)',
-                        border: '1px solid var(--border-light)', borderRadius: 5,
+                        padding: '10px 0', fontSize: 14, fontWeight: 500,
+                        background: '#1a56db', color: '#ffffff',
+                        border: 'none', borderRadius: 8,
                         cursor: isLoadingThis ? 'default' : 'pointer',
                         opacity: isLoadingThis ? 0.6 : 1, width: '100%',
                       }}
                     >
-                      {isLoadingThis ? '...' : 'подключить за 990 ₽'}
+                      {isLoadingThis ? '...' : 'Подключить за 990 ₽'}
                     </button>
                   </div>
                 ) : plan.id !== 'FREE' ? (
@@ -241,20 +278,17 @@ export default function Pricing() {
                     onClick={() => handleSubscribe(plan)}
                     disabled={!!isLoadingThis}
                     style={{
-                      width: '100%', padding: '7px 0', fontSize: 12,
-                      background: 'none', color: 'var(--text)',
-                      border: '1px solid var(--border-light)', borderRadius: 5,
-                      cursor: isLoadingThis || plan.id === 'FREE' ? 'default' : 'pointer',
+                      width: '100%', padding: '10px 0', fontSize: 14, fontWeight: 500,
+                      background: '#1a56db', color: '#ffffff',
+                      border: 'none', borderRadius: 8,
+                      cursor: isLoadingThis ? 'default' : 'pointer',
                       opacity: isLoadingThis ? 0.6 : 1,
-                      transition: 'border-color 0.1s',
                     }}
-                    onMouseEnter={e => { if (!isLoadingThis) e.currentTarget.style.borderColor = 'var(--border)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)' }}
                   >
-                    {isLoadingThis ? '...' : 'подключить'}
+                    {isLoadingThis ? '...' : 'Подключить'}
                   </button>
                 ) : (
-                  <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>базовый</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>базовый</div>
                 )}
               </div>
             )
@@ -264,19 +298,19 @@ export default function Pricing() {
         {/* Enterprise */}
         <div style={{
           marginTop: 20, padding: '16px 20px',
-          border: '1px solid var(--border-light)',
+          border: '1px solid #e5e7eb',
           borderRadius: 8,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div>
-            <span style={{ fontSize: 13, color: 'var(--text)' }}>enterprise</span>
-            <span style={{ fontSize: 12, color: 'var(--text-hint)', marginLeft: 12 }}>
-              on-premise · sso · sla 99.9% · безлимит пользователей
+            <span style={{ fontSize: 13, color: '#111827' }}>Enterprise</span>
+            <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 12 }}>
+              on-premise · SSO · SLA 99.9% · безлимит пользователей
             </span>
           </div>
           <a
             href="mailto:sales@anondoc.app?subject=Enterprise запрос"
-            style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+            style={{ fontSize: 12, color: '#6b7280', textDecoration: 'none' }}
           >
             написать →
           </a>

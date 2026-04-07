@@ -1,5 +1,14 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
+
+function AppIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="7" fill="#1a56db"/>
+      <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
 import { AnonymizationTab } from './components/AnonymizationTab'
 import { DeanonymizationTab } from './components/DeanonymizationTab'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -74,39 +83,45 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
 
   const isOnMain = location.pathname === '/' || location.pathname === ''
 
+  const planBadge = { FREE: 'Free', PRO: 'Pro', BUSINESS: 'Team', ENTERPRISE: 'Enterprise' }[usage?.plan ?? 'FREE'] ?? 'Free'
+
   // Nav link style
   const navStyle = (active: boolean): React.CSSProperties => ({
     fontSize: 13,
-    color: active ? 'var(--text)' : 'var(--text-muted)',
+    color: active ? '#1a56db' : '#6b7280',
     cursor: 'pointer',
     background: 'none',
     border: 'none',
     padding: '0 2px',
+    paddingBottom: active ? '0' : '0',
     textDecoration: 'none',
     transition: 'color 0.1s',
     fontFamily: 'inherit',
     letterSpacing: 0,
+    borderBottom: active ? '2px solid #1a56db' : '2px solid transparent',
+    marginBottom: -1,
   })
 
   return (
     <>
       <header style={{
-        borderBottom: '1px solid var(--border)',
+        borderBottom: '1px solid #e5e7eb',
         padding: '0 28px',
-        height: 52,
+        height: 56,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 24,
-        background: 'var(--bg)',
+        background: '#ffffff',
       }}>
         {/* Logo */}
         <button
           onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}
         >
-          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.3px' }}>
-            anon<span style={{ color: 'var(--text-muted)' }}>doc</span>
+          <AppIcon size={22} />
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.3px' }}>
+            AnonDoc
           </span>
         </button>
 
@@ -115,47 +130,53 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
           <button
             onClick={() => { if (isOnMain && onTabChange) onTabChange('anonymize'); else navigate('/') }}
             style={navStyle(isOnMain && activeTab === 'anonymize')}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'anonymize' ? 'var(--text)' : 'var(--text-muted)' }}
+            onMouseEnter={e => { if (!(isOnMain && activeTab === 'anonymize')) e.currentTarget.style.color = '#374151' }}
+            onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'anonymize' ? '#1a56db' : '#6b7280' }}
           >
             анонимизация
           </button>
           <button
             onClick={() => { if (isOnMain && onTabChange) onTabChange('deanonymize'); else navigate('/?deanon=1') }}
             style={navStyle(isOnMain && activeTab === 'deanonymize')}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'deanonymize' ? 'var(--text)' : 'var(--text-muted)' }}
+            onMouseEnter={e => { if (!(isOnMain && activeTab === 'deanonymize')) e.currentTarget.style.color = '#374151' }}
+            onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'deanonymize' ? '#1a56db' : '#6b7280' }}
           >
             деанонимизация
           </button>
           <button
             onClick={() => navigate('/history')}
             style={navStyle(location.pathname === '/history')}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/history' ? 'var(--text)' : 'var(--text-muted)' }}
+            onMouseEnter={e => { if (location.pathname !== '/history') e.currentTarget.style.color = '#374151' }}
+            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/history' ? '#1a56db' : '#6b7280' }}
           >
             история
           </button>
           <button
             onClick={() => navigate('/pricing')}
             style={navStyle(location.pathname === '/pricing')}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/pricing' ? 'var(--text)' : 'var(--text-muted)' }}
+            onMouseEnter={e => { if (location.pathname !== '/pricing') e.currentTarget.style.color = '#374151' }}
+            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/pricing' ? '#1a56db' : '#6b7280' }}
           >
             тарифы
           </button>
         </nav>
 
-        {/* Right: name · docs · logout */}
+        {/* Right: plan badge · name · docs · logout */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
           <button
             onClick={() => navigate('/profile')}
             style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              fontSize: 12, color: 'var(--text-muted)',
-              display: 'flex', gap: 10, alignItems: 'center',
+              fontSize: 12, color: '#6b7280',
+              display: 'flex', gap: 8, alignItems: 'center',
             }}
           >
+            <span style={{
+              background: '#eff6ff', color: '#1a56db',
+              fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+            }}>
+              {planBadge}
+            </span>
             {displayName && <span>{displayName}</span>}
             {usage && (
               <span>{docsText} документов</span>
@@ -165,13 +186,13 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             onClick={handleLogout}
             style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              fontSize: 12, color: 'var(--text-muted)',
+              fontSize: 12, color: '#6b7280',
               transition: 'color 0.1s',
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+            onMouseEnter={e => (e.currentTarget.style.color = '#111827')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#6b7280')}
           >
-            выйти
+            Выйти
           </button>
         </div>
       </header>
@@ -179,14 +200,14 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
       {/* Trial banner */}
       {isTrial && trialDaysLeft !== null && trialDaysLeft > 0 && (
         <div style={{
-          borderBottom: '1px solid var(--border)',
+          borderBottom: '1px solid #e5e7eb',
           padding: '6px 28px',
           fontSize: 12,
-          color: 'var(--text-muted)',
+          color: '#6b7280',
           display: 'flex',
           alignItems: 'center',
           gap: 12,
-          background: 'var(--bg)',
+          background: '#ffffff',
         }}>
           <span>
             pro · осталось {trialDaysLeft} {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}
@@ -196,7 +217,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
               onClick={() => navigate('/pricing')}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontSize: 12, color: 'var(--text-muted)', textDecoration: 'underline',
+                fontSize: 12, color: '#6b7280', textDecoration: 'underline',
               }}
             >
               продлить →

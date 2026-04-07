@@ -4,11 +4,20 @@ import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 import { api, setAccessToken } from '../api/client'
 
+function AppIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="7" fill="#1a56db"/>
+      <path d="M8 10h12M8 14h8M8 18h10" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 const PLAN_LABELS: Record<string, string> = {
-  FREE: 'free',
-  PRO: 'pro',
-  BUSINESS: 'team',
-  ENTERPRISE: 'enterprise',
+  FREE: 'Free',
+  PRO: 'Pro',
+  BUSINESS: 'Team',
+  ENTERPRISE: 'Enterprise',
 }
 
 export default function Profile() {
@@ -19,10 +28,13 @@ export default function Profile() {
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const planLabel = PLAN_LABELS[usage?.plan ?? 'FREE'] ?? (usage?.plan ?? 'free').toLowerCase()
+  const plan = usage?.plan ?? 'FREE'
+  const planLabel = PLAN_LABELS[plan] ?? (plan ?? 'Free')
   const docsUsed = usage?.requests ?? 0
   const docsLimit = usage?.limit ?? 0
   const unlimited = docsLimit === -1
+
+  const initials = (user?.name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase()
 
   const handleLogout = async () => {
     await logout()
@@ -45,117 +57,156 @@ export default function Profile() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
       {/* Header */}
       <header style={{
-        borderBottom: '1px solid var(--border)',
-        padding: '0 28px', height: 52,
+        borderBottom: '1px solid #e5e7eb',
+        padding: '0 28px', height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'var(--bg)',
+        background: '#ffffff',
       }}>
         <button
           onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }}
         >
-          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.3px' }}>
-            anon<span style={{ color: 'var(--text-muted)' }}>doc</span>
+          <AppIcon size={22} />
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.3px' }}>
+            AnonDoc
           </span>
         </button>
         <button
           onClick={() => navigate('/')}
           style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            fontSize: 13, color: 'var(--text-muted)',
+            fontSize: 13, color: '#6b7280',
           }}
         >
           ← назад
         </button>
       </header>
 
-      <main style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px 80px' }}>
-        <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 28 }}>профиль</div>
-
+      <main style={{ maxWidth: 560, margin: '0 auto', padding: '40px 20px 80px' }}>
         {error && (
-          <div style={{ fontSize: 13, color: '#C00', marginBottom: 16 }}>{error}</div>
+          <div style={{ fontSize: 13, color: '#dc2626', marginBottom: 16 }}>{error}</div>
         )}
 
-        {/* Account info */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Row label="email" value={user?.email ?? '—'} />
-          <Row label="план" value={planLabel} />
-          <Row
-            label="документов"
-            value={unlimited ? `${docsUsed} (безлимит)` : `${docsUsed} / ${docsLimit}`}
-          />
+        {/* Profile header card */}
+        <div style={{
+          background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12,
+          padding: '24px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', gap: 16,
+        }}>
+          {/* Avatar */}
+          <div style={{
+            width: 56, height: 56, borderRadius: '50%',
+            background: '#eff6ff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 22, fontWeight: 700, color: '#1a56db',
+            flexShrink: 0,
+          }}>
+            {initials}
+          </div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#111827' }}>
+              {user?.name ?? user?.email?.split('@')[0] ?? '—'}
+            </div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 2 }}>
+              {user?.email ?? '—'}
+            </div>
+          </div>
+        </div>
+
+        {/* Plan card */}
+        <div style={{
+          background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12,
+          padding: '20px 24px', marginBottom: 12,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 13, color: '#6b7280' }}>Тарифный план</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 2 }}>
+                {planLabel}
+              </div>
+            </div>
+            {plan === 'FREE' && (
+              <button
+                onClick={() => navigate('/pricing')}
+                style={{
+                  fontSize: 13, color: '#1a56db', background: 'none', border: 'none', cursor: 'pointer',
+                }}
+              >
+                Перейти на Pro →
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Usage card */}
+        <div style={{
+          background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12,
+          padding: '20px 24px', marginBottom: 24,
+        }}>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>
+            Использовано документов
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1, height: 6, background: '#e5e7eb', borderRadius: 3 }}>
+              <div style={{
+                height: '100%', borderRadius: 3, background: '#1a56db',
+                width: unlimited ? '20%' : `${Math.min((docsUsed / (docsLimit || 1)) * 100, 100)}%`,
+              }} />
+            </div>
+            <span style={{ fontSize: 13, color: '#374151', flexShrink: 0 }}>
+              {docsUsed} / {unlimited ? '∞' : docsLimit}
+            </span>
+          </div>
         </div>
 
         {/* Actions */}
-        <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button
-            onClick={() => navigate('/pricing')}
-            style={btn()}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-          >
-            сменить план →
-          </button>
-
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button
             onClick={handleLogout}
-            style={btn()}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+            style={{
+              width: '100%', padding: '11px 16px', fontSize: 14,
+              color: '#374151', background: '#ffffff',
+              border: '1.5px solid #e5e7eb', borderRadius: 8, cursor: 'pointer',
+              textAlign: 'left',
+            }}
           >
-            выйти
+            Выйти
           </button>
 
           <button
             onClick={handleDeleteAccount}
             disabled={deleting}
-            style={btn()}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+            style={{
+              width: '100%', padding: '11px 16px', fontSize: 14,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#dc2626', textAlign: 'left',
+            }}
           >
             {deleting
-              ? 'удаление...'
+              ? 'Удаление...'
               : deleteConfirm
-                ? 'подтвердить удаление аккаунта?'
-                : 'удалить аккаунт'}
+                ? 'Подтвердить удаление аккаунта?'
+                : 'Удалить аккаунт'}
           </button>
 
           {deleteConfirm && !deleting && (
             <button
               onClick={() => setDeleteConfirm(false)}
-              style={btn()}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+              style={{
+                width: '100%', padding: '11px 16px', fontSize: 14,
+                color: '#374151', background: '#ffffff',
+                border: '1.5px solid #e5e7eb', borderRadius: 8, cursor: 'pointer',
+                textAlign: 'left',
+              }}
             >
-              отмена
+              Отмена
             </button>
           )}
         </div>
       </main>
     </div>
   )
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '10px 0',
-      borderBottom: '1px solid var(--border-light)',
-    }}>
-      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{label}</span>
-      <span style={{ fontSize: 13, color: 'var(--text)' }}>{value}</span>
-    </div>
-  )
-}
-
-function btn(): React.CSSProperties {
-  return {
-    background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0',
-    fontSize: 13, color: 'var(--text-muted)', textAlign: 'left',
-    transition: 'color 0.1s',
-  }
 }

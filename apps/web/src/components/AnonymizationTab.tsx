@@ -133,8 +133,9 @@ export function AnonymizationTab() {
                 borderTop: i > 0 ? '1px solid var(--border-light)' : undefined,
               }}
             >
+              <FileTypeIcon name={f.name} />
               <span style={{
-                fontSize: 13, color: 'var(--text)',
+                fontSize: 14, fontWeight: 500, color: 'var(--text)',
                 flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
                 {f.name}
@@ -182,7 +183,7 @@ export function AnonymizationTab() {
           title={addBtnTooltip}
           style={{
             padding: '10px 20px', fontSize: 14, fontWeight: 500,
-            background: isLimitReached ? 'var(--bg)' : 'var(--accent)',
+            background: isLimitReached ? 'var(--bg)' : '#1a56db',
             color: isLimitReached ? 'var(--text-muted)' : 'var(--bg)',
             border: isLimitReached ? '1px solid var(--border-light)' : 'none',
             borderRadius: 6,
@@ -270,4 +271,26 @@ function secondaryBtn(): React.CSSProperties {
     cursor: 'pointer',
     transition: 'border-color 0.1s',
   }
+}
+
+function FileTypeIcon({ name }: { name: string }) {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  const map: Record<string, { label: string; bg: string; color: string }> = {
+    pdf:  { label: 'PDF',  bg: '#fee2e2', color: '#dc2626' },
+    docx: { label: 'DOC',  bg: '#dbeafe', color: '#1d4ed8' },
+    xlsx: { label: 'XLS',  bg: '#dcfce7', color: '#16a34a' },
+    csv:  { label: 'CSV',  bg: '#dcfce7', color: '#16a34a' },
+    txt:  { label: 'TXT',  bg: '#f3f4f6', color: '#6b7280' },
+  }
+  const t = map[ext] ?? { label: ext.toUpperCase() || 'FILE', bg: '#f3f4f6', color: '#6b7280' }
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: 36, height: 36, borderRadius: 6,
+      background: t.bg, color: t.color, fontSize: 9, fontWeight: 700,
+      letterSpacing: '0.02em', flexShrink: 0,
+    }}>
+      {t.label}
+    </span>
+  )
 }
