@@ -176,7 +176,7 @@ export function AnonymizationTab() {
       {error && <div style={{ fontSize: 13, color: '#C00', padding: '2px 0' }}>{error}</div>}
 
       {/* Add file + counter row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div className="anon-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <button
           onClick={handlePickFile}
           disabled={isLimitReached || isProcessing}
@@ -225,7 +225,7 @@ export function AnonymizationTab() {
 
       {/* Actions row — shown once there are files */}
       {!isEmpty && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div className="session-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <button
             onClick={handleNewSession}
             style={secondaryBtn()}

@@ -88,7 +88,7 @@ export default function Landing() {
             <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>AnonDoc</span>
           </div>
 
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+          <nav className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
             {[
               { label: 'Возможности', href: '#how-it-works' },
               { label: 'Тарифы', href: '/pricing' },
@@ -111,7 +111,7 @@ export default function Landing() {
             ))}
           </nav>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="landing-nav-cta" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               onClick={() => navigate('/auth')}
               style={{
@@ -143,8 +143,8 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section style={{ padding: '80px 32px 64px' }}>
-        <div style={{
+      <section className="landing-hero-section" style={{ padding: '80px 32px 64px' }}>
+        <div className="landing-hero-grid" style={{
           maxWidth: 1200, margin: '0 auto',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center',
         }}>
@@ -160,7 +160,7 @@ export default function Landing() {
               ))}
             </div>
 
-            <h1 style={{
+            <h1 className="landing-hero-h1" style={{
               fontSize: 44, fontWeight: 800, letterSpacing: '-1px',
               color: '#111827', lineHeight: 1.15, margin: '0 0 16px',
             }}>
@@ -171,7 +171,7 @@ export default function Landing() {
               Анонимизируйте документы перед отправкой в ChatGPT, Claude и другие AI-сервисы. Персональные данные заменяются токенами до отправки в AI.
             </p>
 
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div className="landing-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button
                 onClick={() => navigate('/auth')}
                 style={{
@@ -405,7 +405,7 @@ export default function Landing() {
             Разница между Free и Pro в одной детали
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 800, margin: '0 auto' }}>
+          <div className="landing-key-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 800, margin: '0 auto' }}>
             {/* Card: without key */}
             <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 24, background: '#ffffff' }}>
               <div style={{ fontSize: 28, marginBottom: 12, color: '#9ca3af' }}>🔓</div>
@@ -450,7 +450,7 @@ export default function Landing() {
           </div>
 
           {/* JSON preview */}
-          <div style={{
+          <div className="landing-json-block" style={{
             background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20,
             maxWidth: 480, margin: '32px auto 0',
             fontFamily: 'monospace', fontSize: 13, lineHeight: 1.7,
@@ -488,7 +488,8 @@ export default function Landing() {
             Выберите подходящий для ваших задач
           </p>
 
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+          <div className="landing-compare-outer">
+          <div className="landing-compare-inner" style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
             {/* Header row */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr' }}>
               <div style={{ padding: '14px 20px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#6b7280' }}>
@@ -543,6 +544,7 @@ export default function Landing() {
               </div>
             ))}
           </div>
+          </div>
 
           <div style={{ textAlign: 'center', marginTop: 24 }}>
             <button
@@ -565,7 +567,7 @@ export default function Landing() {
       {/* Trust block */}
       <section style={{ background: '#f9fafb', padding: '48px 32px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+          <div className="landing-trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
             {TRUST_ITEMS.map((t) => (
               <div key={t.title} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 20, background: '#ffffff' }}>
                 <div style={{
@@ -594,7 +596,7 @@ export default function Landing() {
           <h2 style={{ fontSize: 24, fontWeight: 700, color: '#111827', marginBottom: 40 }}>
             Почему AnonDoc
           </h2>
-          <div style={{
+          <div className="landing-features-grid" style={{
             display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 1, background: '#e5e7eb',
             border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden',

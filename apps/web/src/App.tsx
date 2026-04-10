@@ -126,7 +126,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
         </button>
 
         {/* Nav */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 1 }}>
+        <nav className="app-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 1 }}>
           <button
             onClick={() => { if (isOnMain && onTabChange) onTabChange('anonymize'); else navigate('/') }}
             style={navStyle(isOnMain && activeTab === 'anonymize')}
@@ -177,9 +177,9 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             }}>
               {planBadge}
             </span>
-            {displayName && <span>{displayName}</span>}
+            {displayName && <span className="app-user-name">{displayName}</span>}
             {usage && (
-              <span>{docsText} документов</span>
+              <span className="app-user-docs">{docsText} документов</span>
             )}
           </button>
           <button

@@ -185,7 +185,7 @@ export default function History() {
                           </div>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: 12, flexShrink: 0, alignItems: 'center' }}>
+                      <div className="history-session-actions" style={{ display: 'flex', gap: 12, flexShrink: 0, alignItems: 'center' }}>
                         <button onClick={() => handleContinueSession(s)} style={actionBtn()}
                           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
@@ -232,7 +232,7 @@ export default function History() {
                   }}>
                     <FileTypeBadge name={doc.name} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div className="history-filename" style={{ fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {doc.name}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 2 }}>
@@ -240,7 +240,7 @@ export default function History() {
                         {doc.restored && <span> · восстановлен</span>}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
+                    <div className="history-doc-actions" style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
                       <button onClick={() => handleDownloadDoc(doc)} style={actionBtn()}
                         onMouseEnter={e => (e.currentTarget.style.color = '#1a56db')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>

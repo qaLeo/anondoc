@@ -167,7 +167,7 @@ export default function Pricing() {
         )}
 
         {/* 3-column grid */}
-        <div style={{
+        <div className="pricing-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 16,
@@ -182,6 +182,7 @@ export default function Pricing() {
             return (
               <div
                 key={plan.id}
+                className={isPro ? 'pricing-card-pro' : undefined}
                 style={{
                   position: 'relative',
                   background: isPro ? '#f8fbff' : '#ffffff',
@@ -300,7 +301,7 @@ export default function Pricing() {
         </div>
 
         {/* Enterprise */}
-        <div style={{
+        <div className="pricing-enterprise" style={{
           marginTop: 20, padding: '16px 20px',
           border: '1px solid #e5e7eb',
           borderRadius: 8,

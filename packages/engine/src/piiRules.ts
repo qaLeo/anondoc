@@ -1,5 +1,6 @@
 import type { PiiCategory } from './types.js'
 import { validateINN, validateSNILS, validateLuhn } from './validators.js'
+import { isKnownName, isCisCity, KZ_PATRONYMIC_SUFFIXES } from './dictionaries/index.js'
 
 interface RuleResult {
   category: PiiCategory
@@ -109,12 +110,17 @@ export function detectPii(text: string): RuleResult[] {
       results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
-  // Фамилия Имя без отчества — только при наличии контекста
+  // Фамилия Имя без отчества — при наличии контекста ИЛИ если одно из слов есть в словаре имён
   for (const m of findAll(text, FIO_TWO_WORDS)) {
-    const firstWord = m[0].split(' ')[0].toLowerCase()
-    if (!FIO_STOPLIST.has(m[0].toLowerCase()) &&
-        !FIO_TITLE_WORDS.has(firstWord) &&
-        hasKeywordNearby(text, m.index, m.index + m[0].length, FIO_TWO_WORDS_CONTEXT)) {
+    const words = m[0].split(/\s+/)
+    const firstWord = words[0].toLowerCase()
+    const secondWord = (words[1] ?? '').toLowerCase()
+    if (FIO_STOPLIST.has(m[0].toLowerCase())) continue
+    if (FIO_TITLE_WORDS.has(firstWord)) continue
+    if (isCisCity(firstWord) || isCisCity(secondWord)) continue
+    const hasName = isKnownName(firstWord) || isKnownName(secondWord)
+    const hasContext = hasKeywordNearby(text, m.index, m.index + m[0].length, FIO_TWO_WORDS_CONTEXT)
+    if (hasName || hasContext) {
       results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
@@ -123,6 +129,24 @@ export function detectPii(text: string): RuleResult[] {
   }
   for (const m of findAll(text, FIO_INITIALS_AFTER)) {
     results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
+  }
+
+  // Казахские отчества: слово заканчивается на -улы/-қызы — всё сочетание ФИО
+  const kzSuffixPattern = KZ_PATRONYMIC_SUFFIXES.map(s => s.replace(/^-/, '')).join('|')
+  const KZ_PATRONYMIC = new RegExp(`[А-ЯЕа-яе]+\\s+[А-ЯЕа-яе]+\\s+[А-ЯЕа-яе]+(?:${kzSuffixPattern})`, 'g')
+  for (const m of findAll(text, KZ_PATRONYMIC)) {
+    if (!FIO_STOPLIST.has(m[0].toLowerCase())) {
+      results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
+
+  // Одно слово с заглавной буквы в словаре имён + контекст «зовут / ФИО: / Имя:»
+  const FIO_SINGLE_CONTEXT = ['зовут', 'фио:', 'фио :', 'имя:', 'имя :', 'кандидат', 'кандидатка']
+  const FIO_SINGLE_WORD = /[А-ЯЕ][а-яе]{2,}/g
+  for (const m of findAll(text, FIO_SINGLE_WORD)) {
+    if (isKnownName(m[0]) && hasKeywordNearby(text, m.index, m.index + m[0].length, FIO_SINGLE_CONTEXT, 60)) {
+      results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
   }
 
   for (const m of findAll(text, PHONE)) {

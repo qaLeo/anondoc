@@ -58,3 +58,101 @@ html {
     font-family: inherit;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+ *  RESPONSIVE — Mobile (≤ 768px) and Small (≤ 480px)
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Landing: nav ── */
+@media (max-width: 768px) {
+  .landing-nav-links { display: none !important; }
+  .landing-nav-cta > button:first-child { display: none !important; }
+  .landing-nav-cta > button:last-child { font-size: 13px !important; padding: 8px 16px !important; }
+
+  /* ── Landing: hero ── */
+  .landing-hero-section { padding: 48px 20px 40px !important; }
+  .landing-hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .landing-hero-h1 { font-size: 28px !important; letter-spacing: -0.5px !important; }
+  .landing-hero-btns { flex-direction: column !important; }
+  .landing-hero-btns > button { width: 100% !important; min-height: 44px; }
+
+  /* ── Landing: section padding ── */
+  .landing-section { padding-left: 20px !important; padding-right: 20px !important; }
+
+  /* ── Landing: how-it-works arrows ── */
+  .hiw-arrow { padding-top: 0 !important; padding: 6px 0 !important; }
+
+  /* ── Landing: key document cards ── */
+  .landing-key-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Landing: JSON block ── */
+  .landing-json-block { font-size: 11px !important; overflow-x: auto; }
+
+  /* ── Landing: comparison table ── */
+  .landing-compare-outer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .landing-compare-inner { min-width: 520px; }
+
+  /* ── Landing: trust grid ── */
+  .landing-trust-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* ── Landing: features grid ── */
+  .landing-features-grid { grid-template-columns: 1fr !important; }
+
+  /* ── App header: nav tabs scrollable ── */
+  .app-header-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .app-header-nav::-webkit-scrollbar { display: none; }
+  .app-header-nav button { white-space: nowrap; flex-shrink: 0; }
+
+  /* ── App header: right side ── */
+  .app-user-name { display: none !important; }
+  .app-user-docs { display: none !important; }
+
+  /* ── InlineDemo: sample tabs scrollable ── */
+  .demo-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .demo-tabs::-webkit-scrollbar { display: none; }
+
+  /* ── InlineDemo: anonymize button row ── */
+  .demo-anon-row { flex-direction: column !important; align-items: stretch !important; }
+  .demo-anon-row > button { width: 100% !important; min-height: 44px; }
+
+  /* ── InlineDemo: vault table ── */
+  .demo-vault-table td { font-size: 11px !important; }
+
+  /* ── AnonymizationTab: add-file toolbar ── */
+  .anon-toolbar { flex-direction: column !important; align-items: stretch !important; }
+  .anon-toolbar > button { width: 100% !important; min-height: 44px; }
+  .anon-toolbar > span { text-align: center !important; margin-top: 2px; }
+
+  /* ── AnonymizationTab: session actions ── */
+  .session-actions { flex-direction: column !important; align-items: stretch !important; }
+  .session-actions > button { width: 100% !important; min-height: 44px; }
+
+  /* ── History: document action buttons ── */
+  .history-doc-actions { flex-wrap: wrap !important; gap: 6px !important; }
+  .history-session-actions { flex-wrap: wrap !important; gap: 6px !important; }
+  .history-filename { max-width: 180px !important; }
+
+  /* ── Pricing: cards stacked, Pro first ── */
+  .pricing-grid { grid-template-columns: 1fr !important; }
+  .pricing-card-pro { order: -1; }
+  .pricing-enterprise { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+
+  /* ── DeanonymizationTab ── */
+  .deanon-upload-row { flex-direction: column !important; }
+}
+
+@media (max-width: 480px) {
+  .app-user-name { display: none !important; }
+  .app-user-docs { display: none !important; }
+  .landing-hero-h1 { font-size: 26px !important; }
+}

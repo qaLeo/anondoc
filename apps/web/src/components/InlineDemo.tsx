@@ -186,7 +186,7 @@ export function InlineDemo() {
   return (
     <div style={{ fontFamily: 'inherit' }}>
       {/* Sample selector */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div className="demo-tabs" style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         {SAMPLES.map((s, i) => (
           <button
             key={i}
@@ -248,7 +248,7 @@ export function InlineDemo() {
       </div>
 
       {/* Anonymize button */}
-      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="demo-anon-row" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           onClick={handleAnonymize}
           disabled={!inputText.trim() || limitReached}
@@ -362,7 +362,7 @@ export function InlineDemo() {
               }}>
                 таблица замен · {Object.keys(result.vault).length} записей
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <table className="demo-vault-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <tbody>
                   {vaultEntries.map(([token, original]) => {
                     const style = getTokenStyle(token)
