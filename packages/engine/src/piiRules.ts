@@ -27,15 +27,26 @@ function hasKeywordNearby(text: string, start: number, end: number, keywords: st
   return keywords.some(kw => context.includes(kw))
 }
 
-// Фамилия Имя Отчество (с отчеством)
-const FIO_FULL = /[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?\s+[А-ЯЕ][а-яе]+\s+[А-ЯЕ][а-яе]+(?:ович|евич|ич|овна|евна|ична|инична)[а-яе]*/g
-// Фамилия Имя (без отчества) — только с контекстом
-const FIO_TWO_WORDS = /[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?\s+[А-ЯЕ][а-яе]+/g
+// Фамилия Имя Отчество (с отчеством) — только в пределах одной строки
+const FIO_FULL = /[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?[^\S\n]+[А-ЯЕ][а-яе]+[^\S\n]+[А-ЯЕ][а-яе]+(?:ович|евич|ич|овна|евна|ична|инична)[а-яе]*/g
+// 1С-формат: ФИО (3 слова) + необязательная пометка в скобках + запятая + статус
+const FIO_1C_STATUS = '(?:Работа|Отпуск|Отсутствие|Больничный|Командировка|Декрет|Увольнение)'
+const FIO_1C = new RegExp(
+  `[А-ЯЁ][а-яё]+[^\\S\\n]+[А-ЯЁ][а-яё]+[^\\S\\n]+[А-ЯЁ][а-яё]+[^\\S\\n]*(?:\\([^)\\n]{1,40}\\))?(?=[^\\S\\n]*,[^\\S\\n]*${FIO_1C_STATUS})`,
+  'g'
+)
+// Фамилия Имя (без отчества) — только в пределах одной строки
+const FIO_TWO_WORDS = /[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?[^\S\n]+[А-ЯЕ][а-яе]+/g
 const FIO_TWO_WORDS_CONTEXT = ['женщина', 'мужчина', 'гражданин', 'гражданка', 'родилась', 'родился', 'резюме', 'соискатель', 'клиент', 'заемщик', 'пациент', 'сотрудник', 'работник']
 // Слова-обращения не могут быть первым словом имени
 const FIO_TITLE_WORDS = new Set(['гражданин', 'гражданка', 'гражданина', 'гражданке', 'господин', 'госпожа', 'товарищ', 'доктор', 'профессор', 'директор', 'менеджер', 'сотрудник', 'работник', 'пациент', 'клиент', 'заемщик', 'соискатель'])
+// Слова-статусы из 1С и прочих корпоративных выгрузок — не могут быть частью ФИО
+const FIO_STATUS_WORDS = new Set([
+  'работа', 'отпуск', 'отсутствие', 'больничный', 'командировка', 'декрет', 'увольнение',
+  'основное', 'учтено', 'запланировано', 'свободно', 'состояние', 'отдел', 'подразделение',
+])
 const FIO_INITIALS_BEFORE = /[А-ЯЕ]\.\s?[А-ЯЕ]\.\s?[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?/g
-const FIO_INITIALS_AFTER = /[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?\s+[А-ЯЕ]\.\s?[А-ЯЕ]\./g
+const FIO_INITIALS_AFTER = /[А-ЯЕ][а-яе]+(?:-[А-ЯЕ][а-яе]+)?[^\S\n]+[А-ЯЕ]\.[^\S\n]?[А-ЯЕ]\./g
 const FIO_STOPLIST = new Set([
   'российская федерация', 'нижний новгород', 'великий новгород',
   'красная площадь', 'большой театр', 'новый год', 'северный кавказ',
@@ -110,6 +121,12 @@ export function detectPii(text: string): RuleResult[] {
       results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
     }
   }
+  // 1С-формат: ФИО + необязательная пометка в скобках перед запятой + статус
+  for (const m of findAll(text, FIO_1C)) {
+    if (!FIO_STOPLIST.has(m[0].toLowerCase())) {
+      results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
+    }
+  }
   // Фамилия Имя без отчества — при наличии контекста ИЛИ если одно из слов есть в словаре имён
   for (const m of findAll(text, FIO_TWO_WORDS)) {
     const words = m[0].split(/\s+/)
@@ -117,6 +134,7 @@ export function detectPii(text: string): RuleResult[] {
     const secondWord = (words[1] ?? '').toLowerCase()
     if (FIO_STOPLIST.has(m[0].toLowerCase())) continue
     if (FIO_TITLE_WORDS.has(firstWord)) continue
+    if (FIO_STATUS_WORDS.has(firstWord) || FIO_STATUS_WORDS.has(secondWord)) continue
     if (isCisCity(firstWord) || isCisCity(secondWord)) continue
     const hasName = isKnownName(firstWord) || isKnownName(secondWord)
     const hasContext = hasKeywordNearby(text, m.index, m.index + m[0].length, FIO_TWO_WORDS_CONTEXT)
@@ -133,7 +151,7 @@ export function detectPii(text: string): RuleResult[] {
 
   // Казахские отчества: слово заканчивается на -улы/-қызы — всё сочетание ФИО
   const kzSuffixPattern = KZ_PATRONYMIC_SUFFIXES.map(s => s.replace(/^-/, '')).join('|')
-  const KZ_PATRONYMIC = new RegExp(`[А-ЯЕа-яе]+\\s+[А-ЯЕа-яе]+\\s+[А-ЯЕа-яе]+(?:${kzSuffixPattern})`, 'g')
+  const KZ_PATRONYMIC = new RegExp(`[А-ЯЕа-яе]+[^\\S\\n]+[А-ЯЕа-яе]+[^\\S\\n]+[А-ЯЕа-яе]+(?:${kzSuffixPattern})`, 'g')
   for (const m of findAll(text, KZ_PATRONYMIC)) {
     if (!FIO_STOPLIST.has(m[0].toLowerCase())) {
       results.push({ category: 'ФИО', original: m[0], start: m.index, end: m.index + m[0].length })
