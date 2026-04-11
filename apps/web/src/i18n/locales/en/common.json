@@ -1,0 +1,15 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "business": "For Business",
+    "login": "Log in",
+    "register": "Start free"
+  },
+  "footer": {
+    "offline": "Works offline",
+    "gdpr": "GDPR compliant",
+    "aes": "AES-256 encryption",
+    "privacy": "Privacy Policy"
+  }
+}

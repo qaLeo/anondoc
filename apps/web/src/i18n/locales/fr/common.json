@@ -1,0 +1,15 @@
+{
+  "nav": {
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "business": "Pour les entreprises",
+    "login": "Se connecter",
+    "register": "S'inscrire gratuitement"
+  },
+  "footer": {
+    "offline": "Fonctionne hors ligne",
+    "gdpr": "Conforme RGPD",
+    "aes": "Chiffrement AES-256",
+    "privacy": "Politique de confidentialité"
+  }
+}

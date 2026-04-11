@@ -1,0 +1,92 @@
+{
+  "hero": {
+    "badge_gdpr": "DSGVO-konform",
+    "badge_local": "100% lokal",
+    "badge_aes": "AES-256",
+    "title": "KI sicher nutzen —\nohne DSGVO-Risiko",
+    "subtitle": "Ersetzen Sie personenbezogene Daten durch Tokens, bevor Sie Dokumente an ChatGPT oder Claude senden. Daten verlassen Ihren Browser nicht.",
+    "cta_primary": "Kostenlos starten",
+    "cta_demo": "Demo ansehen ↓"
+  },
+  "how_it_works": {
+    "title": "So funktioniert AnonDoc",
+    "subtitle": "Vom Dokument mit persönlichen Daten bis zum fertigen Bericht — vier Schritte",
+    "step1_title": "Dokument hochladen",
+    "step1_desc": "DOCX, XLSX, PDF, TXT",
+    "step2_title": "Daten durch Tokens ersetzt",
+    "step2_desc": "Alles geschieht auf Ihrem Computer",
+    "step3_title": "An KI senden",
+    "step3_desc": "ChatGPT, Claude oder jede andere KI",
+    "step4_title": "Antwort deanonymisieren",
+    "step4_desc": "KI-Antwort hochladen — Tokens werden automatisch durch echte Daten ersetzt"
+  },
+  "key_doc": {
+    "title": "Dokumentenschlüssel — Ihr Datenschutz",
+    "subtitle": "Der Unterschied zwischen Free und Pro in einem Detail",
+    "no_key_title": "Ohne Dokumentenschlüssel",
+    "no_key_desc": "Daten werden nur in diesem Browser gespeichert. Tab schließen oder Cache leeren — der Schlüssel ist weg, Deanonymisierung unmöglich.",
+    "with_key_title": "Mit Dokumentenschlüssel",
+    "with_key_desc": "Laden Sie den Schlüssel herunter — eine kleine Datei mit der Ersetzungstabelle. Arbeiten Sie tagelang und wochenlang mit Dokumenten. Verarbeiten Sie bis zu 50 Dateien in einer Sitzung — ein Schlüssel für alle.",
+    "shield": "Schlüssel liegt bei Ihnen — wir können ihn nicht einsehen"
+  },
+  "comparison": {
+    "title": "Pläne vergleichen",
+    "subtitle": "Wählen Sie den richtigen für Ihre Anforderungen",
+    "param": "Parameter",
+    "docs_month": "Dokumente pro Monat",
+    "files_session": "Dateien pro Sitzung",
+    "key": "Dokumentenschlüssel",
+    "deanon": "Deanonymisierung",
+    "formats": "Dateiformate",
+    "storage": "Datenspeicherung",
+    "price": "Preis",
+    "free_docs": "10",
+    "pro_docs": "Unbegrenzt",
+    "free_files": "5",
+    "pro_files": "50",
+    "free_storage": "Nur Browser",
+    "pro_storage": "Browser + Schlüssel",
+    "free_price": "Kostenlos",
+    "pro_price": "€29/Monat",
+    "popular": "Beliebteste Wahl",
+    "cta": "Zu Pro wechseln →"
+  },
+  "trust": {
+    "item1_title": "Dokumente verlassen nicht den Browser",
+    "item1_desc": "Anonymisierung läuft lokal — Daten werden nicht an unsere Server übertragen",
+    "item2_title": "Offline-fähig",
+    "item2_desc": "Kein Internet für die Anonymisierung nötig. Nur für die Kontoanmeldung.",
+    "item3_title": "Gesetzeskonform",
+    "item3_desc": "DSGVO (Europa), BDSG (Deutschland), BSI-Empfehlungen",
+    "item4_title": "Schlüssel nur bei Ihnen",
+    "item4_desc": "Wir können Ihre Daten ohne Ihren Schlüssel physisch nicht wiederherstellen"
+  },
+  "features": {
+    "title": "Warum AnonDoc",
+    "f1_title": "Vollständig lokal",
+    "f1_desc": "Dokumente werden im Browser verarbeitet. Kein einziges Byte Inhalt geht an den Server.",
+    "f2_title": "Schnell und präzise",
+    "f2_desc": "Findet Namen, Telefone, Steuer-IDs, Pässe, Adressen und E-Mail in Millisekunden.",
+    "f3_title": "Alle Formate",
+    "f3_desc": "Unterstützt TXT, DOCX, XLSX, PDF ohne zusätzliche Software.",
+    "f4_title": "Dokumentenschlüssel",
+    "f4_desc": "Laden Sie einen verschlüsselten Schlüssel herunter, um das Original jederzeit wiederherzustellen.",
+    "f5_title": "DSGVO & BSI",
+    "f5_desc": "Entspricht deutschem und europäischem Datenschutzrecht.",
+    "f6_title": "Sitzungsverlauf",
+    "f6_desc": "Alle Sitzungen lokal gespeichert. Arbeit jederzeit fortsetzen."
+  },
+  "faq": {
+    "title": "Häufig gestellte Fragen",
+    "q1": "Was passiert, wenn ich den Browser ohne Schlüssel schließe?",
+    "a1": "Die Ersetzungstabelle geht verloren. Die Deanonymisierung des Dokuments ohne Schlüssel ist unmöglich. Daher empfehlen wir bei Pro, immer den Dokumentenschlüssel herunterzuladen.",
+    "q2": "Welche personenbezogenen Daten werden anonymisiert?",
+    "a2": "Namen, Telefone, E-Mail, Steuer-IDs, IBAN, Reisepassdaten, Adressen, Firmennamen, Geburtsdaten, Versicherungsnummern und andere persönliche Identifikatoren.",
+    "q3": "Funktioniert es mit jeder KI?",
+    "a3": "Ja. Der anonymisierte Text kann an ChatGPT, Claude, Gemini oder jede andere KI gesendet werden.",
+    "q4": "Kann ich mehrere Dokumente mit einem Schlüssel bearbeiten?",
+    "a4": "Ja, im Pro-Plan. Laden Sie bis zu 50 Dateien in eine Sitzung hoch — alle Tokens gehen in einen einzigen Dokumentenschlüssel.",
+    "q5": "Wie sicher ist das?",
+    "a5": "Maximale Sicherheit. Dokumente werden in Ihrem Browser verarbeitet und nicht an Server übertragen. Selbst wir sehen den Inhalt Ihrer Dokumente nicht."
+  }
+}

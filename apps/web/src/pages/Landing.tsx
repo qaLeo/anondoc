@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { InlineDemo } from '../components/InlineDemo'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import type { SupportedLang } from '../i18n/index'
 
 function AppIcon({ size = 28 }: { size?: number }) {
   return (
@@ -60,9 +63,18 @@ const FAQ_ITEMS = [
   },
 ]
 
-export default function Landing() {
+export default function Landing({ lang }: { lang?: SupportedLang }) {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation('landing')
   const [openFaq, setOpenFaq] = useState<Set<number>>(new Set())
+
+  // Sync i18n language with prop
+  useEffect(() => {
+    if (lang && i18n.language !== lang) {
+      i18n.changeLanguage(lang)
+      document.documentElement.lang = lang
+    }
+  }, [lang, i18n])
 
   const toggleFaq = (i: number) => setOpenFaq(prev => {
     const next = new Set(prev)
@@ -90,9 +102,9 @@ export default function Landing() {
 
           <nav className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
             {[
-              { label: 'Возможности', href: '#how-it-works' },
-              { label: 'Тарифы', href: '/pricing' },
-              { label: 'Для бизнеса', href: '#pricing' },
+              { label: t('nav.features', { ns: 'common' }), href: '#how-it-works' },
+              { label: t('nav.pricing', { ns: 'common' }), href: '/pricing' },
+              { label: t('nav.business', { ns: 'common' }), href: '#pricing' },
             ].map(({ label, href }) => (
               <a
                 key={label}
@@ -111,7 +123,8 @@ export default function Landing() {
             ))}
           </nav>
 
-          <div className="landing-nav-cta" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="landing-nav-cta" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <LanguageSwitcher />
             <button
               onClick={() => navigate('/auth')}
               style={{
@@ -150,7 +163,7 @@ export default function Landing() {
         }}>
           <div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-              {['ФЗ-152', 'GDPR', '100% локально'].map((badge) => (
+              {[t('hero.badge_gdpr'), t('hero.badge_local'), t('hero.badge_aes')].map((badge) => (
                 <span key={badge} style={{
                   background: '#eff6ff', color: '#1a56db',
                   fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
@@ -163,12 +176,13 @@ export default function Landing() {
             <h1 className="landing-hero-h1" style={{
               fontSize: 44, fontWeight: 800, letterSpacing: '-1px',
               color: '#111827', lineHeight: 1.15, margin: '0 0 16px',
+              whiteSpace: 'pre-line',
             }}>
-              Безопасная работа с AI и документами
+              {t('hero.title')}
             </h1>
 
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 28 }}>
-              Анонимизируйте документы перед отправкой в ChatGPT, Claude и другие AI-сервисы. Персональные данные заменяются токенами до отправки в AI.
+              {t('hero.subtitle')}
             </p>
 
             <div className="landing-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -183,7 +197,7 @@ export default function Landing() {
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
               >
-                Начать бесплатно
+                {t('hero.cta_primary')}
               </button>
               <button
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
@@ -196,7 +210,7 @@ export default function Landing() {
                 onMouseEnter={e => (e.currentTarget.style.borderColor = '#1a56db')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
               >
-                Попробовать демо ↓
+                {t('hero.cta_demo')}
               </button>
             </div>
           </div>
@@ -671,10 +685,18 @@ export default function Landing() {
         padding: '24px 32px', borderTop: '1px solid #e5e7eb',
         textAlign: 'center', fontSize: 12, color: '#9ca3af',
       }}>
-        Работает офлайн · Соответствует ФЗ-152 · Шифрование AES-256 ·{' '}
+        {t('footer.offline', { ns: 'common' })} · {t('footer.gdpr', { ns: 'common' })} · {t('footer.aes', { ns: 'common' })} ·{' '}
         <Link to="/privacy" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
-          политика конфиденциальности
+          {t('footer.privacy', { ns: 'common' })}
         </Link>
+        {(lang === 'de') && (
+          <>
+            {' · '}
+            <Link to="/de/impressum" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+              {t('footer.imprint', { ns: 'common' })}
+            </Link>
+          </>
+        )}
       </footer>
     </div>
   )

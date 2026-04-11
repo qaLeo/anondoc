@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep -r \"UserProfile\\\\|UsageData\" /c/Users/baran/Desktop/anondoc/apps/web/src/api --include=*.ts --include=*.tsx)",
+      "Bash(pnpm --filter @anondoc/engine exec tsc --noEmit)",
+      "Bash(pnpm --filter @anondoc/web exec tsc --noEmit)",
+      "Bash(git push:*)",
+      "Bash(pnpm --filter @anondoc/engine run build)",
+      "Bash(find /c/Users/baran/Desktop/anondoc/apps/mobile/src -type f -name *.tsx)",
+      "Bash(pnpm --filter @anondoc/web run build)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(gh api:*)",
+      "Bash(npx tsx -e \":*)",
+      "Bash(node test-files.mjs)",
+      "Bash(npm run:*)",
+      "Bash(pnpm --filter @anondoc/web add react-i18next i18next i18next-browser-languagedetector)",
+      "Bash(pnpm --filter @anondoc/web run typecheck)",
+      "Bash(git rm:*)"
+    ]
+  }
+}

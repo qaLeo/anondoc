@@ -1,0 +1,92 @@
+{
+  "hero": {
+    "badge_gdpr": "GDPR compliant",
+    "badge_local": "100% local",
+    "badge_aes": "AES-256",
+    "title": "Use AI safely —\nwithout data leaks",
+    "subtitle": "Replace personal data with tokens before sending documents to ChatGPT or Claude. Data never leaves your browser.",
+    "cta_primary": "Start for free",
+    "cta_demo": "See demo ↓"
+  },
+  "how_it_works": {
+    "title": "How AnonDoc works",
+    "subtitle": "From a document with personal data to a finished report — four steps",
+    "step1_title": "Upload document",
+    "step1_desc": "DOCX, XLSX, PDF, TXT",
+    "step2_title": "Data replaced with tokens",
+    "step2_desc": "Everything happens on your computer",
+    "step3_title": "Send to AI",
+    "step3_desc": "ChatGPT, Claude, or any other AI",
+    "step4_title": "De-anonymize response",
+    "step4_desc": "Upload the AI response — tokens are replaced back with real data automatically"
+  },
+  "key_doc": {
+    "title": "Document Key — your data protection",
+    "subtitle": "The difference between Free and Pro in one detail",
+    "no_key_title": "Without document key",
+    "no_key_desc": "Data is stored only in this browser. Close the tab or clear cache — the key is gone, de-anonymization impossible.",
+    "with_key_title": "With document key",
+    "with_key_desc": "Download the key — a small file with the replacement table. Work with documents for days and weeks. Process up to 50 files in one session — one key for all.",
+    "shield": "Key is stored with you — we can't see it"
+  },
+  "comparison": {
+    "title": "Compare plans",
+    "subtitle": "Choose the right one for your needs",
+    "param": "Parameter",
+    "docs_month": "Documents per month",
+    "files_session": "Files per session",
+    "key": "Document key",
+    "deanon": "De-anonymization",
+    "formats": "File formats",
+    "storage": "Data storage",
+    "price": "Price",
+    "free_docs": "10",
+    "pro_docs": "Unlimited",
+    "free_files": "5",
+    "pro_files": "50",
+    "free_storage": "Browser only",
+    "pro_storage": "Browser + Key",
+    "free_price": "Free",
+    "pro_price": "$29/mo",
+    "popular": "Popular",
+    "cta": "Go Pro →"
+  },
+  "trust": {
+    "item1_title": "Documents stay in your browser",
+    "item1_desc": "Anonymization works locally — data is not sent to our servers",
+    "item2_title": "Works offline",
+    "item2_desc": "No internet needed for anonymization. Only for account login.",
+    "item3_title": "Regulatory compliance",
+    "item3_desc": "GDPR (Europe), ФЗ-152 (Russia), CIS laws",
+    "item4_title": "Key stays with you",
+    "item4_desc": "We physically cannot restore your data without your key"
+  },
+  "features": {
+    "title": "Why AnonDoc",
+    "f1_title": "Fully local",
+    "f1_desc": "Documents processed in the browser. Not a single byte of content goes to the server.",
+    "f2_title": "Fast and accurate",
+    "f2_desc": "Finds names, phones, tax IDs, passports, addresses and email in milliseconds.",
+    "f3_title": "All formats",
+    "f3_desc": "Supports TXT, DOCX, XLSX, PDF without additional software.",
+    "f4_title": "Document key",
+    "f4_desc": "Download an encrypted key to restore the original at any time.",
+    "f5_title": "GDPR & ФЗ-152",
+    "f5_desc": "Complies with Russian and European personal data legislation.",
+    "f6_title": "Session history",
+    "f6_desc": "All sessions saved locally. Continue work at any time."
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "What happens if I close the browser without the key?",
+    "a1": "The replacement table will be lost. De-anonymizing the document without the key is impossible. That's why on Pro we recommend always downloading the document key.",
+    "q2": "What personal data is anonymized?",
+    "a2": "Names, phones, email, tax IDs, company registration numbers, passport data, addresses, organization names, dates of birth, policy numbers and other personal identifiers.",
+    "q3": "Does it work with any AI?",
+    "a3": "Yes. The anonymized text can be sent to ChatGPT, Claude, Gemini, or any other AI.",
+    "q4": "Can I process multiple documents with one key?",
+    "a4": "Yes, on the Pro plan. Upload up to 50 files in one session — all tokens go into a single document key.",
+    "q5": "How secure is this?",
+    "a5": "Maximum security. Documents are processed in your browser and are not transmitted to servers. Even we don't see the contents of your documents."
+  }
+}

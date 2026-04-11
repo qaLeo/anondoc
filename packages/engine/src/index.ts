@@ -6,3 +6,10 @@ export { anonymizeText, deanonymizeText, createAnonymizer } from './anonymizer.j
 export type { PiiStats } from './anonymizer.js'
 export { detectCountries, COUNTRIES } from './countryDetector.js'
 export type { CountryCode, CountryInfo } from './countryDetector.js'
+// EU patterns
+export { DE_PATTERNS } from './patterns/de.js'
+export { FR_PATTERNS } from './patterns/fr.js'
+export { EN_PATTERNS } from './patterns/en.js'
+export type { EuPattern } from './patterns/de.js'
+export { detectDocumentLanguage, detectByIdentifiers, detectLanguageStatistical } from './detector.js'
+export type { DocumentLanguage } from './detector.js'

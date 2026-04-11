@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
+import { detectLangFromPath } from './i18n/index'
 
 function AppIcon({ size = 22 }: { size?: number }) {
   return (
@@ -20,6 +21,8 @@ import Profile from './pages/Profile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import History from './pages/History'
 import Landing from './pages/Landing'
+import Impressum from './pages/Impressum'
+import Datenschutz from './pages/Datenschutz'
 
 type Tab = 'anonymize' | 'deanonymize'
 
@@ -243,12 +246,29 @@ export default function App() {
             <Route path="/billing/success" element={<ProtectedRoute><BillingSuccess /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            {/* Language-prefixed landing pages */}
+            <Route path="/de/impressum" element={<Impressum />} />
+            <Route path="/de/datenschutz" element={<Datenschutz />} />
+            <Route path="/de" element={<Landing lang="de" />} />
+            <Route path="/en" element={<Landing lang="en" />} />
+            <Route path="/fr" element={<Landing lang="fr" />} />
+            {/* Root: redirect to detected language */}
+            <Route path="/" element={<LangRedirect />} />
             <Route path="/*" element={<AppLayout />} />
           </Routes>
         </UsageProvider>
       </AuthProvider>
     </BrowserRouter>
   )
+}
+
+function LangRedirect() {
+  const lang = detectLangFromPath()
+  // Only redirect to lang prefix if DE or FR; EN users stay on /
+  if (lang === 'de' || lang === 'fr') {
+    return <Navigate to={`/${lang}`} replace />
+  }
+  return <AppLayout />
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

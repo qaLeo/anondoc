@@ -1,8 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 import { billingApi } from '../api/client'
+
+type Region = 'EU' | 'CIS' | 'OTHER'
+
+const EU_COUNTRIES = ['DE','AT','CH','FR','NL','BE','IT','ES','PL','SE','DK','FI','NO','PT','IE','CZ','SK','HU','RO','BG','HR','SI','EE','LV','LT','LU','GR','CY','MT']
+const CIS_COUNTRIES = ['RU','KZ','BY','UZ','UA','AZ','AM','GE','KG','TJ','TM','MD']
+
+const PRICE_BY_REGION: Record<Region, { pro: string; team: string; currency: string }> = {
+  EU:    { pro: '€29',   team: '€99',  currency: 'EUR' },
+  CIS:   { pro: '990 ₽', team: '4 900 ₽', currency: 'RUB' },
+  OTHER: { pro: '$29',   team: '$99',  currency: 'USD' },
+}
+
+async function detectRegion(): Promise<Region> {
+  const cached = sessionStorage.getItem('anondoc_region') as Region | null
+  if (cached) return cached
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    const res = await fetch('https://ipapi.co/json/', { signal: controller.signal })
+    clearTimeout(timeout)
+    const data = await res.json() as { country_code: string }
+    let region: Region = 'OTHER'
+    if (EU_COUNTRIES.includes(data.country_code)) region = 'EU'
+    else if (CIS_COUNTRIES.includes(data.country_code)) region = 'CIS'
+    sessionStorage.setItem('anondoc_region', region)
+    return region
+  } catch {
+    return 'OTHER'
+  }
+}
 
 function AppIcon({ size = 22 }: { size?: number }) {
   return (
@@ -83,6 +113,13 @@ export default function Pricing() {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [trialStarted, setTrialStarted] = useState(false)
+  const [region, setRegion] = useState<Region>('CIS')
+
+  useEffect(() => {
+    detectRegion().then(setRegion)
+  }, [])
+
+  const prices = PRICE_BY_REGION[region]
 
   const rawPlan = usage?.plan ?? 'FREE'
   const currentUiPlan = rawPlan === 'BUSINESS' ? 'TEAM' : rawPlan
@@ -227,7 +264,7 @@ export default function Pricing() {
                 {/* Price */}
                 <div style={{ marginBottom: 20 }}>
                   <span style={{ fontSize: 20, fontWeight: 600, color: '#111827', letterSpacing: '-0.5px' }}>
-                    {plan.price}
+                    {plan.id === 'PRO' ? prices.pro : plan.id === 'TEAM' ? prices.team : plan.price}
                   </span>
                   {plan.period && (
                     <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 4 }}>

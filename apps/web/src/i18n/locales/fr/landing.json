@@ -1,0 +1,92 @@
+{
+  "hero": {
+    "badge_gdpr": "Conforme RGPD",
+    "badge_local": "100% local",
+    "badge_aes": "AES-256",
+    "title": "Utilisez l'IA en toute sécurité —\nsans risque RGPD",
+    "subtitle": "Remplacez les données personnelles par des tokens avant d'envoyer des documents à ChatGPT ou Claude. Les données ne quittent pas votre navigateur.",
+    "cta_primary": "Commencer gratuitement",
+    "cta_demo": "Voir la démo ↓"
+  },
+  "how_it_works": {
+    "title": "Comment fonctionne AnonDoc",
+    "subtitle": "Du document avec données personnelles au rapport final — quatre étapes",
+    "step1_title": "Télécharger le document",
+    "step1_desc": "DOCX, XLSX, PDF, TXT",
+    "step2_title": "Données remplacées par tokens",
+    "step2_desc": "Tout se passe sur votre ordinateur",
+    "step3_title": "Envoyer à l'IA",
+    "step3_desc": "ChatGPT, Claude ou tout autre IA",
+    "step4_title": "Désanonymiser la réponse",
+    "step4_desc": "Téléchargez la réponse IA — les tokens sont remplacés automatiquement par les vraies données"
+  },
+  "key_doc": {
+    "title": "Clé du document — votre protection des données",
+    "subtitle": "La différence entre Free et Pro en un détail",
+    "no_key_title": "Sans clé de document",
+    "no_key_desc": "Les données sont stockées uniquement dans ce navigateur. Fermez l'onglet ou videz le cache — la clé est perdue, la désanonymisation impossible.",
+    "with_key_title": "Avec clé de document",
+    "with_key_desc": "Téléchargez la clé — un petit fichier avec la table de remplacement. Travaillez avec des documents pendant des jours et des semaines. Traitez jusqu'à 50 fichiers en une session — une clé pour tous.",
+    "shield": "La clé est chez vous — nous ne pouvons pas la voir"
+  },
+  "comparison": {
+    "title": "Comparer les plans",
+    "subtitle": "Choisissez celui qui convient à vos besoins",
+    "param": "Paramètre",
+    "docs_month": "Documents par mois",
+    "files_session": "Fichiers par session",
+    "key": "Clé de document",
+    "deanon": "Désanonymisation",
+    "formats": "Formats de fichiers",
+    "storage": "Stockage des données",
+    "price": "Prix",
+    "free_docs": "10",
+    "pro_docs": "Illimité",
+    "free_files": "5",
+    "pro_files": "50",
+    "free_storage": "Navigateur uniquement",
+    "pro_storage": "Navigateur + Clé",
+    "free_price": "Gratuit",
+    "pro_price": "€29/mois",
+    "popular": "Le plus populaire",
+    "cta": "Passer au Pro →"
+  },
+  "trust": {
+    "item1_title": "Les documents restent dans votre navigateur",
+    "item1_desc": "L'anonymisation fonctionne localement — les données ne sont pas envoyées à nos serveurs",
+    "item2_title": "Fonctionne hors ligne",
+    "item2_desc": "Pas d'internet nécessaire pour l'anonymisation. Seulement pour la connexion.",
+    "item3_title": "Conformité réglementaire",
+    "item3_desc": "RGPD (Europe), CNIL (France), ФЗ-152 (Russie)",
+    "item4_title": "Clé uniquement chez vous",
+    "item4_desc": "Nous ne pouvons physiquement pas restaurer vos données sans votre clé"
+  },
+  "features": {
+    "title": "Pourquoi AnonDoc",
+    "f1_title": "Entièrement local",
+    "f1_desc": "Les documents sont traités dans le navigateur. Pas un seul octet de contenu n'est envoyé au serveur.",
+    "f2_title": "Rapide et précis",
+    "f2_desc": "Trouve les noms, téléphones, numéros fiscaux, passeports, adresses et e-mail en millisecondes.",
+    "f3_title": "Tous les formats",
+    "f3_desc": "Supporte TXT, DOCX, XLSX, PDF sans logiciel supplémentaire.",
+    "f4_title": "Clé de document",
+    "f4_desc": "Téléchargez une clé chiffrée pour restaurer l'original à tout moment.",
+    "f5_title": "RGPD & CNIL",
+    "f5_desc": "Conforme au droit français et européen en matière de données personnelles.",
+    "f6_title": "Historique des sessions",
+    "f6_desc": "Toutes les sessions sauvegardées localement. Reprenez le travail à tout moment."
+  },
+  "faq": {
+    "title": "Questions fréquemment posées",
+    "q1": "Que se passe-t-il si je ferme le navigateur sans la clé ?",
+    "a1": "La table de remplacement sera perdue. La désanonymisation du document sans clé est impossible. C'est pourquoi nous recommandons de toujours télécharger la clé de document en Pro.",
+    "q2": "Quelles données personnelles sont anonymisées ?",
+    "a2": "Noms, téléphones, e-mail, numéros fiscaux, SIRET, données de passeport, adresses, noms d'organisations, dates de naissance, numéros de sécurité sociale et autres identifiants personnels.",
+    "q3": "Fonctionne-t-il avec n'importe quelle IA ?",
+    "a3": "Oui. Le texte anonymisé peut être envoyé à ChatGPT, Claude, Gemini ou n'importe quelle autre IA.",
+    "q4": "Puis-je traiter plusieurs documents avec une seule clé ?",
+    "a4": "Oui, avec le plan Pro. Téléchargez jusqu'à 50 fichiers en une session — tous les tokens vont dans une seule clé de document.",
+    "q5": "Quel est le niveau de sécurité ?",
+    "a5": "Sécurité maximale. Les documents sont traités dans votre navigateur et ne sont pas transmis aux serveurs. Même nous ne voyons pas le contenu de vos documents."
+  }
+}

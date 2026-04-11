@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "features": "Funktionen",
+    "pricing": "Preise",
+    "business": "Für Unternehmen",
+    "login": "Anmelden",
+    "register": "Kostenlos registrieren"
+  },
+  "footer": {
+    "offline": "Offline-fähig",
+    "gdpr": "DSGVO-konform",
+    "aes": "AES-256-Verschlüsselung",
+    "privacy": "Datenschutzerklärung",
+    "imprint": "Impressum"
+  }
+}
