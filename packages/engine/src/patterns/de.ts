@@ -11,6 +11,15 @@ export interface EuPattern {
 }
 
 export const DE_PATTERNS: EuPattern[] = [
+  // Steuer-Identifikationsnummer FIRST — prevents phone patterns from stealing leading digits
+  // 11 цифр, первая != 0, пробелы допустимы в любом месте; только с контекстом (lookbehind)
+  {
+    regex: /(?<=(?:Steuer[- ]?(?:ID|Identifikationsnummer|nummer)|IdNo)[\s:]+)[1-9](?:[\s]?\d){10}/gi,
+    type: 'TAX_ID',
+    label: 'Steuer-ID',
+    token: 'STEUER',
+  },
+
   // IBAN Deutschland: DE + 2 цифры контрольная сумма + 18 цифр = 22 символа
   {
     regex: /\bDE\d{2}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{2}\b/g,
@@ -27,15 +36,6 @@ export const DE_PATTERNS: EuPattern[] = [
     token: 'UST',
   },
 
-  // Steuer-Identifikationsnummer: 11 цифр, первая != 0, пробелы допустимы
-  // Контекстная: перед ней должно быть "Steuer" или "IdNo" или "Identifikation"
-  {
-    regex: /(?:Steuer(?:identifikationsnummer|nummer|ID)?|IdNo)[\s:]*([1-9]\d{2}[\s]?\d{3}[\s]?\d{3}[\s]?\d{2})\b/gi,
-    type: 'TAX_ID',
-    label: 'Steuer-ID',
-    token: 'STEUER',
-  },
-
   // Steuernummer (региональный, формат по землям): XX/XXXX/XXXXX
   {
     regex: /\b\d{2,3}\/\d{3,4}\/\d{4,5}\b/g,
@@ -44,18 +44,18 @@ export const DE_PATTERNS: EuPattern[] = [
     token: 'STEUERNR',
   },
 
-  // Rentenversicherungsnummer / Sozialversicherungsnummer:
-  // 2 цифры + 6 цифр (TTMMJJ) + 1 буква + 3 цифры + 1 цифра
+  // Rentenversicherungsnummer / Sozialversicherungsnummer (BUG #3 fix: require context)
+  // 2 цифры + 6 цифр (TTMMJJ) + 1 буква + 3 цифры + 1 цифра; только с ключевым словом
   {
-    regex: /\b\d{2}[\s]?\d{6}[\s]?[A-Z][\s]?\d{3}[\s]?\d\b/g,
+    regex: /(?<=(?:Rentenversicherungs(?:nummer|nr\.?)|Sozialversicherungs(?:nummer|nr\.?)|SVN)[\s:]*)\d{2}[\s]?\d{6}[\s]?[A-Z][\s]?\d{3}[\s]?\d/gi,
     type: 'SV_NUMBER',
     label: 'Rentenversicherungsnummer',
     token: 'SVN',
   },
 
-  // Krankenversicherungsnummer: 1 буква + 9 цифр + 1 цифра (чек)
+  // Krankenversicherungsnummer: 1 буква + 9 цифр = 10 символов (только с контекстом)
   {
-    regex: /\b[A-Z]\d{10}\b/g,
+    regex: /(?:Versicherungs(?:nummer|nr\.?)|Krankenversicherungs(?:nummer|nr\.?)|KVNr)[\s:.]*[A-Z]\d{9}\b/gi,
     type: 'HEALTH_INS',
     label: 'Krankenversicherungsnummer',
     token: 'KV',
@@ -69,9 +69,9 @@ export const DE_PATTERNS: EuPattern[] = [
     token: 'PASS',
   },
 
-  // Personalausweis: 9 символов (буквы и цифры), с контекстом
+  // Personalausweis: 9 символов (буквы и цифры), строгий разделитель (BUG #2 fix)
   {
-    regex: /(?:Personalausweis|Ausweis-?(?:Nr|Nummer|No)[\s.:]*)[A-Z0-9]{9}\b/gi,
+    regex: /(?:Personalausweis|Ausweis[-\s]?(?:Nr\.?|Nummer|No))[\s:.]+[A-Z0-9]{9}\b/gi,
     type: 'ID_CARD',
     label: 'Personalausweis',
     token: 'AUSWEIS',

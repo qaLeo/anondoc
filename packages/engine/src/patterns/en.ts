@@ -6,9 +6,9 @@
 import type { EuPattern } from './de.js'
 
 export const EN_PATTERNS: EuPattern[] = [
-  // IBAN UK: GB + 2 цифры + 4 буквы (банк) + 14 цифр = 22 символа
+  // IBAN UK: GB + 2 цифры + 4 буквы (банк) + 14 цифр = 22 символа, пробелы допустимы
   {
-    regex: /\bGB\d{2}[A-Z]{4}\d{14}\b/g,
+    regex: /\bGB\d{2}[\s]?[A-Z]{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{2}\b/g,
     type: 'IBAN',
     label: 'IBAN',
     token: 'IBAN',

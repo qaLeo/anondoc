@@ -42,7 +42,7 @@ const FIO_STOPLIST = new Set([
 ])
 // [\s\-]{0,4} вместо [\s\-]? — PDF-парсер может вставлять несколько пробелов
 const PHONE = /(?:\+7|8)[\s\-]{0,4}\(?\d{3}\)?[\s\-]{0,4}\d{3}[\s\-]{0,4}\d{2}[\s\-]{0,4}\d{2}/g
-const EMAIL = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
+const EMAIL = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+(?:\.[a-zA-Z]{2,}){1,3}/g
 const EMAIL_NOREPLY = /^(?:noreply|no-reply|info|support|admin|postmaster|webmaster|donotreply)@/i
 const INN_12 = /\b\d{12}\b/g
 const INN_10 = /\b\d{10}\b/g
