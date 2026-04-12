@@ -89,6 +89,9 @@
     "save_cta": "speichern & deanonymisieren →",
     "limit_title": "Demo-Limit erreicht",
     "limit_desc": "{{limit}} Versuche aufgebraucht. Kostenlos registrieren — unbegrenzte Anonymisierung, Verlauf und Deanonymisierung.",
-    "register_cta": "kostenlos registrieren →"
+    "register_cta": "kostenlos registrieren →",
+    "panel_original": "Original",
+    "panel_anonymised": "Anonymisiert",
+    "fictitious": "fiktives Beispiel"
   }
 }
