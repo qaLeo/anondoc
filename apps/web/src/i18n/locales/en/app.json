@@ -1,0 +1,94 @@
+{
+  "loading": "Loading...",
+  "nav": {
+    "anonymize": "Anonymisation",
+    "deanonymize": "Deanonymisation",
+    "history": "History",
+    "pricing": "Pricing",
+    "profile": "Profile",
+    "logout": "Log out",
+    "back": "← Back"
+  },
+  "app": {
+    "add_file": "+ Add file",
+    "new_session": "New session",
+    "download_key": "Download decryption key",
+    "files_count": "{{count}} / {{max}} files",
+    "replacements": "{{count}} replacements",
+    "trial_days_one": "{{count}} day",
+    "trial_days_other": "{{count}} days",
+    "trial_extend": "extend →",
+    "footer": "Works offline · GDPR compliant · AES-256 encryption ·"
+  },
+  "anonymize": {
+    "title": "Anonymise document",
+    "drop": "Drop file here or",
+    "drop_click": "click to select",
+    "formats": "DOCX, XLSX, PDF, TXT",
+    "delete_confirm": "Remove «{{name}}» from session?\nOther files and session key remain unchanged.",
+    "delete_title": "Remove file from session"
+  },
+  "deanonymize": {
+    "title": "Deanonymise document",
+    "file_zone": "Upload anonymised file",
+    "key_zone": "Upload decryption key",
+    "file_hint": "The anonymised file (DOCX, TXT, PDF...)",
+    "key_hint": ".json key file",
+    "button": "Deanonymise",
+    "button_missing": "Both files required",
+    "zero_knowledge": "By Design: Even we cannot decrypt your data without your key",
+    "error_key_mismatch": "This key does not match this document",
+    "error_key_corrupt": "The key is corrupted or invalid",
+    "preview_hint": "Without a key, data is unreadable"
+  },
+  "history": {
+    "title": "History",
+    "tab_sessions": "Sessions",
+    "tab_documents": "Documents",
+    "empty_sessions": "Sessions will appear here after anonymisation",
+    "empty_docs": "History empty — documents will appear here after anonymisation",
+    "footer_sessions": "Sessions stored only in this browser · deleted after 30 days",
+    "footer_docs": "History stored only in this browser · {{count}}/{{limit}}"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "No hidden fees · Payment via Stripe · Cancel anytime",
+    "back": "← back",
+    "login": "log in",
+    "popular": "Most popular",
+    "trial_cta": "Try Pro free for 10 days",
+    "trial_active": "Pro trial active ✓",
+    "current_plan": "Your current plan",
+    "subscribe": "Choose",
+    "team_calc": "5 employees × Pro $29 = $145/month vs Team $99/month → save $46/month",
+    "enterprise_cta": "Contact sales"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "submit_login": "Log in",
+    "submit_register": "Create account",
+    "switch_to_login": "Already have an account? Log in",
+    "switch_to_register": "No account yet? Sign up"
+  },
+  "demo": {
+    "tab_cv": "CV",
+    "tab_contract": "Contract",
+    "tab_medical": "Medical",
+    "tab_file": "+ My file",
+    "placeholder": "Paste text with personal data...",
+    "anonymize_btn": "Anonymise →",
+    "remaining_one": "{{count}} attempt remaining",
+    "remaining_other": "{{count}} attempts remaining",
+    "result_label": "result",
+    "vault_label": "replacement table · {{count}} entries",
+    "copy": "copy text",
+    "copied": "✓ copied",
+    "save_cta": "save & deanonymise →",
+    "limit_title": "demo limit reached",
+    "limit_desc": "{{limit}} attempts used. Register for free — unlimited anonymisation, history and deanonymisation.",
+    "register_cta": "sign up for free →"
+  }
+}

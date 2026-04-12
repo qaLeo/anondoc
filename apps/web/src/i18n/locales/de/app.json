@@ -1,0 +1,94 @@
+{
+  "loading": "Laden...",
+  "nav": {
+    "anonymize": "Anonymisierung",
+    "deanonymize": "Deanonymisierung",
+    "history": "Verlauf",
+    "pricing": "Preise",
+    "profile": "Profil",
+    "logout": "Abmelden",
+    "back": "← Zurück"
+  },
+  "app": {
+    "add_file": "+ Datei hinzufügen",
+    "new_session": "Neue Sitzung",
+    "download_key": "Entschlüsselungsschlüssel herunterladen",
+    "files_count": "{{count}} / {{max}} Dateien",
+    "replacements": "{{count}} Ersetzungen",
+    "trial_days_one": "{{count}} Tag",
+    "trial_days_other": "{{count}} Tage",
+    "trial_extend": "verlängern →",
+    "footer": "Offline-fähig · DSGVO-konform · AES-256-Verschlüsselung ·"
+  },
+  "anonymize": {
+    "title": "Dokument anonymisieren",
+    "drop": "Datei hierher ziehen oder",
+    "drop_click": "klicken zum Auswählen",
+    "formats": "DOCX, XLSX, PDF, TXT",
+    "delete_confirm": "«{{name}}» aus der Sitzung entfernen?\nAndere Dateien und der Sitzungsschlüssel bleiben unverändert.",
+    "delete_title": "Datei aus Sitzung entfernen"
+  },
+  "deanonymize": {
+    "title": "Dokument deanonymisieren",
+    "file_zone": "Anonymisierte Datei hochladen",
+    "key_zone": "Entschlüsselungsschlüssel hochladen",
+    "file_hint": "Die anonymisierte Datei (DOCX, TXT, PDF...)",
+    "key_hint": ".json Schlüsseldatei",
+    "button": "Deanonymisieren",
+    "button_missing": "Beide Dateien erforderlich",
+    "zero_knowledge": "By Design: Auch wir können Ihre Daten ohne Ihren Schlüssel nicht entschlüsseln",
+    "error_key_mismatch": "Dieser Schlüssel passt nicht zu diesem Dokument",
+    "error_key_corrupt": "Der Schlüssel ist beschädigt oder ungültig",
+    "preview_hint": "Ohne Schlüssel sind Daten unlesbar"
+  },
+  "history": {
+    "title": "Verlauf",
+    "tab_sessions": "Sitzungen",
+    "tab_documents": "Dokumente",
+    "empty_sessions": "Sitzungen erscheinen hier nach der Anonymisierung",
+    "empty_docs": "Verlauf leer — Dokumente erscheinen hier nach der Anonymisierung",
+    "footer_sessions": "Sitzungen werden nur in diesem Browser gespeichert · gelöscht nach 30 Tagen",
+    "footer_docs": "Verlauf wird nur in diesem Browser gespeichert · {{count}}/{{limit}}"
+  },
+  "pricing": {
+    "title": "Preise",
+    "subtitle": "Keine versteckten Kosten · Zahlung über Stripe · Jederzeit kündbar",
+    "back": "← zurück",
+    "login": "anmelden",
+    "popular": "Beliebteste Wahl",
+    "trial_cta": "Pro 10 Tage kostenlos testen",
+    "trial_active": "Pro-Testzeitraum aktiv ✓",
+    "current_plan": "Ihr aktueller Plan",
+    "subscribe": "Auswählen",
+    "team_calc": "5 Mitarbeiter × Pro €29 = €145/Monat vs. Team €99/Monat → Ersparnis €46/Monat",
+    "enterprise_cta": "Vertrieb kontaktieren"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "submit_login": "Anmelden",
+    "submit_register": "Konto erstellen",
+    "switch_to_login": "Bereits ein Konto? Anmelden",
+    "switch_to_register": "Noch kein Konto? Registrieren"
+  },
+  "demo": {
+    "tab_cv": "Lebenslauf",
+    "tab_contract": "Arbeitsvertrag",
+    "tab_medical": "Arztbrief",
+    "tab_file": "+ Eigene Datei",
+    "placeholder": "Text mit personenbezogenen Daten einfügen...",
+    "anonymize_btn": "Anonymisieren →",
+    "remaining_one": "{{count}} Versuch übrig",
+    "remaining_other": "{{count}} Versuche übrig",
+    "result_label": "Ergebnis",
+    "vault_label": "Ersetzungstabelle · {{count}} Einträge",
+    "copy": "Text kopieren",
+    "copied": "✓ kopiert",
+    "save_cta": "speichern & deanonymisieren →",
+    "limit_title": "Demo-Limit erreicht",
+    "limit_desc": "{{limit}} Versuche aufgebraucht. Kostenlos registrieren — unbegrenzte Anonymisierung, Verlauf und Deanonymisierung.",
+    "register_cta": "kostenlos registrieren →"
+  }
+}

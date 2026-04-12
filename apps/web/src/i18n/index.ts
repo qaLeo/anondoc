@@ -4,19 +4,22 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 
 import enCommon from './locales/en/common.json'
 import enLanding from './locales/en/landing.json'
+import enApp from './locales/en/app.json'
 import deCommon from './locales/de/common.json'
 import deLanding from './locales/de/landing.json'
+import deApp from './locales/de/app.json'
 import frCommon from './locales/fr/common.json'
 import frLanding from './locales/fr/landing.json'
+import frApp from './locales/fr/app.json'
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
-      en: { common: enCommon, landing: enLanding },
-      de: { common: deCommon, landing: deLanding },
-      fr: { common: frCommon, landing: frLanding },
+      en: { common: enCommon, landing: enLanding, app: enApp },
+      de: { common: deCommon, landing: deLanding, app: deApp },
+      fr: { common: frCommon, landing: frLanding, app: frApp },
     },
     fallbackLng: 'en',
     supportedLngs: ['en', 'de', 'fr'],

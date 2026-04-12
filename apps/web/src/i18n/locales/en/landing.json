@@ -3,10 +3,11 @@
     "badge_gdpr": "GDPR compliant",
     "badge_local": "100% local",
     "badge_aes": "AES-256",
-    "title": "Use AI safely —\nwithout data leaks",
-    "subtitle": "Replace personal data with tokens before sending documents to ChatGPT or Claude. Data never leaves your browser.",
+    "title": "The privacy layer for AI",
+    "subtitle": "Automatically anonymise documents before AI analysis. Your real data never leaves your computer.",
     "cta_primary": "Start for free",
-    "cta_demo": "See demo ↓"
+    "cta_demo": "See demo ↓",
+    "formats_title": "Supported formats"
   },
   "how_it_works": {
     "title": "How AnonDoc works",
@@ -27,6 +28,7 @@
     "no_key_desc": "Data is stored only in this browser. Close the tab or clear cache — the key is gone, de-anonymization impossible.",
     "with_key_title": "With document key",
     "with_key_desc": "Download the key — a small file with the replacement table. Work with documents for days and weeks. Process up to 50 files in one session — one key for all.",
+    "files_badge": "50 files / session",
     "shield": "Key is stored with you — we can't see it"
   },
   "comparison": {
@@ -57,9 +59,30 @@
     "item2_title": "Works offline",
     "item2_desc": "No internet needed for anonymization. Only for account login.",
     "item3_title": "Regulatory compliance",
-    "item3_desc": "GDPR (Europe), ФЗ-152 (Russia), CIS laws",
+    "item3_desc": "GDPR (Europe), UK GDPR, CCPA (US)",
     "item4_title": "Key stays with you",
-    "item4_desc": "We physically cannot restore your data without your key"
+    "item4_desc": "We physically cannot restore your data without your key",
+    "samsung_title": "Why enterprises need AnonDoc",
+    "samsung_desc": "After a major tech company lost source code through ChatGPT, many enterprises banned AI tools. AnonDoc solves this — without giving up AI."
+  },
+  "ai_send": {
+    "desc": "Send anonymised documents to ChatGPT, Microsoft Copilot, Claude, Mistral or any AI — your real data stays protected. Even if the AI leaks data, only tokens can be transmitted, never your actual personal information."
+  },
+  "examples": {
+    "title": "Example documents",
+    "tab_cv": "CV",
+    "tab_contract": "Employment Contract",
+    "tab_medical": "Medical Record",
+    "tab_hr": "HR Analytics",
+    "fictitious": "(fictitious example)",
+    "panel_original": "Original",
+    "panel_anonymized": "Anonymised",
+    "btn_anonymize": "→ Anonymise",
+    "btn_original": "← Original",
+    "cv": "Applicant: Smith, James Robert\nDate of Birth: 23/06/1985\nAddress: 15 Baker Street, London W1U 6RT\nPhone: +44 20 7946 0958\nEmail: j.smith@example.co.uk\nNational Insurance: JG 10 37 59 A\nIBAN: GB29 NWBK 6016 1331 9268 19",
+    "contract": "Between Williams & Partners Ltd\n(Company No: 12345678, VAT: GB123456789)\nand Mr. Oliver James Brown,\nborn 14 July 1990 in Manchester,\nresiding at 8 Victoria Road, Manchester M1 1AE\n(Passport: 012345678)\nSalary: £3,500 per month gross",
+    "medical": "Patient: Taylor, Emily Rose\nDate of Birth: 07/11/1962\nNHS Number: 401 023 2137\nNI Number: AB 12 34 56 C\nGP: Dr. Peter Hughes\nSurgery: 12 Market Square, Bristol BS1 1JA\nDiagnosis: Type 2 Diabetes (E11.9)",
+    "hr": "Employee: Johnson, Sarah Elizabeth\nEmployee ID: EMP-UK-2023-0847\nDepartment: Finance & Controlling\nSalary: £72,000 p.a.\nPerformance: Exceeds Expectations\nLine Manager: David Wilson\nRecommendation: Promotion effective 01/07/2026"
   },
   "features": {
     "title": "Why AnonDoc",

@@ -4,9 +4,10 @@
     "badge_local": "100% lokal",
     "badge_aes": "AES-256",
     "title": "KI sicher nutzen —\nohne DSGVO-Risiko",
-    "subtitle": "Ersetzen Sie personenbezogene Daten durch Tokens, bevor Sie Dokumente an ChatGPT oder Claude senden. Daten verlassen Ihren Browser nicht.",
+    "subtitle": "Anonymisieren Sie Dokumente automatisch vor der KI-Analyse. Ihre echten Daten verlassen niemals Ihren Computer.",
     "cta_primary": "Kostenlos starten",
-    "cta_demo": "Demo ansehen ↓"
+    "cta_demo": "Demo ansehen ↓",
+    "formats_title": "Unterstützte Formate"
   },
   "how_it_works": {
     "title": "So funktioniert AnonDoc",
@@ -27,6 +28,7 @@
     "no_key_desc": "Daten werden nur in diesem Browser gespeichert. Tab schließen oder Cache leeren — der Schlüssel ist weg, Deanonymisierung unmöglich.",
     "with_key_title": "Mit Dokumentenschlüssel",
     "with_key_desc": "Laden Sie den Schlüssel herunter — eine kleine Datei mit der Ersetzungstabelle. Arbeiten Sie tagelang und wochenlang mit Dokumenten. Verarbeiten Sie bis zu 50 Dateien in einer Sitzung — ein Schlüssel für alle.",
+    "files_badge": "50 Dateien / Sitzung",
     "shield": "Schlüssel liegt bei Ihnen — wir können ihn nicht einsehen"
   },
   "comparison": {
@@ -59,7 +61,31 @@
     "item3_title": "Gesetzeskonform",
     "item3_desc": "DSGVO (Europa), BDSG (Deutschland), BSI-Empfehlungen",
     "item4_title": "Schlüssel nur bei Ihnen",
-    "item4_desc": "Wir können Ihre Daten ohne Ihren Schlüssel physisch nicht wiederherstellen"
+    "item4_desc": "Wir können Ihre Daten ohne Ihren Schlüssel physisch nicht wiederherstellen",
+    "samsung_title": "Warum Unternehmen AnonDoc brauchen",
+    "samsung_desc": "Nach dem Datenleck bei einem großen Tech-Konzern durch ChatGPT haben viele Unternehmen KI-Tools verboten. AnonDoc löst dieses Problem — ohne KI-Verzicht."
+  },
+  "ai_send": {
+    "desc": "Senden Sie anonymisierte Dokumente an ChatGPT, Microsoft Copilot, Claude, Mistral oder jede andere KI — Ihre echten Daten bleiben geschützt. Selbst wenn die KI Daten weitergibt, können nur Tokens übertragen werden, niemals Ihre echten Personendaten."
+  },
+  "examples": {
+    "title": "Beispieldokumente",
+    "tab_cv": "Lebenslauf",
+    "tab_contract": "Arbeitsvertrag",
+    "tab_medical": "Arztbrief",
+    "tab_hr": "HR-Bericht",
+    "fictitious": "(Beispiel fiktiv)",
+    "panel_original": "Original",
+    "panel_anonymized": "Anonymisiert",
+    "btn_anonymize": "→ Anonymisieren",
+    "btn_original": "← Originaltext",
+    "cv": "Bewerber: Müller, Hans-Peter\nGeburtsdatum: 15.03.1985\nAdresse: Hauptstraße 42, 80331 München\nTelefon: +49 89 123456-78\nE-Mail: h.mueller@beispiel.de\nSteuer-ID: 86 095 742 719\nIBAN: DE89 3704 0044 0532 0130 00",
+    "contract": "Zwischen der Schneider & Weber GmbH\n(HRB 12345, AG München, USt-IdNr: DE123456789)\nund Herrn Klaus Richter,\ngeboren 22.06.1979 in Hamburg,\nwohnhaft Goethestraße 15, 60313 Frankfurt\n(Personalausweis: 2B06LSX14)\nVergütung: 4.500 EUR brutto monatlich",
+    "medical": "Patient: Weber, Anna Katharina\nGeburtsdatum: 07.11.1962\nVersicherungsnummer: A987654321 (AOK Bayern)\nDiagnose: Diabetes mellitus Typ 2 (E11.9)\nBehandelnder Arzt: Dr. med. Franz Kellner\nPraxis: Marienplatz 3, 80331 München\nTel.: 089/24689-0",
+    "hr": "Mitarbeiter: Schneider, Julia Maria\nPersonalnummer: EMP-2024-0847\nAbteilung: Controlling\nGehalt: 72.000 EUR p.a.\nLeistungsbewertung: Übertrifft Erwartungen\nVorgesetzter: Dr. Thomas Braun\nEmpfehlung: Beförderung zum 01.07.2026"
+  },
+  "share": {
+    "xing": "Auf XING teilen"
   },
   "features": {
     "title": "Warum AnonDoc",

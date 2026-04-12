@@ -3,10 +3,11 @@
     "badge_gdpr": "Conforme RGPD",
     "badge_local": "100% local",
     "badge_aes": "AES-256",
-    "title": "Utilisez l'IA en toute sécurité —\nsans risque RGPD",
-    "subtitle": "Remplacez les données personnelles par des tokens avant d'envoyer des documents à ChatGPT ou Claude. Les données ne quittent pas votre navigateur.",
+    "title": "Votre bouclier RGPD pour l'IA",
+    "subtitle": "Anonymisez automatiquement vos documents avant l'analyse IA. Vos données réelles ne quittent jamais votre ordinateur.",
     "cta_primary": "Commencer gratuitement",
-    "cta_demo": "Voir la démo ↓"
+    "cta_demo": "Voir la démo ↓",
+    "formats_title": "Formats supportés"
   },
   "how_it_works": {
     "title": "Comment fonctionne AnonDoc",
@@ -27,6 +28,7 @@
     "no_key_desc": "Les données sont stockées uniquement dans ce navigateur. Fermez l'onglet ou videz le cache — la clé est perdue, la désanonymisation impossible.",
     "with_key_title": "Avec clé de document",
     "with_key_desc": "Téléchargez la clé — un petit fichier avec la table de remplacement. Travaillez avec des documents pendant des jours et des semaines. Traitez jusqu'à 50 fichiers en une session — une clé pour tous.",
+    "files_badge": "50 fichiers / session",
     "shield": "La clé est chez vous — nous ne pouvons pas la voir"
   },
   "comparison": {
@@ -57,9 +59,31 @@
     "item2_title": "Fonctionne hors ligne",
     "item2_desc": "Pas d'internet nécessaire pour l'anonymisation. Seulement pour la connexion.",
     "item3_title": "Conformité réglementaire",
-    "item3_desc": "RGPD (Europe), CNIL (France), ФЗ-152 (Russie)",
+    "item3_desc": "RGPD (Europe), CNIL (France)",
     "item4_title": "Clé uniquement chez vous",
-    "item4_desc": "Nous ne pouvons physiquement pas restaurer vos données sans votre clé"
+    "item4_desc": "Nous ne pouvons physiquement pas restaurer vos données sans votre clé",
+    "samsung_title": "Pourquoi les entreprises ont besoin d'AnonDoc",
+    "samsung_desc": "Suite à la fuite de données d'une grande entreprise tech via ChatGPT, de nombreuses sociétés ont interdit les outils IA. AnonDoc résout ce problème — sans renoncer à l'IA."
+  },
+  "ai_send": {
+    "desc": "Envoyez vos documents anonymisés à ChatGPT, Microsoft Copilot, Claude, Mistral ou toute autre IA — vos données réelles restent protégées. Même si l'IA transfère des données, seuls des tokens peuvent être transmis, jamais vos données personnelles réelles.",
+    "mistral_badge": "IA souveraine française"
+  },
+  "examples": {
+    "title": "Exemples de documents",
+    "tab_cv": "CV",
+    "tab_contract": "Contrat de travail",
+    "tab_medical": "Dossier médical",
+    "tab_hr": "Rapport RH",
+    "fictitious": "(exemple fictif)",
+    "panel_original": "Original",
+    "panel_anonymized": "Anonymisé",
+    "btn_anonymize": "→ Anonymiser",
+    "btn_original": "← Original",
+    "cv": "Candidat : Dupont, Jean-François\nDate de naissance : 23/06/1982\nAdresse : 15 rue de la Paix, 75001 Paris\nTéléphone : +33 1 23 45 67 89\nE-mail : j.dupont@exemple.fr\nN° Sécurité Sociale : 1 82 06 75 115 423 17\nIBAN : FR76 3000 6000 0112 3456 7890 189",
+    "contract": "Entre Martin & Associés SARL\n(SIREN : 732 829 320, N° TVA : FR12 732829320)\net Madame Sophie Lefebvre,\nnée le 14/07/1990 à Lyon (69),\ndemeurant 8 avenue Victor Hugo, 69006 Lyon\n(CNI n° 880692310285)\nRémunération : 3 200 € bruts mensuels",
+    "medical": "Patient : Moreau, Marie-Claire\nNée le : 07/11/1962 à Bordeaux\nN° Sécurité Sociale : 2 62 11 33 033 127 88\nMédecin traitant : Dr. Pierre Durand\nCabinet : 12 place de la République, 33000 Bordeaux\nTél. : 05 56 78 90 12\nDiagnostic : Hypertension artérielle (I10)",
+    "hr": "Salarié : Petit, Camille Isabelle\nMatricule : EMP-FR-2023-0412\nService : Direction Commerciale\nSalaire brut : 58 000 € / an\nÉvaluation : Dépasse les objectifs\nManager : Laurent Rousseau\nRecommandation : Promotion au 01/07/2026"
   },
   "features": {
     "title": "Pourquoi AnonDoc",
