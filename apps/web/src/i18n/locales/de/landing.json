@@ -51,7 +51,13 @@
     "free_price": "Kostenlos",
     "pro_price": "€29/Monat",
     "popular": "Beliebteste Wahl",
-    "cta": "Zu Pro wechseln →"
+    "cta": "Zu Pro wechseln →",
+    "users": "Nutzer",
+    "team_users": "Bis zu 10",
+    "team_storage": "Browser + Gemeinsamer Schlüssel",
+    "team_price": "€99/Monat",
+    "team_economy": "€9,90 / Nutzer vs. €29 bei Pro — 66% Ersparnis",
+    "team_cta": "Team starten"
   },
   "trust": {
     "item1_title": "Dokumente verlassen nicht den Browser",

@@ -51,7 +51,13 @@
     "free_price": "Free",
     "pro_price": "$29/mo",
     "popular": "Popular",
-    "cta": "Go Pro →"
+    "cta": "Go Pro →",
+    "users": "Users",
+    "team_users": "Up to 10",
+    "team_storage": "Browser + Shared Key",
+    "team_price": "€99/mo",
+    "team_economy": "€9.90 / user vs €29 with Pro — 66% savings",
+    "team_cta": "Start team plan"
   },
   "trust": {
     "item1_title": "Documents stay in your browser",

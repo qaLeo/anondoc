@@ -51,7 +51,13 @@
     "free_price": "Gratuit",
     "pro_price": "€29/mois",
     "popular": "Le plus populaire",
-    "cta": "Passer au Pro →"
+    "cta": "Passer au Pro →",
+    "users": "Utilisateurs",
+    "team_users": "Jusqu'à 10",
+    "team_storage": "Navigateur + Clé partagée",
+    "team_price": "€99/mois",
+    "team_economy": "€9,90 / utilisateur vs €29 avec Pro — 66% d'économie",
+    "team_cta": "Démarrer en équipe"
   },
   "trust": {
     "item1_title": "Les documents restent dans votre navigateur",
