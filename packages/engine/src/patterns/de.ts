@@ -80,7 +80,7 @@ export const DE_PATTERNS: EuPattern[] = [
 
   // Немецкий телефон: +49 или 0049 или 0 + код города + номер
   {
-    regex: /(?:\+49|0049)[\s\-]?(?:\(?\d{2,5}\)?)[\s\-]?\d{3,}[\s\-]?\d{0,9}/g,
+    regex: /(?:\+49|0049)[ \t-]?(?:\(?\d{2,5}\)?)[ \t-]?\d{3,}(?:[ \t-]\d{1,9})?/g,
     type: 'PHONE',
     label: 'Telefon',
     token: 'TEL',
@@ -95,7 +95,7 @@ export const DE_PATTERNS: EuPattern[] = [
 
   // PLZ + немецкий город: 5 цифр + заглавная + строчные (с умлаутами)
   {
-    regex: /\b\d{5}[\s,]+[A-ZÄÖÜ][a-zäöüß]+(?:[\s\-][A-ZÄÖÜ][a-zäöüß]+)*/g,
+    regex: /\b\d{5}[ \t,]+[A-ZÄÖÜ][a-zäöüß]+(?:[ \t-][A-ZÄÖÜ][a-zäöüß]+)*/g,
     type: 'ADDRESS',
     label: 'Adresse',
     token: 'ADDR',
@@ -145,7 +145,7 @@ export const DE_PATTERNS: EuPattern[] = [
   // Форматы: "Bewerber: Müller, Hans-Peter" | "Patient: Dr. Franz Kellner"
   // Захватывает: Фамилия, Имя [Отчество] — max 3 слова; останавливается если после запятой идёт Tel/Fax/…
   {
-    regex: /(?<=(?:Bewerber(?:in)?|Patient(?:in)?|Mitarbeiter(?:in)?|Vorgesetzter?|Manager(?:in)?|Arzt|Ärztin):\s{0,5}(?:Dr\.?\s+|Prof\.?\s+|Herr\s+|Frau\s+)?(?:med\.\s+)?)[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:,\s+(?![Tt]el[. ]|[Ff]ax|E-Mail|GmbH|AG\b)[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?|\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?)?/gi,
+    regex: /(?<=(?:Bewerber(?:in)?|Patient(?:in)?|Mitarbeiter(?:in)?|Vorgesetzter?|Manager(?:in)?|Arzt|Ärztin):\s{0,5}(?:Dr\.?\s+|Prof\.?\s+|Herr\s+|Frau\s+)?(?:med\.\s+)?)[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:,\s+(?![Tt]el[. ]|[Ff]ax|E-Mail|GmbH|AG\b)[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:[ \t]+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?|[ \t]+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:[ \t]+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?)?/gi,
     type: 'NAME',
     label: 'Name',
     token: 'NAME',

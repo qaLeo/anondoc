@@ -122,7 +122,7 @@ export const EN_PATTERNS: EuPattern[] = [
   // Флаг g (не gi): [a-z]+ не совпадает с "UPA" в "BUPA" → предотвращает ложные срабатывания
   // Форматы: "Applicant: Smith, James Robert" | "Patient: Taylor, Emily Rose"
   {
-    regex: /(?<=(?:Applicant|Patient|Employee|Manager|Line\s+Manager|GP|Name):\s{0,5}(?:Dr\.?\s+|Mr\.?\s+|Mrs\.?\s+|Ms\.?\s+)?)[A-Z][a-z]+(?:-[A-Z][a-z]+)?(?:,\s+(?!BUPA\b|NHS\b|Ltd\b|PLC\b|Policy\b|Company\b|Insurance\b|No\b|Number\b)[A-Z][a-z]+(?:[- ][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[- ][A-Z][a-z]+)?)?|\s+[A-Z][a-z]+(?:[- ][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[- ][A-Z][a-z]+)?)?)?/g,
+    regex: /(?<=(?:Applicant|Patient|Employee|Manager|Line\s+Manager|GP|Name):\s{0,5}(?:Dr\.?\s+|Mr\.?\s+|Mrs\.?\s+|Ms\.?\s+)?)[A-Z][a-z]+(?:-[A-Z][a-z]+)?(?:,\s+(?!BUPA\b|NHS\b|Ltd\b|PLC\b|Policy\b|Company\b|Insurance\b|No\b|Number\b)[A-Z][a-z]+(?:-[A-Z][a-z]+)?(?:[ \t]+[A-Z][a-z]+(?:-[A-Z][a-z]+)?)?|[ \t]+[A-Z][a-z]+(?:-[A-Z][a-z]+)?(?:[ \t]+[A-Z][a-z]+(?:-[A-Z][a-z]+)?)?)?/g,
     type: 'NAME',
     label: 'Name',
     token: 'NAME',
