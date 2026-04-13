@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { InlineDemo } from '../components/InlineDemo'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { DocExamples } from '../components/DocExamples'
 import type { SupportedLang } from '../i18n/index'
 
 function AppIcon({ size = 28 }: { size?: number }) {
@@ -231,9 +230,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
           </div>
         </div>
       </section>
-
-      {/* ── DocExamples (4-tab typewriter) ────────────────────────────────── */}
-      <DocExamples />
 
       {/* ── How it works ─────────────────────────────────────────────────────── */}
       <section id="how-it-works" style={{ background: '#ffffff', padding: '64px 32px' }}>

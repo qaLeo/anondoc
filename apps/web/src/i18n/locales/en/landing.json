@@ -100,8 +100,8 @@
     "f3_desc": "Supports TXT, DOCX, XLSX, PDF without additional software.",
     "f4_title": "Document key",
     "f4_desc": "Download an encrypted key to restore the original at any time.",
-    "f5_title": "GDPR & ФЗ-152",
-    "f5_desc": "Complies with Russian and European personal data legislation.",
+    "f5_title": "GDPR compliant",
+    "f5_desc": "Complies with European personal data legislation (GDPR, DSGVO, RGPD).",
     "f6_title": "Session history",
     "f6_desc": "All sessions saved locally. Continue work at any time."
   },
