@@ -12,9 +12,10 @@ export interface EuPattern {
 
 export const DE_PATTERNS: EuPattern[] = [
   // Steuer-Identifikationsnummer FIRST — prevents phone patterns from stealing leading digits
-  // 11 цифр, первая != 0, пробелы допустимы в любом месте; только с контекстом (lookbehind)
+  // 11 цифр, формат 2-3-3-3: "86 095 742 719" или "86095742719"; только с контекстом (lookbehind)
+  // BUG #1 fix: [1-9]\d(?:\s?\d{3}){3} — явный формат 2+3+3+3, гарантирует все 11 цифр
   {
-    regex: /(?<=(?:Steuer[- ]?(?:ID|Identifikationsnummer|nummer)|IdNo)[\s:]+)[1-9](?:[\s]?\d){10}/gi,
+    regex: /(?<=(?:Steuer[- ]?(?:ID|Identifikationsnummer|nummer)|IdNo)[\s:]+)[1-9]\d(?:\s?\d{3}){3}/gi,
     type: 'TAX_ID',
     label: 'Steuer-ID',
     token: 'STEUER',
@@ -106,5 +107,57 @@ export const DE_PATTERNS: EuPattern[] = [
     type: 'ADDRESS',
     label: 'Straße',
     token: 'STRASSE',
+  },
+
+  // Дата в EU-формате: DD.MM.YYYY или DD/MM/YYYY
+  {
+    regex: /\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g,
+    type: 'DATE',
+    label: 'Datum',
+    token: 'DATE',
+  },
+
+  // Письменная немецкая дата: "22. Juni 1979"
+  {
+    regex: /\b\d{1,2}\.\s*(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+\d{4}\b/gi,
+    type: 'DATE',
+    label: 'Datum',
+    token: 'DATE',
+  },
+
+  // Табельный номер / Personalnummer: EMP-YYYY-NNNN или EMP-CC-YYYY-NNNN
+  {
+    regex: /\bEMP-(?:[A-Z]{2}-)?[0-9]{4}-[0-9]{4}\b/g,
+    type: 'EMP_ID',
+    label: 'Personalnummer',
+    token: 'EMP',
+  },
+
+  // Email address (universal PII — DSGVO Art. 4)
+  {
+    regex: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+(?:\.[a-zA-Z]{2,}){1,3}/g,
+    type: 'EMAIL',
+    label: 'E-Mail',
+    token: 'EMAIL',
+  },
+
+  // Имя/фамилия с контекстным маркером — BUG #4 fix: negative lookahead для Tel/Fax/E-Mail/GmbH
+  // Форматы: "Bewerber: Müller, Hans-Peter" | "Patient: Dr. Franz Kellner"
+  // Захватывает: Фамилия, Имя [Отчество] — max 3 слова; останавливается если после запятой идёт Tel/Fax/…
+  {
+    regex: /(?<=(?:Bewerber(?:in)?|Patient(?:in)?|Mitarbeiter(?:in)?|Vorgesetzter?|Manager(?:in)?|Arzt|Ärztin):\s{0,5}(?:Dr\.?\s+|Prof\.?\s+|Herr\s+|Frau\s+)?(?:med\.\s+)?)[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:,\s+(?![Tt]el[. ]|[Ff]ax|E-Mail|GmbH|AG\b)[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?|\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?)?/gi,
+    type: 'NAME',
+    label: 'Name',
+    token: 'NAME',
+  },
+
+  // Имя с академическим/гражданским титулом (Dr., Prof., Herr, Frau) — без контекста
+  // BUG #4 fix: stops before ", Tel" / ", Fax" / ", GmbH"
+  // Добавлен Herr(?:n)?: захватывает "Herrn Klaus Richter" в договорном тексте
+  {
+    regex: /\b(?:Dr|Prof|Herr(?:n)?|Frau)\.?\s+(?:med\.\s+)?[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?(?!\s*,\s*(?:[Tt]el|[Ff]ax|E-Mail|GmbH|AG\b))/g,
+    type: 'NAME',
+    label: 'Name',
+    token: 'NAME',
   },
 ]

@@ -39,10 +39,10 @@ export const FR_PATTERNS: EuPattern[] = [
     token: 'SIREN',
   },
 
-  // Numéro fiscal / identifiant fiscal: 13 цифр, пробелы допустимы (BUG #4 fix)
-  // Формат 1-2-2-2-3-3 = 13 цифр или 13 цифр подряд
+  // Numéro fiscal / identifiant fiscal: ровно 13 цифр, первая ненулевая, пробелы допустимы
+  // BUG #3 fix: [1-9](?:[\s]?\d){12} — гарантирует 13 цифр (1 + 12), первая != 0
   {
-    regex: /(?:num[eé]ro fiscal|n[o°] fiscal|identifiant fiscal|NIF)[\s:]*\d(?:[\s]?\d){12}/gi,
+    regex: /(?:num[eé]ro fiscal|n[o°] fiscal|identifiant fiscal|NIF)[\s:]*[1-9](?:[\s]?\d){12}/gi,
     type: 'TAX_ID',
     label: 'Numéro fiscal',
     token: 'NF',
@@ -57,8 +57,9 @@ export const FR_PATTERNS: EuPattern[] = [
   },
 
   // CNI (Carte Nationale d'Identité): 12 цифр (с контекстом)
+  // Форматы: "CNI: 880692310285" | "CNI n° 880692310285" | "carte nationale d'identité: ..."
   {
-    regex: /(?:carte[\s]+(?:nationale[\s]+)?d'identit[eé]|CNI|n[o°][\s]*CNI)[\s:]*\d{12}/gi,
+    regex: /(?:carte[\s]+(?:nationale[\s]+)?d'identit[eé]|CNI(?:[\s]+n[o°][\s]*)?|n[o°][\s]*CNI)[\s:]*\d{12}/gi,
     type: 'ID_CARD',
     label: "Carte d'identité",
     token: 'CNI',
@@ -101,5 +102,50 @@ export const FR_PATTERNS: EuPattern[] = [
     type: 'ADDRESS',
     label: 'Adresse',
     token: 'RUE',
+  },
+
+  // Дата в EU-формате: DD/MM/YYYY
+  {
+    regex: /\b\d{1,2}\/\d{1,2}\/\d{4}\b/g,
+    type: 'DATE',
+    label: 'Date',
+    token: 'DATE',
+  },
+
+  // Matricule / Employee ID: EMP-CC-YYYY-NNNN или EMP-YYYY-NNNN
+  {
+    regex: /\bEMP-(?:[A-Z]{2}-)?[0-9]{4}-[0-9]{4}\b/g,
+    type: 'EMP_ID',
+    label: 'Matricule',
+    token: 'EMP',
+  },
+
+  // Email address (universal PII — RGPD Art. 4)
+  {
+    regex: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+(?:\.[a-zA-Z]{2,}){1,3}/g,
+    type: 'EMAIL',
+    label: 'Email',
+    token: 'EMAIL',
+  },
+
+  // Имя/фамилия с контекстным маркером — BUG #2 fix: Ç/ç в классе символов
+  // BUG #6 fix: negative lookahead — не захватывает слово после запятой, если там Tél/Tel/Fax/né/née/rue
+  // Флаг g (не gi): [a-z…] точно соответствует строчным буквам, предотвращая ложные срабатывания
+  // Форматы: "Candidat : Dupont, Jean-François" | "Patient : Moreau, Marie-Claire"
+  {
+    regex: /(?<=(?:Candidat(?:e)?|Patient(?:e)?|Salarié(?:e)?|Médecin|Manager|Nom)[\s:]+(?:Dr\.?\s+|Pr\.?\s+|M\.?\s+|Mme\.?\s+|Mlle\.?\s+)?)[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç']+(?:-[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç']+)*(?:,\s+(?![Tt]él|[Tt]el\b|[Ff]ax|[Nn]é[e]?\b|rue|av\.|boule)[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç']+(?:-[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç']+)*|\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç']+(?:-[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç']+)*)?/g,
+    type: 'NAME',
+    label: 'Nom',
+    token: 'NOM',
+  },
+
+  // Имя с титулом Dr./Pr./Madame/Mme — без контекста, однозначный маркер
+  // BUG #6 fix: stops before ", Tél" / ", Tel" / ", Fax"
+  // Добавлен Madame/Mme: захватывает "Madame Sophie Lefebvre" в договорном тексте
+  {
+    regex: /\b(?:Dr|Pr|Madame|Mme)\.?\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç\-']+(?:\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç\-']+)?(?!\s*[,.]\s*(?:[Tt]él|[Tt]el\b|[Ff]ax))/g,
+    type: 'NAME',
+    label: 'Nom',
+    token: 'NOM',
   },
 ]
