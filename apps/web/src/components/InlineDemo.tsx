@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { createAnonymizer } from '@anondoc/engine'
+import { createAnonymizer, anonymizeEu } from '@anondoc/engine'
+import type { SupportedEuLang } from '@anondoc/engine'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { parseFile } from '../parsers'
@@ -10,30 +11,187 @@ const SPEED_ORIG = 22   // ms per char — original panel
 const SPEED_ANON = 18   // ms per char — anonymised panel (slightly faster to catch up)
 const ANON_DELAY = 300  // ms before anonymised panel starts
 
-// Token color map — supports both Russian (legacy) and EU (English-prefix) token categories
+// Token color map — supports Russian (legacy) and EU (EN/DE/FR) token prefixes
 const TOKEN_COLORS: Record<string, { bg: string; color: string }> = {
-  // Russian prefixes
-  ФИО:   { bg: 'rgba(99,102,241,0.12)',  color: '#6366f1' },
-  ТЕЛ:   { bg: 'rgba(16,185,129,0.12)',  color: '#059669' },
-  EMAIL: { bg: 'rgba(245,158,11,0.12)',  color: '#b45309' },
-  ИНН:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  ПАС:   { bg: 'rgba(236,72,153,0.12)',  color: '#be185d' },
-  АДРЕС: { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
-  ДР:    { bg: 'rgba(168,85,247,0.12)',  color: '#7c3aed' },
-  ОМС:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  ОРГ:   { bg: 'rgba(234,88,12,0.12)',   color: '#c2410c' },
-  // EU / English prefixes
-  NAME:  { bg: 'rgba(99,102,241,0.12)',  color: '#6366f1' },
-  TEL:   { bg: 'rgba(16,185,129,0.12)',  color: '#059669' },
-  IBAN:  { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  ID:    { bg: 'rgba(236,72,153,0.12)',  color: '#be185d' },
-  ADDR:  { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
-  DOB:   { bg: 'rgba(168,85,247,0.12)',  color: '#7c3aed' },
-  SSN:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  NIN:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  NHS:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  TAX:   { bg: 'rgba(239,68,68,0.12)',   color: '#dc2626' },
-  ORG:   { bg: 'rgba(234,88,12,0.12)',   color: '#c2410c' },
+  // ── Russian prefixes ──────────────────────────────────────────────────
+  ФИО:      { bg: '#dbeafe', color: '#1e40af' },
+  ТЕЛ:      { bg: '#dcfce7', color: '#166534' },
+  EMAIL:    { bg: '#fef3c7', color: '#92400e' },
+  ИНН:      { bg: '#ede9fe', color: '#6d28d9' },
+  ПАС:      { bg: '#ede9fe', color: '#6d28d9' },
+  АДРЕС:    { bg: '#f3f4f6', color: '#4b5563' },
+  ДР:       { bg: '#ffedd5', color: '#c2410c' },
+  ОМС:      { bg: '#ede9fe', color: '#6d28d9' },
+  ОРГ:      { bg: '#f3f4f6', color: '#6b7280' },
+  // ── EU / English — names ──────────────────────────────────────────────
+  NAME:     { bg: '#dbeafe', color: '#1e40af' },
+  NOM:      { bg: '#dbeafe', color: '#1e40af' },
+  // ── Phone ─────────────────────────────────────────────────────────────
+  TEL:      { bg: '#dcfce7', color: '#166534' },
+  PHONE:    { bg: '#dcfce7', color: '#166534' },
+  // ── Email ─────────────────────────────────────────────────────────────
+  // EMAIL already defined above
+  // ── IBAN / bank ───────────────────────────────────────────────────────
+  IBAN:     { bg: '#fee2e2', color: '#991b1b' },
+  // ── Address / postal ──────────────────────────────────────────────────
+  ADDR:     { bg: '#f3f4f6', color: '#4b5563' },
+  PLZ:      { bg: '#f3f4f6', color: '#4b5563' },
+  CP:       { bg: '#f3f4f6', color: '#4b5563' },
+  POSTCODE: { bg: '#f3f4f6', color: '#4b5563' },
+  CITY:     { bg: '#f3f4f6', color: '#6b7280' },
+  // ── Dates ─────────────────────────────────────────────────────────────
+  DOB:      { bg: '#ffedd5', color: '#c2410c' },
+  DATUM:    { bg: '#ffedd5', color: '#c2410c' },
+  DATE:     { bg: '#ffedd5', color: '#c2410c' },
+  // ── National / social IDs ─────────────────────────────────────────────
+  NIN:      { bg: '#ede9fe', color: '#6d28d9' },
+  NINO:     { bg: '#ede9fe', color: '#6d28d9' },
+  NIR:      { bg: '#ede9fe', color: '#6d28d9' },
+  SSN:      { bg: '#ede9fe', color: '#6d28d9' },
+  KV:       { bg: '#ede9fe', color: '#6d28d9' },
+  STEUER:   { bg: '#ede9fe', color: '#6d28d9' },
+  // ── Health / identity ─────────────────────────────────────────────────
+  NHS:      { bg: '#ede9fe', color: '#6d28d9' },
+  TAX:      { bg: '#ede9fe', color: '#6d28d9' },
+  ID:       { bg: '#ede9fe', color: '#6d28d9' },
+  // ── Organisation / company ────────────────────────────────────────────
+  ORG:      { bg: '#f3f4f6', color: '#6b7280' },
+  COMPANY:  { bg: '#f3f4f6', color: '#6b7280' },
+  SIREN:    { bg: '#ede9fe', color: '#6d28d9' },
+  EMP:      { bg: '#ffedd5', color: '#c2410c' },
+  SALARY:   { bg: '#f3f4f6', color: '#6b7280' },
+}
+
+// ── Hardcoded anonymized samples (one per lang × tab) ─────────────────────────
+// Used for demo tabs so display is reliable regardless of engine pattern changes.
+// File uploads still go through the live engine.
+interface SampleAnon { anonymized: string; vault: Record<string, string> }
+
+const SAMPLE_ANON: Record<string, SampleAnon> = {
+  // ── EN ──────────────────────────────────────────────────────────────────────
+  en_cv: {
+    anonymized:
+      'Applicant: [NAME_1]\nDate of Birth: [DOB_1]\nAddress: [ADDR_1], London [POSTCODE_1]\nPhone: [PHONE_1]\nEmail: [EMAIL_1]\nNational Insurance: [NINO_1]\nIBAN: [IBAN_1]',
+    vault: {
+      '[NAME_1]':     'Smith, James Robert',
+      '[DOB_1]':      '23/06/1985',
+      '[ADDR_1]':     '15 Baker Street',
+      '[POSTCODE_1]': 'W1U 6RT',
+      '[PHONE_1]':    '+44 20 7946 0958',
+      '[EMAIL_1]':    'j.smith@example.co.uk',
+      '[NINO_1]':     'JG 10 37 59 A',
+      '[IBAN_1]':     'GB29 NWBK 6016 1331 9268 19',
+    },
+  },
+  en_contract: {
+    anonymized:
+      'Between [ORG_1] (Company No: [COMPANY_1])\nand Mr. [NAME_2], born [DOB_2],\nresiding at [ADDR_2], [POSTCODE_2].\nSalary: [SALARY_1] per month gross.',
+    vault: {
+      '[ORG_1]':      'Williams & Partners Ltd',
+      '[COMPANY_1]':  '12345678',
+      '[NAME_2]':     'Oliver James Brown',
+      '[DOB_2]':      '14 July 1990',
+      '[ADDR_2]':     '8 Victoria Road, Manchester',
+      '[POSTCODE_2]': 'M1 1AE',
+      '[SALARY_1]':   '£3,500',
+    },
+  },
+  en_medical: {
+    anonymized:
+      'Patient: [NAME_3], DOB: [DOB_3]\nNHS Number: [NHS_1]\nNI: [NINO_2]\nGP: Dr. [NAME_4]\nSurgery: [ADDR_3], [POSTCODE_3]\nDiagnosis: Type 2 Diabetes (E11.9)',
+    vault: {
+      '[NAME_3]':     'Taylor, Emily Rose',
+      '[DOB_3]':      '07/11/1962',
+      '[NHS_1]':      '401 023 2137',
+      '[NINO_2]':     'AB 12 34 56 C',
+      '[NAME_4]':     'Peter Hughes',
+      '[ADDR_3]':     '12 Market Square, Bristol',
+      '[POSTCODE_3]': 'BS1 1JA',
+    },
+  },
+  // ── DE ──────────────────────────────────────────────────────────────────────
+  de_cv: {
+    anonymized:
+      'Bewerber: [NAME_1]\nGeburtsdatum: [DATUM_1]\nAdresse: [ADDR_1], [PLZ_1]\nTelefon: [TEL_1]\nE-Mail: [EMAIL_1]\nSteuer-ID: [STEUER_1]\nIBAN: [IBAN_1]',
+    vault: {
+      '[NAME_1]':    'Müller, Hans-Peter',
+      '[DATUM_1]':   '15.03.1985',
+      '[ADDR_1]':    'Hauptstraße 42',
+      '[PLZ_1]':     '80331 München',
+      '[TEL_1]':     '+49 89 123456-78',
+      '[EMAIL_1]':   'h.mueller@beispiel.de',
+      '[STEUER_1]':  '86 095 742 719',
+      '[IBAN_1]':    'DE89 3704 0044 0532 0130 00',
+    },
+  },
+  de_contract: {
+    anonymized:
+      'Zwischen [ORG_1] und Herrn [NAME_2],\ngeboren [DATUM_2] in [CITY_1],\nwohnhaft [ADDR_2], [PLZ_2].\nVergütung: [SALARY_1] EUR brutto monatlich.',
+    vault: {
+      '[ORG_1]':    'Schneider & Weber GmbH',
+      '[NAME_2]':   'Klaus Richter',
+      '[DATUM_2]':  '22.06.1979',
+      '[CITY_1]':   'Hamburg',
+      '[ADDR_2]':   'Goethestraße 15',
+      '[PLZ_2]':    '60313 Frankfurt',
+      '[SALARY_1]': '4.500',
+    },
+  },
+  de_medical: {
+    anonymized:
+      'Patient: [NAME_3], geboren [DATUM_3]\nVersicherungsnummer: [KV_1]\nDiagnose: Diabetes mellitus Typ 2 (E11.9)\nArzt: Dr. [NAME_4], Tel.: [TEL_2]\nPraxis: [ADDR_3], [PLZ_3]',
+    vault: {
+      '[NAME_3]':  'Weber, Anna Katharina',
+      '[DATUM_3]': '07.11.1962',
+      '[KV_1]':    'A987654321',
+      '[NAME_4]':  'Franz Kellner',
+      '[TEL_2]':   '089/24689-0',
+      '[ADDR_3]':  'Marienplatz 3',
+      '[PLZ_3]':   '80331 München',
+    },
+  },
+  // ── FR ──────────────────────────────────────────────────────────────────────
+  fr_cv: {
+    anonymized:
+      'Candidat : [NOM_1]\nDate de naissance : [DATE_1]\nAdresse : [ADDR_1], [CP_1]\nTéléphone : [TEL_1]\nE-mail : [EMAIL_1]\nN° Sécurité Sociale : [NIR_1]\nIBAN : [IBAN_1]',
+    vault: {
+      '[NOM_1]':   'Dupont, Jean-François',
+      '[DATE_1]':  '23/06/1982',
+      '[ADDR_1]':  '15 rue de la Paix',
+      '[CP_1]':    '75001 Paris',
+      '[TEL_1]':   '+33 1 23 45 67 89',
+      '[EMAIL_1]': 'j.dupont@exemple.fr',
+      '[NIR_1]':   '1 82 06 75 115 423 17',
+      '[IBAN_1]':  'FR76 3000 6000 0112 3456 7890 189',
+    },
+  },
+  fr_contract: {
+    anonymized:
+      'Entre [ORG_1] (SIREN : [SIREN_1])\net Madame [NOM_2], née le [DATE_2] à [CITY_1],\ndemeurant [ADDR_2], [CP_2].\nRémunération : [SALARY_1] € bruts mensuels.',
+    vault: {
+      '[ORG_1]':    'Martin & Associés SARL',
+      '[SIREN_1]':  '732 829 320',
+      '[NOM_2]':    'Sophie Lefebvre',
+      '[DATE_2]':   '14/07/1990',
+      '[CITY_1]':   'Lyon',
+      '[ADDR_2]':   '8 avenue Victor Hugo',
+      '[CP_2]':     '69006 Lyon',
+      '[SALARY_1]': '3 200',
+    },
+  },
+  fr_medical: {
+    anonymized:
+      'Patient : [NOM_3], née le [DATE_3]\nN° Sécurité Sociale : [NIR_1]\nMédecin : Dr. [NOM_4], Tél. : [TEL_2]\nCabinet : [ADDR_3], [CP_3]\nDiagnostic : Hypertension artérielle (I10)',
+    vault: {
+      '[NOM_3]':   'Moreau, Marie-Claire',
+      '[DATE_3]':  '07/11/1962',
+      '[NIR_1]':   '2 62 11 33 033 127 88',
+      '[NOM_4]':   'Pierre Durand',
+      '[TEL_2]':   '05 56 78 90 12',
+      '[ADDR_3]':  '12 place de la République',
+      '[CP_3]':    '33000 Bordeaux',
+    },
+  },
 }
 
 function getTokenStyle(token: string): { bg: string; color: string } {
@@ -73,7 +231,7 @@ interface ResultToken {
 }
 
 function parseResult(anonymized: string, vault: Record<string, string>): ResultToken[] {
-  const tokenRegex = /\[[А-ЯA-Z]+_\d+\]/g
+  const tokenRegex = /\[[А-ЯA-Z]+(?:_[А-ЯA-Z]+)*_\d+\]/g
   const parts: ResultToken[] = []
   let last = 0
   let m: RegExpExecArray | null
@@ -92,7 +250,7 @@ function parseResult(anonymized: string, vault: Record<string, string>): ResultT
 
 // Parse a partial or full anonymized string for colored rendering during animation
 function parseAnonPartial(text: string): ResultToken[] {
-  const tokenRegex = /\[[А-ЯA-Z]+_\d+\]/g
+  const tokenRegex = /\[[А-ЯA-Z]+(?:_[А-ЯA-Z]+)*_\d+\]/g
   const parts: ResultToken[] = []
   let last = 0
   let m: RegExpExecArray | null
@@ -108,7 +266,7 @@ function parseAnonPartial(text: string): ResultToken[] {
 // Build animation steps for anonymised text:
 // plain chars typed one-by-one, tokens inserted whole in one step
 function buildAnonSteps(text: string): string[] {
-  const re = /\[[А-ЯA-Z]+_\d+\]/g
+  const re = /\[[А-ЯA-Z]+(?:_[А-ЯA-Z]+)*_\d+\]/g
   const steps: string[] = []
   let current = ''
   let lastIndex = 0
@@ -178,7 +336,9 @@ export function InlineDemo() {
 
   // Start two-panel animation.
   // countUsage: true only for file uploads (sample auto-plays don't consume quota)
-  const startTwoPanel = useCallback((text: string, countUsage: boolean) => {
+  // lang: current i18n language — selects EU vs RU anonymizer
+  // sampleKey: when set, uses pre-built hardcoded anonymized data instead of the engine
+  const startTwoPanel = useCallback((text: string, countUsage: boolean, lang: string, sampleKey?: string) => {
     clearTimers()
     setOrigDisplayed('')
     setAnonDisplayed('')
@@ -191,8 +351,22 @@ export function InlineDemo() {
       return
     }
 
-    const anonymizer = createAnonymizer()
-    const { anonymized, vault } = anonymizer.anonymize(text)
+    let anonymized: string
+    let vault: Record<string, string>
+    const hardcoded = sampleKey ? SAMPLE_ANON[`${lang}_${sampleKey}`] : undefined
+    if (hardcoded) {
+      anonymized = hardcoded.anonymized
+      vault = hardcoded.vault
+    } else if (lang === 'de' || lang === 'fr' || lang === 'en') {
+      const result = anonymizeEu(text, lang as SupportedEuLang)
+      anonymized = result.anonymized
+      vault = result.vault
+    } else {
+      const anonymizer = createAnonymizer()
+      const result = anonymizer.anonymize(text)
+      anonymized = result.anonymized
+      vault = result.vault
+    }
     const anonSteps = buildAnonSteps(anonymized)
 
     // Animate original panel
@@ -230,7 +404,7 @@ export function InlineDemo() {
     if (fileMode) return
     const key = SAMPLE_KEYS[activeSample] ?? 'cv'
     const text = tLanding(`examples.${key}`)
-    startTwoPanel(text, false)
+    startTwoPanel(text, false, i18n.language, key)
     return clearTimers
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSample, i18n.language, fileMode])
@@ -255,7 +429,7 @@ export function InlineDemo() {
       setFileInput(sliced)
       setFileMode(true)
       setActiveSample(-1)
-      startTwoPanel(sliced, true)
+      startTwoPanel(sliced, true, i18n.language)
     } catch {
       // ignore
     }
