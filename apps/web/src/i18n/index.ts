@@ -23,6 +23,8 @@ i18n
     },
     fallbackLng: 'en',
     supportedLngs: ['en', 'de', 'fr'],
+    // RU locale archived — available at public/locales/ru/ if needed
+    // Re-enable by adding 'ru' to supportedLngs and importing ru locale files
     detection: {
       order: ['path', 'localStorage', 'navigator', 'htmlTag'],
       lookupFromPathIndex: 0,

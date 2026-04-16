@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 
 type Mode = 'login' | 'register'
@@ -16,6 +17,7 @@ function AppIcon({ size = 40 }: { size?: number }) {
 export default function Auth() {
   const { login, register } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation('app')
 
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
@@ -27,9 +29,9 @@ export default function Auth() {
   const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const validate = (): string | null => {
-    if (!email.includes('@')) return 'Введите корректный email'
-    if (password.length < 8) return 'Пароль — минимум 8 символов'
-    if (mode === 'register' && name.trim().length < 2) return 'Введите имя (минимум 2 символа)'
+    if (!email.includes('@')) return t('auth.err_email')
+    if (password.length < 8) return t('auth.err_password')
+    if (mode === 'register' && name.trim().length < 2) return t('auth.err_name')
     return null
   }
 
@@ -48,9 +50,9 @@ export default function Auth() {
       }
       navigate('/', { replace: true })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Ошибка'
-      if (msg.includes('EMAIL_TAKEN')) setError('Этот email уже зарегистрирован')
-      else if (msg.includes('INVALID_CREDENTIALS')) setError('Неверный email или пароль')
+      const msg = err instanceof Error ? err.message : t('auth.err_generic')
+      if (msg.includes('EMAIL_TAKEN')) setError(t('auth.err_taken'))
+      else if (msg.includes('INVALID_CREDENTIALS')) setError(t('auth.err_credentials'))
       else setError(msg)
     } finally {
       setLoading(false)
@@ -81,12 +83,8 @@ export default function Auth() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: '#f9fafb',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
+      minHeight: '100vh', background: '#f9fafb',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         {/* Logo block */}
@@ -98,58 +96,47 @@ export default function Auth() {
             AnonDoc
           </div>
           <p style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
-            Обезличивание документов
+            {t('auth.tagline')}
           </p>
         </div>
 
         {/* Card */}
         <div style={{
-          background: '#ffffff',
-          borderRadius: 16,
+          background: '#ffffff', borderRadius: 16,
           border: '1px solid #e5e7eb',
           boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
           padding: '32px 32px',
         }}>
-          {/* Mode switcher — pill style */}
-          <div style={{
-            background: '#f3f4f6', borderRadius: 10, padding: 4,
-            display: 'flex', marginBottom: 24,
-          }}>
+          {/* Mode switcher */}
+          <div style={{ background: '#f3f4f6', borderRadius: 10, padding: 4, display: 'flex', marginBottom: 24 }}>
             {(['login', 'register'] as Mode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => switchMode(m)}
                 style={{
-                  flex: 1,
-                  padding: '8px 0',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  border: 'none',
-                  borderRadius: 7,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
+                  flex: 1, padding: '8px 0', fontSize: 14, fontWeight: 500,
+                  border: 'none', borderRadius: 7, cursor: 'pointer', transition: 'all 0.15s',
                   background: mode === m ? '#ffffff' : 'transparent',
                   color: mode === m ? '#111827' : '#6b7280',
                   boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                 }}
               >
-                {m === 'login' ? 'Вход' : 'Регистрация'}
+                {m === 'login' ? t('auth.login') : t('auth.register')}
               </button>
             ))}
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {mode === 'register' && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-                  Имя
+                  {t('auth.name')}
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Иван Иванов"
+                  placeholder={t('auth.name_placeholder')}
                   style={inputStyle('name')}
                   onFocus={() => setFocusedField('name')}
                   onBlur={() => setFocusedField(null)}
@@ -160,7 +147,7 @@ export default function Auth() {
 
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-                Email
+                {t('auth.email')}
               </label>
               <input
                 type="email"
@@ -177,13 +164,13 @@ export default function Auth() {
 
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}>
-                Пароль
+                {t('auth.password')}
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'register' ? 'Минимум 8 символов' : '••••••••'}
+                placeholder={mode === 'register' ? t('auth.password_min') : '••••••••'}
                 style={inputStyle('password')}
                 onFocus={() => setFocusedField('password')}
                 onBlur={() => setFocusedField(null)}
@@ -201,14 +188,10 @@ export default function Auth() {
                   style={{ marginTop: 2, cursor: 'pointer', flexShrink: 0 }}
                 />
                 <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
-                  Я принимаю{' '}
-                  <a
-                    href="/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: '#1a56db', textDecoration: 'underline' }}
-                  >
-                    политику конфиденциальности
+                  {t('auth.privacy_text')}{' '}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer"
+                    style={{ color: '#1a56db', textDecoration: 'underline' }}>
+                    {t('auth.privacy_link')}
                   </a>
                 </span>
               </label>
@@ -216,12 +199,8 @@ export default function Auth() {
 
             {error && (
               <div style={{
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: 8,
-                padding: '10px 14px',
-                color: '#dc2626',
-                fontSize: 13,
+                background: '#fef2f2', border: '1px solid #fecaca',
+                borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 13,
               }}>
                 {error}
               </div>
@@ -231,85 +210,59 @@ export default function Auth() {
               type="submit"
               disabled={isDisabled}
               style={{
-                padding: '12px',
-                fontSize: 15,
-                fontWeight: 600,
+                padding: '12px', fontSize: 15, fontWeight: 600,
                 background: isDisabled ? '#93c5fd' : '#1a56db',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: 8,
+                color: '#ffffff', border: 'none', borderRadius: 8,
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
-                letterSpacing: '0.1px',
-                transition: 'background 0.15s',
-                marginTop: 4,
-                width: '100%',
+                letterSpacing: '0.1px', transition: 'background 0.15s',
+                marginTop: 4, width: '100%',
               }}
             >
-              {loading ? 'Загрузка...' : mode === 'login' ? 'Войти' : 'Создать аккаунт'}
+              {loading ? t('auth.loading') : mode === 'login' ? t('auth.submit_login') : t('auth.submit_register')}
             </button>
           </form>
 
-          {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
             <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
-            <span style={{ fontSize: 12, color: '#6b7280' }}>или</span>
+            <span style={{ fontSize: 12, color: '#6b7280' }}>{t('auth.or')}</span>
             <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
           </div>
 
-          {/* OAuth buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <OAuthButton
               icon={<GoogleIcon />}
-              label="Продолжить с Google"
-              onClick={() => alert('Google OAuth — настройте GOOGLE_CLIENT_ID в .env')}
+              label={t('auth.google')}
+              onClick={() => alert('Google OAuth — set GOOGLE_CLIENT_ID in .env')}
             />
             <OAuthButton
               icon={<MicrosoftIcon />}
-              label="Продолжить с Microsoft"
-              onClick={() => alert('Microsoft OAuth — настройте MS_CLIENT_ID в .env')}
+              label={t('auth.microsoft')}
+              onClick={() => alert('Microsoft OAuth — set MS_CLIENT_ID in .env')}
             />
           </div>
         </div>
 
-        {/* Bottom note */}
         <p style={{ marginTop: 20, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-          Работает офлайн · Соответствует ФЗ-152 · Шифрование AES-256
+          {t('auth.footer')}
         </p>
       </div>
     </div>
   )
 }
 
-function OAuthButton({ icon, label, onClick }: {
-  icon: React.ReactNode
-  label: string
-  onClick: () => void
-}) {
+function OAuthButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
     <button
-      type="button"
-      onClick={onClick}
+      type="button" onClick={onClick}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        width: '100%',
-        padding: '10px 14px',
-        fontSize: 14,
-        fontWeight: 500,
-        background: '#ffffff',
-        color: '#111827',
-        border: '1.5px solid #e5e7eb',
-        borderRadius: 8,
-        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+        padding: '10px 14px', fontSize: 14, fontWeight: 500,
+        background: '#ffffff', color: '#111827',
+        border: '1.5px solid #e5e7eb', borderRadius: 8, cursor: 'pointer',
         transition: 'border-color 0.15s, background 0.15s',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = '#f9fafb'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = '#ffffff'
-      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff' }}
     >
       {icon}
       <span>{label}</span>

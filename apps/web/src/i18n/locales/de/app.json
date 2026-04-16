@@ -7,7 +7,8 @@
     "pricing": "Preise",
     "profile": "Profil",
     "logout": "Abmelden",
-    "back": "← Zurück"
+    "back": "← Zurück",
+    "privacy": "Datenschutzrichtlinie"
   },
   "app": {
     "add_file": "+ Datei hinzufügen",
@@ -18,7 +19,10 @@
     "trial_days_one": "{{count}} Tag",
     "trial_days_other": "{{count}} Tage",
     "trial_extend": "verlängern →",
-    "footer": "Offline-fähig · DSGVO-konform · AES-256-Verschlüsselung ·"
+    "footer": "Offline-fähig · DSGVO-konform · AES-256-Verschlüsselung ·",
+    "trial_banner_one": "Pro · noch {{count}} Tag",
+    "trial_banner_other": "Pro · noch {{count}} Tage",
+    "docs_label": "Dokumente"
   },
   "anonymize": {
     "title": "Dokument anonymisieren",
@@ -59,9 +63,21 @@
     "trial_cta": "Pro 10 Tage kostenlos testen",
     "trial_active": "Pro-Testzeitraum aktiv ✓",
     "current_plan": "Ihr aktueller Plan",
-    "subscribe": "Auswählen",
+    "subscribe": "Jetzt starten",
     "team_calc": "5 Mitarbeiter × Pro €29 = €145/Monat vs. Team €99/Monat → Ersparnis €46/Monat",
-    "enterprise_cta": "Vertrieb kontaktieren"
+    "enterprise_cta": "Vertrieb kontaktieren",
+    "free_subtitle": "Testen Sie ohne Zeitlimit",
+    "pro_subtitle": "Für aktive Dokumentenarbeit",
+    "team_subtitle": "Für Teams und Abteilungen",
+    "contact": "anfragen →",
+    "period": "/ Monat",
+    "free_gdpr": "DSGVO-konform · Lokale Verarbeitung",
+    "free_features": ["10 Dokumente / Monat", "TXT, DOCX, XLSX, PDF", "DSGVO-konform · Lokale Verarbeitung"],
+    "pro_features": ["Unbegrenzte Dokumente", "Alle Dateiformate", "Dokumentverlauf", "Entschlüsselungsschlüssel", "Vorrangiger Support"],
+    "team_features": ["Bis zu 10 Benutzer", "Alles aus Pro", "Gemeinsamer Team-Vault", "Anonymisierungsvorlagen", "Aktivitätsprotokoll (Audit-Log)", "Compliance-Bericht", "Branding (in Entwicklung)", "SSO (in Entwicklung)"],
+    "label_free": "Basis",
+    "label_current": "aktueller Plan",
+    "enterprise_desc": "On-Premise · SSO · SLA 99,9 % · unbegrenzte Benutzer"
   },
   "auth": {
     "login": "Anmelden",
@@ -71,7 +87,24 @@
     "submit_login": "Anmelden",
     "submit_register": "Konto erstellen",
     "switch_to_login": "Bereits ein Konto? Anmelden",
-    "switch_to_register": "Noch kein Konto? Registrieren"
+    "switch_to_register": "Noch kein Konto? Registrieren",
+    "tagline": "Dokumente anonymisieren",
+    "footer": "Offline-fähig · DSGVO-konform · AES-256-Verschlüsselung",
+    "google": "Mit Google fortfahren",
+    "microsoft": "Mit Microsoft fortfahren",
+    "or": "oder",
+    "name": "Name",
+    "name_placeholder": "Max Mustermann",
+    "password_min": "Mindestens 8 Zeichen",
+    "privacy_text": "Ich akzeptiere die",
+    "privacy_link": "Datenschutzrichtlinie",
+    "loading": "Laden...",
+    "err_email": "Gültige E-Mail-Adresse eingeben",
+    "err_password": "Passwort — mindestens 8 Zeichen",
+    "err_name": "Name eingeben (mindestens 2 Zeichen)",
+    "err_taken": "Diese E-Mail ist bereits registriert",
+    "err_credentials": "Ungültige E-Mail oder Passwort",
+    "err_generic": "Fehler"
   },
   "demo": {
     "tab_cv": "Lebenslauf",

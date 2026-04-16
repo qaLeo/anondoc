@@ -7,7 +7,8 @@
     "pricing": "Pricing",
     "profile": "Profile",
     "logout": "Log out",
-    "back": "← Back"
+    "back": "← Back",
+    "privacy": "Privacy Policy"
   },
   "app": {
     "add_file": "+ Add file",
@@ -18,7 +19,10 @@
     "trial_days_one": "{{count}} day",
     "trial_days_other": "{{count}} days",
     "trial_extend": "extend →",
-    "footer": "Works offline · GDPR compliant · AES-256 encryption ·"
+    "footer": "Works offline · GDPR compliant · AES-256 encryption ·",
+    "trial_banner_one": "Pro · {{count}} day left",
+    "trial_banner_other": "Pro · {{count}} days left",
+    "docs_label": "docs"
   },
   "anonymize": {
     "title": "Anonymise document",
@@ -59,9 +63,21 @@
     "trial_cta": "Try Pro free for 10 days",
     "trial_active": "Pro trial active ✓",
     "current_plan": "Your current plan",
-    "subscribe": "Choose",
+    "subscribe": "Get started",
     "team_calc": "5 employees × Pro $29 = $145/month vs Team $99/month → save $46/month",
-    "enterprise_cta": "Contact sales"
+    "enterprise_cta": "Contact sales",
+    "free_subtitle": "Try without time limit",
+    "pro_subtitle": "For active document work",
+    "team_subtitle": "For teams and departments",
+    "contact": "contact us →",
+    "period": "/ mo",
+    "free_gdpr": "GDPR compliant · Local processing",
+    "free_features": ["10 documents/month", "TXT, DOCX, XLSX, PDF", "GDPR compliant · Local processing"],
+    "pro_features": ["Unlimited documents", "All file formats", "Document history", "Decryption key", "Priority support"],
+    "team_features": ["Up to 10 users", "Everything in Pro", "Shared team vault", "Anonymisation templates", "Activity log (Audit Log)", "Compliance report", "Branding (coming soon)", "SSO (coming soon)"],
+    "label_free": "basic",
+    "label_current": "current plan",
+    "enterprise_desc": "on-premise · SSO · SLA 99.9% · unlimited users"
   },
   "auth": {
     "login": "Log in",
@@ -71,7 +87,24 @@
     "submit_login": "Log in",
     "submit_register": "Create account",
     "switch_to_login": "Already have an account? Log in",
-    "switch_to_register": "No account yet? Sign up"
+    "switch_to_register": "No account yet? Sign up",
+    "tagline": "Document anonymisation",
+    "footer": "Works offline · GDPR compliant · AES-256 encryption",
+    "google": "Continue with Google",
+    "microsoft": "Continue with Microsoft",
+    "or": "or",
+    "name": "Name",
+    "name_placeholder": "John Doe",
+    "password_min": "Minimum 8 characters",
+    "privacy_text": "I accept the",
+    "privacy_link": "privacy policy",
+    "loading": "Loading...",
+    "err_email": "Enter a valid email",
+    "err_password": "Password — minimum 8 characters",
+    "err_name": "Enter name (minimum 2 characters)",
+    "err_taken": "This email is already registered",
+    "err_credentials": "Invalid email or password",
+    "err_generic": "Error"
   },
   "demo": {
     "tab_cv": "CV",

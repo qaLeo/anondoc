@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { detectLangFromPath } from './i18n/index'
+import { LanguageSwitcher } from './components/LanguageSwitcher'
 
 function AppIcon({ size = 22 }: { size?: number }) {
   return (
@@ -35,6 +37,18 @@ function AppLayout() {
   return <MainPage />
 }
 
+function AppFooter() {
+  const { t } = useTranslation('app')
+  return (
+    <footer style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-footer)', paddingBottom: 32 }}>
+      {t('app.footer')}{' '}
+      <Link to="/privacy" style={{ color: 'var(--text-footer)', textDecoration: 'underline' }}>
+        {t('nav.privacy', 'Privacy Policy')}
+      </Link>
+    </footer>
+  )
+}
+
 function MainPage() {
   const location = useLocation()
   const params = new URLSearchParams(location.search)
@@ -46,15 +60,7 @@ function MainPage() {
       <main style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 80px' }}>
         {tab === 'anonymize' ? <AnonymizationTab /> : <DeanonymizationTab />}
       </main>
-      <footer style={{
-        textAlign: 'center', fontSize: 11, color: 'var(--text-footer)',
-        paddingBottom: 32,
-      }}>
-        Работает офлайн · Соответствует ФЗ-152 · Шифрование AES-256 ·{' '}
-        <Link to="/privacy" style={{ color: 'var(--text-footer)', textDecoration: 'underline' }}>
-          политика конфиденциальности
-        </Link>
-      </footer>
+      <AppFooter />
     </div>
   )
 }
@@ -71,6 +77,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
   const { usage, isTrial, trialDaysLeft } = useUsage()
   const navigate = useNavigate()
   const location = useLocation()
+  const { t, i18n } = useTranslation('app')
 
   const handleLogout = async () => {
     await logout()
@@ -136,7 +143,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             onMouseEnter={e => { if (!(isOnMain && activeTab === 'anonymize')) e.currentTarget.style.color = '#374151' }}
             onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'anonymize' ? '#1a56db' : '#6b7280' }}
           >
-            анонимизация
+            {t('nav.anonymize')}
           </button>
           <button
             onClick={() => { if (isOnMain && onTabChange) onTabChange('deanonymize'); else navigate('/?deanon=1') }}
@@ -144,7 +151,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             onMouseEnter={e => { if (!(isOnMain && activeTab === 'deanonymize')) e.currentTarget.style.color = '#374151' }}
             onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'deanonymize' ? '#1a56db' : '#6b7280' }}
           >
-            деанонимизация
+            {t('nav.deanonymize')}
           </button>
           <button
             onClick={() => navigate('/history')}
@@ -152,15 +159,15 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             onMouseEnter={e => { if (location.pathname !== '/history') e.currentTarget.style.color = '#374151' }}
             onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/history' ? '#1a56db' : '#6b7280' }}
           >
-            история
+            {t('nav.history')}
           </button>
           <button
-            onClick={() => navigate('/pricing')}
-            style={navStyle(location.pathname === '/pricing')}
-            onMouseEnter={e => { if (location.pathname !== '/pricing') e.currentTarget.style.color = '#374151' }}
-            onMouseLeave={e => { e.currentTarget.style.color = location.pathname === '/pricing' ? '#1a56db' : '#6b7280' }}
+            onClick={() => { const lang = i18n.language.split('-')[0]; navigate(`/${lang}/pricing`) }}
+            style={navStyle(location.pathname.endsWith('/pricing'))}
+            onMouseEnter={e => { if (!location.pathname.endsWith('/pricing')) e.currentTarget.style.color = '#374151' }}
+            onMouseLeave={e => { e.currentTarget.style.color = location.pathname.endsWith('/pricing') ? '#1a56db' : '#6b7280' }}
           >
-            тарифы
+            {t('nav.pricing')}
           </button>
         </nav>
 
@@ -182,9 +189,10 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             </span>
             {displayName && <span className="app-user-name">{displayName}</span>}
             {usage && (
-              <span className="app-user-docs">{docsText} документов</span>
+              <span className="app-user-docs">{docsText} {t('app.docs_label')}</span>
             )}
           </button>
+          <LanguageSwitcher />
           <button
             onClick={handleLogout}
             style={{
@@ -195,7 +203,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             onMouseEnter={e => (e.currentTarget.style.color = '#111827')}
             onMouseLeave={e => (e.currentTarget.style.color = '#6b7280')}
           >
-            Выйти
+            {t('nav.logout')}
           </button>
         </div>
       </header>
@@ -213,7 +221,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
           background: '#ffffff',
         }}>
           <span>
-            pro · осталось {trialDaysLeft} {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}
+            {t('app.trial_banner', { count: trialDaysLeft ?? 0 })}
           </span>
           {trialDaysLeft <= 2 && (
             <button
@@ -223,7 +231,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
                 fontSize: 12, color: '#6b7280', textDecoration: 'underline',
               }}
             >
-              продлить →
+              {t('app.trial_extend')}
             </button>
           )}
         </div>
@@ -241,7 +249,10 @@ export default function App() {
         <UsageProvider>
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
-            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/pricing" element={<PricingGate />} />
+            <Route path="/de/pricing" element={<Pricing />} />
+            <Route path="/en/pricing" element={<Pricing />} />
+            <Route path="/fr/pricing" element={<Pricing />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/billing/success" element={<ProtectedRoute><BillingSuccess /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -271,6 +282,11 @@ function LangRedirect() {
   return <AppLayout />
 }
 
+function PricingGate() {
+  const lang = detectLangFromPath()
+  return <Navigate to={`/${lang}/pricing`} replace />
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   if (isLoading) return <Loader />
@@ -286,12 +302,13 @@ function AuthGate() {
 }
 
 function Loader() {
+  const { t } = useTranslation('app')
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>загрузка...</div>
+      <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>{t('loading')}</div>
     </div>
   )
 }

@@ -7,7 +7,8 @@
     "pricing": "Tarifs",
     "profile": "Profil",
     "logout": "Se déconnecter",
-    "back": "← Retour"
+    "back": "← Retour",
+    "privacy": "Politique de confidentialité"
   },
   "app": {
     "add_file": "+ Ajouter un fichier",
@@ -18,7 +19,10 @@
     "trial_days_one": "{{count}} jour",
     "trial_days_other": "{{count}} jours",
     "trial_extend": "prolonger →",
-    "footer": "Fonctionne hors ligne · Conforme RGPD · Chiffrement AES-256 ·"
+    "footer": "Fonctionne hors ligne · Conforme RGPD · Chiffrement AES-256 ·",
+    "trial_banner_one": "Pro · encore {{count}} jour",
+    "trial_banner_other": "Pro · encore {{count}} jours",
+    "docs_label": "docs"
   },
   "anonymize": {
     "title": "Anonymiser un document",
@@ -59,9 +63,21 @@
     "trial_cta": "Essayer Pro gratuitement 10 jours",
     "trial_active": "Période d'essai Pro active ✓",
     "current_plan": "Votre plan actuel",
-    "subscribe": "Choisir",
+    "subscribe": "Commencer",
     "team_calc": "5 employés × Pro €29 = €145/mois vs Team €99/mois → économie €46/mois",
-    "enterprise_cta": "Contacter les ventes"
+    "enterprise_cta": "Contacter les ventes",
+    "free_subtitle": "Essayez sans limite",
+    "pro_subtitle": "Pour un travail intensif sur les documents",
+    "team_subtitle": "Pour les équipes et les départements",
+    "contact": "contacter →",
+    "period": "/ mois",
+    "free_gdpr": "Conforme RGPD · Traitement local",
+    "free_features": ["10 documents / mois", "TXT, DOCX, XLSX, PDF", "Conforme RGPD · Traitement local"],
+    "pro_features": ["Documents illimités", "Tous les formats de fichiers", "Historique des documents", "Clé de déchiffrement", "Support prioritaire"],
+    "team_features": ["Jusqu'à 10 utilisateurs", "Tout ce qui est inclus dans Pro", "Vault d'équipe partagé", "Modèles d'anonymisation", "Journal d'activité (Audit Log)", "Rapport de conformité", "Personnalisation (en développement)", "SSO (en développement)"],
+    "label_free": "de base",
+    "label_current": "plan actuel",
+    "enterprise_desc": "on-premise · SSO · SLA 99,9 % · utilisateurs illimités"
   },
   "auth": {
     "login": "Se connecter",
@@ -71,7 +87,24 @@
     "submit_login": "Se connecter",
     "submit_register": "Créer un compte",
     "switch_to_login": "Déjà un compte ? Se connecter",
-    "switch_to_register": "Pas encore de compte ? S'inscrire"
+    "switch_to_register": "Pas encore de compte ? S'inscrire",
+    "tagline": "Anonymisation de documents",
+    "footer": "Fonctionne hors ligne · Conforme RGPD · Chiffrement AES-256",
+    "google": "Continuer avec Google",
+    "microsoft": "Continuer avec Microsoft",
+    "or": "ou",
+    "name": "Prénom",
+    "name_placeholder": "Jean Dupont",
+    "password_min": "8 caractères minimum",
+    "privacy_text": "J'accepte la",
+    "privacy_link": "politique de confidentialité",
+    "loading": "Chargement...",
+    "err_email": "Entrez une adresse e-mail valide",
+    "err_password": "Mot de passe — 8 caractères minimum",
+    "err_name": "Entrez un nom (minimum 2 caractères)",
+    "err_taken": "Cet e-mail est déjà enregistré",
+    "err_credentials": "E-mail ou mot de passe invalide",
+    "err_generic": "Erreur"
   },
   "demo": {
     "tab_cv": "CV",
