@@ -456,26 +456,37 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
             </div>
           </div>
 
-          {/* JSON preview */}
+          {/* .key file preview */}
           <div className="landing-json-block" style={{
             background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20,
-            maxWidth: 480, margin: '32px auto 0',
+            maxWidth: 520, margin: '32px auto 0',
             fontFamily: 'monospace', fontSize: 13, lineHeight: 1.7,
           }}>
-            <div style={{ color: '#9ca3af', marginBottom: 4, fontSize: 11 }}>// document_key.json</div>
-            <div style={{ color: '#374151' }}>{'{'}</div>
+            <div style={{ color: '#9ca3af', marginBottom: 6, fontSize: 11 }}>document_key.key</div>
+            <div style={{ color: '#dc2626', fontWeight: 600 }}>-----BEGIN ANONDOC KEY-----</div>
             {[
-              ['[NAME_1]',  '"Smith, James Robert"'],
-              ['[EMAIL_1]', '"j.smith@example.com"'],
-              ['[NIN_1]',   '"JG 10 37 59 A"'],
-            ].map(([key, val]) => (
-              <div key={key} style={{ paddingLeft: 16 }}>
-                <span style={{ color: '#1a56db' }}>"{key}"</span>
+              ['Version',  'AnonDoc/1.0'],
+              ['Document', 'arbeitsvertrag.docx'],
+              ['Session',  'sess_a8f2c9d1e4b7f3a92'],
+              ['Created',  '2026-04-14T14:23:00Z'],
+              ['Language', 'de'],
+              ['Entries',  '12'],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <span style={{ color: '#2563eb' }}>{k}</span>
                 <span style={{ color: '#9ca3af' }}>: </span>
-                <span style={{ color: '#166534' }}>{val}</span>
+                <span style={{ color: '#374151' }}>{v}</span>
               </div>
             ))}
-            <div style={{ color: '#374151' }}>{'}'}</div>
+            <div style={{ marginTop: 8, color: '#16a34a', wordBreak: 'break-all', lineHeight: 1.5 }}>
+              eyJbTkFNRV8xXSI6Ik3DvGxsZXIsIEhhbnMt<br/>
+              UGV0ZXIiLCJbRU1BSUxfMV0iOiJoLm11ZWxs<br/>
+              ZXJAYmVpc3BpZWwuZGUiLCJbSUJBTl8xXSI6<br/>
+              IkRFODkgMzcwNCAwMDQ0IDA1MzIgMDEzMCAw<br/>
+              MCJ9
+            </div>
+            <div style={{ color: '#dc2626', fontWeight: 600, marginTop: 8 }}>-----END ANONDOC KEY-----</div>
+            <div style={{ color: '#9ca3af', marginTop: 8, fontSize: 11 }}>PEM-like format · Base64 encoded · AES-256</div>
           </div>
 
           <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>

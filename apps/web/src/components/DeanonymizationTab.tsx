@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { DropZone } from './DropZone'
-import { deanonymizeText } from '@anondoc/engine'
+import { deanonymizeText, parseKeyFile } from '@anondoc/engine'
 import { loadVault, getAllSessions, type SessionRecord } from '../vault/vaultService'
 import { detectDocType, currentDocNumber, makeRestoredName } from '../utils/docNaming'
 import { getAllDocs, getDocById, markRestored, parseVault, type DocRecord } from '../lib/documentHistory'
@@ -8,15 +8,6 @@ import { deanonymizeFile } from '../utils/deanonFile'
 
 const TEXT_FORMATS = new Set(['txt', 'csv', 'md'])
 const SUPPORTED_FORMATS = ['txt', 'docx', 'xlsx', 'pptx']
-
-interface KeyFilePayload {
-  version: string
-  createdAt: string
-  sessionId: string
-  filesCount: number
-  replacementsCount: number
-  vault: Record<string, string>
-}
 
 function fileExt(file: File): string {
   return file.name.split('.').pop()?.toLowerCase() ?? ''
@@ -148,12 +139,12 @@ export function DeanonymizationTab() {
     if (!file) return
     try {
       const text = await file.text()
-      const payload = JSON.parse(text) as KeyFilePayload
-      if (!payload.vault || typeof payload.vault !== 'object') {
+      const keyData = parseKeyFile(text)
+      if (!keyData.vault || typeof keyData.vault !== 'object') {
         setError('неверный формат файла ключа')
         return
       }
-      setKeyFile({ name: file.name, vault: payload.vault })
+      setKeyFile({ name: file.name, vault: keyData.vault })
       setSelectedHistoryId('')
       setSelectedSessionId('')
       setFoundInHistory(null)

@@ -3,6 +3,7 @@ import { DropZone } from './DropZone'
 import { useAnonymizationSession } from '../hooks/useAnonymizationSession'
 import type { SessionFile } from '../vault/vaultService'
 import { useNavigate } from 'react-router-dom'
+import { serializeKey } from '@anondoc/engine'
 
 /** Formats Date.now() as YYYY-MM-DD in local time */
 function fmtDate(ts: number): string {
@@ -58,24 +59,22 @@ export function AnonymizationTab() {
     if (!session) return
     const date = fmtDate(session.createdAt)
     const shortId = session.id.slice(0, 8)
-    const totalReplacements = session.files.reduce((s, f) => s + f.replacements, 0)
+    const firstName = session.files[0]?.name ?? 'document'
 
-    const payload = {
-      version: '1.0',
-      createdAt: new Date(session.createdAt).toISOString(),
-      sessionId: session.id,
-      filesCount: session.files.length,
-      replacementsCount: totalReplacements,
+    const keyContent = serializeKey({
+      version: 'AnonDoc/1.0',
+      document: firstName,
+      session: session.id,
+      created: new Date(session.createdAt).toISOString(),
+      language: 'en',
       vault: session.sharedVault,
-    }
-
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: 'application/json;charset=utf-8',
     })
+
+    const blob = new Blob([keyContent], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `ключ_документа_${date}_${shortId}.json`
+    a.download = `ключ_документа_${date}_${shortId}.key`
     a.click()
     URL.revokeObjectURL(url)
   }

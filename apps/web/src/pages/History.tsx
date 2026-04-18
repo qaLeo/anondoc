@@ -10,6 +10,7 @@ import {
 } from '../vault/vaultService'
 import { useUsage } from '../context/UsageContext'
 import { useAuth } from '../context/AuthContext'
+import { serializeKey } from '@anondoc/engine'
 
 function fmtDate(ts: number): string {
   const d = new Date(ts)
@@ -29,20 +30,20 @@ function AppIcon({ size = 22 }: { size?: number }) {
 }
 
 function downloadSessionKey(session: SessionRecord): void {
-  const totalReplacements = session.files.reduce((s, f) => s + f.replacements, 0)
-  const payload = {
-    version: '1.0',
-    createdAt: new Date(session.createdAt).toISOString(),
-    sessionId: session.id,
-    filesCount: session.files.length,
-    replacementsCount: totalReplacements,
+  const firstName = session.files[0]?.name ?? 'document'
+  const keyContent = serializeKey({
+    version: 'AnonDoc/1.0',
+    document: firstName,
+    session: session.id,
+    created: new Date(session.createdAt).toISOString(),
+    language: 'en',
     vault: session.sharedVault,
-  }
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
+  })
+  const blob = new Blob([keyContent], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `ключ_документа_${fmtDate(session.createdAt)}_${session.id.slice(0, 8)}.json`
+  a.download = `ключ_документа_${fmtDate(session.createdAt)}_${session.id.slice(0, 8)}.key`
   a.click()
   URL.revokeObjectURL(url)
 }

@@ -6,6 +6,7 @@ export { KZ_NAMES, KZ_PATRONYMIC_SUFFIXES } from './names-kz.js'
 export { BY_NAMES } from './names-by.js'
 export { UZ_NAMES } from './names-uz.js'
 export { CITIES_CIS } from './cities-cis.js'
+export { RU_SURNAMES_LATIN, RU_NAMES_LATIN } from './names-ru-latin.js'
 
 // Combined set of all CIS names for fast lookup
 import { RU_NAMES } from './names-ru.js'
