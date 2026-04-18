@@ -28,6 +28,28 @@ const BEGIN_MARKER = '-----BEGIN ANONDOC KEY-----'
 const END_MARKER = '-----END ANONDOC KEY-----'
 const LINE_WIDTH = 64
 
+/**
+ * Encode a UTF-8 string to base64.
+ * Uses TextEncoder (available in browser and Node.js ≥18).
+ */
+function toBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  return btoa(binary)
+}
+
+/**
+ * Decode a base64 string to UTF-8.
+ * Uses TextDecoder (available in browser and Node.js ≥18).
+ */
+function fromBase64(b64: string): string {
+  const binary = atob(b64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new TextDecoder().decode(bytes)
+}
+
 export function serializeKey(content: KeyFileContent): string {
   const headers = [
     BEGIN_MARKER,
@@ -40,7 +62,7 @@ export function serializeKey(content: KeyFileContent): string {
     '',
   ].join('\n')
 
-  const base64 = btoa(unescape(encodeURIComponent(JSON.stringify(content.vault))))
+  const base64 = toBase64(JSON.stringify(content.vault))
   const chunked = (base64.match(new RegExp(`.{1,${LINE_WIDTH}}`, 'g')) ?? []).join('\n')
 
   return `${headers}\n${chunked}\n\n${END_MARKER}\n`
@@ -74,7 +96,7 @@ export function parseKey(text: string): KeyFileContent {
     .filter(l => l !== '')
     .join('')
 
-  const vault = JSON.parse(decodeURIComponent(escape(atob(base64)))) as Record<string, string>
+  const vault = JSON.parse(fromBase64(base64)) as Record<string, string>
 
   return {
     version: headers['Version'] ?? 'AnonDoc/1.0',

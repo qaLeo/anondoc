@@ -16,7 +16,12 @@ import { randomUUID } from '../lib/uuid'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 
-const FILE_LIMITS: Record<string, number> = {
+/**
+ * Per-session file limits — UI hint only.
+ * The plan itself comes from the server (user.plan via JWT),
+ * so the mapping here cannot be escalated by client-side modifications.
+ */
+const SESSION_FILE_LIMITS: Record<string, number> = {
   FREE: 5,
   PRO: 50,
   BUSINESS: 200,
@@ -35,7 +40,10 @@ export function useAnonymizationSession() {
   const { usage, trackDocument } = useUsage()
 
   const plan = (user?.plan ?? 'FREE').toUpperCase()
-  const fileLimit = FILE_LIMITS[plan] ?? 5
+  // Session file limit comes from server-issued plan (user.plan via JWT auth)
+  const fileLimit = SESSION_FILE_LIMITS[plan] ?? 5
+  // Monthly limit: -1 = unlimited (server-authoritative via /me/usage)
+  const monthlyExhausted = usage !== null && usage.limit !== -1 && usage.remaining <= 0
   const canDownloadKey = plan !== 'FREE'
   const nextPlan = NEXT_PLAN[plan] ?? null
 
@@ -55,7 +63,7 @@ export function useAnonymizationSession() {
   }, [])
 
   const fileCount = session?.files.length ?? 0
-  const isLimitReached = fileCount >= fileLimit
+  const isLimitReached = fileCount >= fileLimit || monthlyExhausted
 
   async function addFile(file: File): Promise<void> {
     if (isLimitReached) return
@@ -139,6 +147,7 @@ export function useAnonymizationSession() {
     fileLimit,
     fileCount,
     isLimitReached,
+    monthlyExhausted,
     canDownloadKey,
     nextPlan,
     plan,

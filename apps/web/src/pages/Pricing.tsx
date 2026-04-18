@@ -6,31 +6,23 @@ import { useUsage } from '../context/UsageContext'
 import { billingApi } from '../api/client'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
-type Region = 'EU' | 'CIS' | 'OTHER'
+type Region = 'EU' | 'OTHER'
 
-const EU_COUNTRIES = ['DE','AT','CH','FR','NL','BE','IT','ES','PL','SE','DK','FI','NO','PT','IE','CZ','SK','HU','RO','BG','HR','SI','EE','LV','LT','LU','GR','CY','MT']
+const EU_LOCALES = ['de','fr','nl','it','es','pl','sv','da','fi','nb','pt','cs','sk','hu','ro','bg','hr','sl','et','lv','lt','el','ga','mt','lb','ru','uk','be','kk']
 
 const PRICE_BY_REGION: Record<Region, { pro: string; team: string }> = {
-  EU:    { pro: '€29',   team: '€99'  },
-  CIS:   { pro: '€29',   team: '€99'  },
-  OTHER: { pro: '$29',   team: '$99'  },
+  EU:    { pro: '€29', team: '€99' },
+  OTHER: { pro: '$29', team: '$99' },
 }
 
-async function detectRegion(): Promise<Region> {
+/** Detect region from browser locale — no network request */
+function detectRegion(): Region {
   const cached = sessionStorage.getItem('anondoc_region') as Region | null
-  if (cached) return cached
-  try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 3000)
-    const res = await fetch('https://ipapi.co/json/', { signal: controller.signal })
-    clearTimeout(timeout)
-    const data = await res.json() as { country_code: string }
-    const region: Region = EU_COUNTRIES.includes(data.country_code) ? 'EU' : 'OTHER'
-    sessionStorage.setItem('anondoc_region', region)
-    return region
-  } catch {
-    return 'OTHER'
-  }
+  if (cached === 'EU' || cached === 'OTHER') return cached
+  const lang = navigator.language.split('-')[0].toLowerCase()
+  const region: Region = EU_LOCALES.includes(lang) ? 'EU' : 'OTHER'
+  sessionStorage.setItem('anondoc_region', region)
+  return region
 }
 
 function AppIcon({ size = 22 }: { size?: number }) {
@@ -59,7 +51,7 @@ export default function Pricing() {
   const [region, setRegion] = useState<Region>('EU')
 
   useEffect(() => {
-    detectRegion().then(setRegion)
+    setRegion(detectRegion())
   }, [])
 
   const prices = PRICE_BY_REGION[region]

@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { DropZone } from './DropZone'
 import { useAnonymizationSession } from '../hooks/useAnonymizationSession'
 import type { SessionFile } from '../vault/vaultService'
@@ -16,6 +17,7 @@ function fmtDate(ts: number): string {
 
 export function AnonymizationTab() {
   const navigate = useNavigate()
+  const { i18n } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const {
     session,
@@ -66,7 +68,7 @@ export function AnonymizationTab() {
       document: firstName,
       session: session.id,
       created: new Date(session.createdAt).toISOString(),
-      language: 'en',
+      language: i18n.language.split('-')[0] ?? 'en',
       vault: session.sharedVault,
     })
 

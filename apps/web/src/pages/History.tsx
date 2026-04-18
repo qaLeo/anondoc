@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getAllDocs, deleteDoc, getHistoryLimit, type DocRecord } from '../lib/documentHistory'
 import {
   getAllSessions,
@@ -29,14 +30,14 @@ function AppIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-function downloadSessionKey(session: SessionRecord): void {
+function downloadSessionKey(session: SessionRecord, lang: string): void {
   const firstName = session.files[0]?.name ?? 'document'
   const keyContent = serializeKey({
     version: 'AnonDoc/1.0',
     document: firstName,
     session: session.id,
     created: new Date(session.createdAt).toISOString(),
-    language: 'en',
+    language: lang.split('-')[0] ?? 'en',
     vault: session.sharedVault,
   })
   const blob = new Blob([keyContent], { type: 'text/plain;charset=utf-8' })
@@ -50,6 +51,7 @@ function downloadSessionKey(session: SessionRecord): void {
 
 export default function History() {
   const navigate = useNavigate()
+  const { i18n } = useTranslation()
   const { usage } = useUsage()
   const { user } = useAuth()
   const [docs, setDocs] = useState<DocRecord[]>([])
@@ -193,7 +195,7 @@ export default function History() {
                           продолжить
                         </button>
                         <button
-                          onClick={() => canDownloadKey ? downloadSessionKey(s) : navigate('/pricing')}
+                          onClick={() => canDownloadKey ? downloadSessionKey(s, i18n.language) : navigate('/pricing')}
                           title={!canDownloadKey ? 'Доступно на Pro · от 990 ₽/мес' : undefined}
                           style={{ ...actionBtn(), opacity: canDownloadKey ? 1 : 0.45 }}
                           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
