@@ -11,6 +11,7 @@ import { DE_PATTERNS } from './patterns/de.js'
 import { FR_PATTERNS } from './patterns/fr.js'
 import { EN_PATTERNS } from './patterns/en.js'
 import type { EuPattern } from './patterns/de.js'
+import { ALL_FIRST_NAMES, ALL_SURNAMES } from './universalAnonymizer.js'
 
 export type SupportedEuLang = 'de' | 'fr' | 'en'
 
@@ -83,6 +84,24 @@ export function anonymizeEu(
     while ((m = re.exec(text)) !== null) {
       if (m[0].length === 0) { re.lastIndex++; continue }
       spans.push({ start: m.index, end: m.index + m[0].length, euToken: p.token, original: m[0] })
+    }
+  }
+
+  // 2a. Dictionary scan: catch capitalized names from RU Latin / cross-language dicts
+  //     that are not already covered by pattern spans above.
+  {
+    const isCovered = (pos: number) => spans.some(s => pos >= s.start && pos < s.end)
+    // Match 1–3 consecutive capitalized words (Latin base script)
+    const wordSeqRe = /\b[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝ][a-zàáâãäåæçèéêëìíîïðñòóôõöùúûüý]+(?:[ -][A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝ][a-zàáâãäåæçèéêëìíîïðñòóôõöùúûüý]+){0,2}\b/g
+    wordSeqRe.lastIndex = 0
+    let wm: RegExpExecArray | null
+    while ((wm = wordSeqRe.exec(text)) !== null) {
+      if (isCovered(wm.index)) continue
+      const parts = wm[0].split(/[ -]+/)
+      const isName = parts.some(p => ALL_FIRST_NAMES.has(p.toLowerCase()) || ALL_SURNAMES.has(p.toLowerCase()))
+      if (isName) {
+        spans.push({ start: wm.index, end: wm.index + wm[0].length, euToken: 'NAME', original: wm[0] })
+      }
     }
   }
 
