@@ -220,6 +220,34 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         </div>
       </section>
 
+      {/* ── Why AnonDoc exists ───────────────────────────────────────────────── */}
+      <section style={{ background: '#ffffff', padding: '72px 32px', borderBottom: '1px solid #f3f4f6' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <h2 style={{
+            fontSize: 26, fontWeight: 800, color: '#111827', marginBottom: 36,
+            textAlign: 'center', letterSpacing: '-0.5px',
+          }}>
+            {t('why_exists.title')}
+          </h2>
+          <div style={{
+            background: '#fffbeb', border: '1px solid #fde68a',
+            borderRadius: 10, padding: '18px 22px', marginBottom: 24,
+          }}>
+            <p style={{ fontSize: 16, color: '#374151', lineHeight: 1.8, margin: 0, fontWeight: 500 }}>
+              {t('why_exists.p1')}
+            </p>
+          </div>
+          {(['p2', 'p3', 'p4'] as const).map((key, i) => (
+            <p key={key} style={{
+              fontSize: 16, color: '#6b7280', lineHeight: 1.8,
+              marginBottom: i < 2 ? 18 : 0,
+            }}>
+              {t(`why_exists.${key}`)}
+            </p>
+          ))}
+        </div>
+      </section>
+
       {/* ── Demo ─────────────────────────────────────────────────────────────── */}
       <section id="demo" style={{ background: '#f9fafb', padding: '48px 32px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>

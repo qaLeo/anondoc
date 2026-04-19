@@ -9,6 +9,13 @@
     "cta_demo": "Demo ansehen ↓",
     "formats_title": "Unterstützte Formate"
   },
+  "why_exists": {
+    "title": "Warum AnonDoc existiert",
+    "p1": "Im März 2023 verloren Samsung-Ingenieure den Zugang zu ChatGPT. Sensible Unternehmensdaten und Quellcode waren durch versehentliche KI-Anfragen abgeflossen.",
+    "p2": "Heute stehen Unternehmen vor einem Dilemma: KI-Tools steigern Produktivität um 40–60%, aber ihr Einsatz birgt DSGVO-Risiken in Millionenhöhe.",
+    "p3": "Die EU-Datenschutzbehörden haben bereits über 2,5 Milliarden Euro an Bußgeldern verhängt. KI-bezogene Verstöße sind der am schnellsten wachsende Bereich.",
+    "p4": "AnonDoc wurde entwickelt, damit Sie die Vorteile von KI nutzen können — ohne das Risiko eines Datenschutzverstoßes."
+  },
   "how_it_works": {
     "title": "So funktioniert AnonDoc",
     "subtitle": "Vom Dokument mit persönlichen Daten bis zum fertigen Bericht — vier Schritte",

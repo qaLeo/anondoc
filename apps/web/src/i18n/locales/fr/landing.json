@@ -9,6 +9,13 @@
     "cta_demo": "Voir la démo ↓",
     "formats_title": "Formats supportés"
   },
+  "why_exists": {
+    "title": "Pourquoi AnonDoc existe",
+    "p1": "En mars 2023, les ingénieurs de Samsung ont perdu l'accès à ChatGPT. Des données sensibles de l'entreprise et du code source avaient fuité via des requêtes IA accidentelles.",
+    "p2": "Aujourd'hui les entreprises font face à un dilemme : les outils IA augmentent la productivité de 40 à 60 %, mais leur usage présente des risques RGPD à plusieurs millions d'euros.",
+    "p3": "Les autorités européennes de protection des données ont déjà infligé plus de 2,5 milliards d'euros d'amendes. Les violations liées à l'IA sont le domaine à la croissance la plus rapide.",
+    "p4": "AnonDoc a été créé pour que vous puissiez profiter des avantages de l'IA — sans le risque d'une violation de la protection des données."
+  },
   "how_it_works": {
     "title": "Comment fonctionne AnonDoc",
     "subtitle": "Du document avec données personnelles au rapport final — quatre étapes",
