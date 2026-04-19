@@ -143,7 +143,7 @@ export const FR_PATTERNS: EuPattern[] = [
   // BUG #6 fix: stops before ", Tél" / ", Tel" / ", Fax"
   // Добавлен Madame/Mme: захватывает "Madame Sophie Lefebvre" в договорном тексте
   {
-    regex: /\b(?:Dr|Pr|Madame|Mme)\.?\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç\-']+(?:\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç\-']+)?(?!\s*[,.]\s*(?:[Tt]él|[Tt]el\b|[Ff]ax))/g,
+    regex: /\b(?:Dr|Pr|Madame|Mme)\.?\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç\-']+(?:\s+[A-ZÉÀÈÙÂÊÎÔÛÄËÏÖÜÇ][a-zéàèùâêîôûäëïöüç\-']+)?/g,
     type: 'NAME',
     label: 'Nom',
     token: 'NOM',

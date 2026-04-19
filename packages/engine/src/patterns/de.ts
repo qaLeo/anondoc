@@ -155,7 +155,7 @@ export const DE_PATTERNS: EuPattern[] = [
   // BUG #4 fix: stops before ", Tel" / ", Fax" / ", GmbH"
   // Добавлен Herr(?:n)?: захватывает "Herrn Klaus Richter" в договорном тексте
   {
-    regex: /\b(?:Dr|Prof|Herr(?:n)?|Frau)\.?\s+(?:med\.\s+)?[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?(?!\s*,\s*(?:[Tt]el|[Ff]ax|E-Mail|GmbH|AG\b))/g,
+    regex: /\b(?:Dr|Prof|Herr(?:n)?|Frau)\.?\s+(?:med\.\s+)?[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?(?:\s+[A-ZÄÖÜ][a-zäöüß]+(?:-[A-ZÄÖÜ][a-zäöüß]+)?)?/g,
     type: 'NAME',
     label: 'Name',
     token: 'NAME',
