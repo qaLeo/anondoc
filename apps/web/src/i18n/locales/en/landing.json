@@ -3,8 +3,8 @@
     "badge_gdpr": "GDPR compliant",
     "badge_local": "100% local",
     "badge_aes": "AES-256",
-    "title": "The privacy layer for AI",
-    "subtitle": "Automatically anonymise documents before AI analysis. Your real data never leaves your computer.",
+    "title": "Avoid GDPR fines\nwhen using AI",
+    "subtitle": "Up to €20M fines for GDPR violations through AI tools. AnonDoc anonymises documents locally — before they reach ChatGPT, Claude or Copilot.",
     "cta_primary": "Start for free",
     "cta_demo": "See demo ↓",
     "formats_title": "Supported formats"

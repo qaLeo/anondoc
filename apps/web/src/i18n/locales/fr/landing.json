@@ -3,8 +3,8 @@
     "badge_gdpr": "Conforme RGPD",
     "badge_local": "100% local",
     "badge_aes": "AES-256",
-    "title": "Votre bouclier RGPD pour l'IA",
-    "subtitle": "Anonymisez automatiquement vos documents avant l'analyse IA. Vos données réelles ne quittent jamais votre ordinateur.",
+    "title": "Évitez les amendes RGPD\nlors de l'utilisation de l'IA",
+    "subtitle": "Jusqu'à 20 M€ d'amende pour les violations RGPD liées aux outils IA. AnonDoc anonymise vos documents localement — avant qu'ils n'atteignent ChatGPT, Claude ou Copilot.",
     "cta_primary": "Commencer gratuitement",
     "cta_demo": "Voir la démo ↓",
     "formats_title": "Formats supportés"

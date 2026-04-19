@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { InlineDemo } from '../components/InlineDemo'
@@ -121,12 +121,28 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="landing-hero-section" style={{ padding: '80px 32px 64px' }}>
+        <style>{`
+          @media (max-width: 768px) {
+            .landing-hero-h1 { font-size: 32px !important; }
+          }
+        `}</style>
         <div className="landing-hero-grid" style={{
           maxWidth: 1200, margin: '0 auto',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center',
         }}>
           <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+            <h1 className="landing-hero-h1" style={{
+              fontSize: 48, fontWeight: 800, letterSpacing: '-1px',
+              color: '#111827', lineHeight: 1.15, margin: '0 0 20px', whiteSpace: 'pre-line',
+            }}>
+              {t('hero.title')}
+            </h1>
+
+            <p style={{ fontSize: 18, color: '#6b7280', lineHeight: 1.7, marginBottom: 20 }}>
+              {renderSubtitleWithAccent(t('hero.subtitle'))}
+            </p>
+
+            <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
               {[t('hero.badge_gdpr'), t('hero.badge_local'), t('hero.badge_aes')].map((badge) => (
                 <span key={badge} style={{
                   background: '#eff6ff', color: '#1a56db',
@@ -136,17 +152,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
                 </span>
               ))}
             </div>
-
-            <h1 className="landing-hero-h1" style={{
-              fontSize: 44, fontWeight: 800, letterSpacing: '-1px',
-              color: '#111827', lineHeight: 1.15, margin: '0 0 16px', whiteSpace: 'pre-line',
-            }}>
-              {t('hero.title')}
-            </h1>
-
-            <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 28 }}>
-              {t('hero.subtitle')}
-            </p>
 
             <div className="landing-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button
@@ -764,6 +769,24 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+
+function renderSubtitleWithAccent(text: string): ReactNode {
+  const re = /€20M|20\s*Mio\.\s*€|20\s*M€/g
+  const parts: ReactNode[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    parts.push(
+      <strong key={m.index} style={{ color: '#dc2626', fontWeight: 700 }}>
+        {m[0]}
+      </strong>
+    )
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return <>{parts}</>
+}
 
 function TokenSpan({ bg, color, children }: { bg: string; color: string; children: React.ReactNode }) {
   return (
