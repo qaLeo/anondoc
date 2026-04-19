@@ -39,10 +39,10 @@ export const FR_PATTERNS: EuPattern[] = [
     token: 'SIREN',
   },
 
-  // Numéro fiscal / identifiant fiscal: ровно 13 цифр, первая ненулевая, пробелы допустимы
-  // BUG #3 fix: [1-9](?:[\s]?\d){12} — гарантирует 13 цифр (1 + 12), первая != 0
+  // Numéro fiscal / identifiant fiscal: ровно 14 цифр, первая ненулевая, пробелы допустимы
+  // Lookbehind ensures m[0] = number only (not the label prefix)
   {
-    regex: /(?:num[eé]ro fiscal|n[o°] fiscal|identifiant fiscal|NIF)[\s:]*[1-9](?:[\s]?\d){12}/gi,
+    regex: /(?<=(?:num[eé]ro fiscal|n[o°] fiscal|identifiant fiscal|NIF)[\s:]*)[1-9](?:[\s]?\d){13}/gi,
     type: 'TAX_ID',
     label: 'Numéro fiscal',
     token: 'NF',
