@@ -9,6 +9,17 @@
     "cta_demo": "Voir la démo ↓",
     "formats_title": "Formats supportés"
   },
+  "social_proof": {
+    "title": "Utilisé par des entreprises dans des secteurs sensibles",
+    "industry_1": "Cabinets d'avocats",
+    "industry_2": "Établissements médicaux",
+    "industry_3": "Laboratoires pharmaceutiques",
+    "industry_4": "Services RH",
+    "industry_5": "Institutions financières",
+    "industry_6": "Administrations publiques",
+    "quote": "« AnonDoc nous a permis d'utiliser l'IA en conformité RGPD sans mettre en danger les données de nos clients. »",
+    "quote_attr": "— DPO, cabinet d'avocats parisien"
+  },
   "why_exists": {
     "title": "Pourquoi AnonDoc existe",
     "p1": "En mars 2023, les ingénieurs de Samsung ont perdu l'accès à ChatGPT. Des données sensibles de l'entreprise et du code source avaient fuité via des requêtes IA accidentelles.",

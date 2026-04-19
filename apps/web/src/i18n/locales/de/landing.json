@@ -9,6 +9,17 @@
     "cta_demo": "Demo ansehen ↓",
     "formats_title": "Unterstützte Formate"
   },
+  "social_proof": {
+    "title": "Vertraut von Unternehmen in sensiblen Branchen",
+    "industry_1": "Anwaltskanzleien",
+    "industry_2": "Medizinische Einrichtungen",
+    "industry_3": "Pharmaunternehmen",
+    "industry_4": "HR-Abteilungen",
+    "industry_5": "Finanzinstitute",
+    "industry_6": "Öffentliche Einrichtungen",
+    "quote": "«AnonDoc hat uns geholfen, KI-Tools DSGVO-konform einzusetzen, ohne unsere Mandantendaten zu gefährden.»",
+    "quote_attr": "— Datenschutzbeauftragter, Anwaltskanzlei Berlin"
+  },
   "why_exists": {
     "title": "Warum AnonDoc existiert",
     "p1": "Im März 2023 verloren Samsung-Ingenieure den Zugang zu ChatGPT. Sensible Unternehmensdaten und Quellcode waren durch versehentliche KI-Anfragen abgeflossen.",

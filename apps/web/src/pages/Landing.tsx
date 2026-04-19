@@ -220,6 +220,71 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         </div>
       </section>
 
+      {/* ── Social Proof ─────────────────────────────────────────────────────── */}
+      <section style={{ background: '#f9fafb', padding: '64px 32px' }}>
+        <style>{`
+          .social-proof-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+          }
+          @media (max-width: 900px) {
+            .social-proof-grid { grid-template-columns: repeat(3, 1fr); }
+          }
+          @media (max-width: 480px) {
+            .social-proof-grid { grid-template-columns: repeat(2, 1fr); }
+          }
+        `}</style>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <h2 style={{
+            fontSize: 24, fontWeight: 800, color: '#111827', marginBottom: 36,
+            textAlign: 'center', letterSpacing: '-0.5px',
+          }}>
+            {t('social_proof.title')}
+          </h2>
+
+          <div className="social-proof-grid">
+            {([
+              { icon: '⚖️', key: 'industry_1' },
+              { icon: '🏥', key: 'industry_2' },
+              { icon: '💊', key: 'industry_3' },
+              { icon: '👥', key: 'industry_4' },
+              { icon: '🏦', key: 'industry_5' },
+              { icon: '🏛️', key: 'industry_6' },
+            ]).map(({ icon, key }) => (
+              <div
+                key={key}
+                style={{
+                  background: '#ffffff', border: '1px solid #e5e7eb',
+                  borderRadius: 12, padding: 20, textAlign: 'center',
+                  transition: 'box-shadow 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+              >
+                <div style={{ fontSize: 32, marginBottom: 10 }}>{icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: '#374151', lineHeight: 1.4 }}>
+                  {t(`social_proof.${key}` as Parameters<typeof t>[0])}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center', padding: '40px 0 0' }}>
+            <p style={{
+              fontStyle: 'italic', fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: 20, color: '#4b5563', lineHeight: 1.65,
+              maxWidth: 680, margin: '0 auto 14px',
+            }}>
+              {t('social_proof.quote')}
+            </p>
+            <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>
+              {t('social_proof.quote_attr')}
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── Why AnonDoc exists ───────────────────────────────────────────────── */}
       <section style={{ background: '#ffffff', padding: '72px 32px', borderBottom: '1px solid #f3f4f6' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>

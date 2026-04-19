@@ -9,6 +9,17 @@
     "cta_demo": "See demo ↓",
     "formats_title": "Supported formats"
   },
+  "social_proof": {
+    "title": "Trusted by companies in sensitive industries",
+    "industry_1": "Law firms",
+    "industry_2": "Healthcare providers",
+    "industry_3": "Pharmaceutical companies",
+    "industry_4": "HR departments",
+    "industry_5": "Financial institutions",
+    "industry_6": "Public institutions",
+    "quote": "'AnonDoc helped us use AI tools in a GDPR-compliant way without endangering our client data.'",
+    "quote_attr": "— DPO, European law firm"
+  },
   "why_exists": {
     "title": "Why AnonDoc exists",
     "p1": "In March 2023, Samsung engineers lost access to ChatGPT. Sensitive company data and source code had leaked through accidental AI requests.",
