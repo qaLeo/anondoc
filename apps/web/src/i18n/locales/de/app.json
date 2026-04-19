@@ -52,7 +52,19 @@
     "empty_sessions": "Sitzungen erscheinen hier nach der Anonymisierung",
     "empty_docs": "Verlauf leer — Dokumente erscheinen hier nach der Anonymisierung",
     "footer_sessions": "Sitzungen werden nur in diesem Browser gespeichert · gelöscht nach 30 Tagen",
-    "footer_docs": "Verlauf wird nur in diesem Browser gespeichert · {{count}}/{{limit}}"
+    "footer_docs": "Verlauf wird nur in diesem Browser gespeichert · {{count}}/{{limit}}",
+    "continue": "Fortfahren",
+    "download_key": "Schlüssel herunterladen",
+    "delete": "Löschen",
+    "tokens": "Tokens",
+    "replacements": "Ersetzungen",
+    "files_one": "Datei",
+    "files_other": "Dateien",
+    "restored": "wiederhergestellt",
+    "download_anon": "Anon herunterladen",
+    "deanonymize_action": "Deanonymisieren",
+    "pro_key_tooltip": "Verfügbar im Pro-Plan",
+    "key_filename": "dokumentschluessel"
   },
   "pricing": {
     "title": "Preise",

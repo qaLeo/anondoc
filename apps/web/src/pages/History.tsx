@@ -30,7 +30,7 @@ function AppIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-function downloadSessionKey(session: SessionRecord, lang: string): void {
+function downloadSessionKey(session: SessionRecord, lang: string, keyFilename: string): void {
   const firstName = session.files[0]?.name ?? 'document'
   const keyContent = serializeKey({
     version: 'AnonDoc/1.0',
@@ -44,14 +44,14 @@ function downloadSessionKey(session: SessionRecord, lang: string): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `ключ_документа_${fmtDate(session.createdAt)}_${session.id.slice(0, 8)}.key`
+  a.download = `${keyFilename}_${fmtDate(session.createdAt)}_${session.id.slice(0, 8)}.key`
   a.click()
   URL.revokeObjectURL(url)
 }
 
 export default function History() {
   const navigate = useNavigate()
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation('app')
   const { usage } = useUsage()
   const { user } = useAuth()
   const [docs, setDocs] = useState<DocRecord[]>([])
@@ -99,13 +99,15 @@ export default function History() {
   }
 
   const formatDate = (ts: number) => {
-    const d = new Date(ts)
-    const day = d.getDate()
-    const months = ['янв.','фев.','мар.','апр.','май','июн.','июл.','авг.','сен.','окт.','ноя.','дек.']
-    const month = months[d.getMonth()]
-    const hh = String(d.getHours()).padStart(2,'0')
-    const mm = String(d.getMinutes()).padStart(2,'0')
-    return `${day} ${month} · ${hh}:${mm}`
+    return new Intl.DateTimeFormat(i18n.language, {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    }).format(new Date(ts))
+  }
+
+  const navLabels: Record<string, string> = {
+    '/': t('nav.back'),
+    '/history': t('history.title'),
+    '/pricing': t('nav.pricing'),
   }
 
   return (
@@ -122,50 +124,47 @@ export default function History() {
           </span>
         </button>
         <div style={{ display: 'flex', gap: 20 }}>
-          {(['/', '/history', '/pricing'] as const).map((path) => {
-            const labels: Record<string, string> = { '/': '← назад', '/history': 'история', '/pricing': 'тарифы' }
-            return (
-              <button key={path} onClick={() => navigate(path)} style={{
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontSize: 13, color: path === '/history' ? '#111827' : '#6b7280',
-              }}>
-                {labels[path]}
-              </button>
-            )
-          })}
+          {(['/', '/history', '/pricing'] as const).map((path) => (
+            <button key={path} onClick={() => navigate(path)} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontSize: 13, color: path === '/history' ? '#111827' : '#6b7280',
+            }}>
+              {navLabels[path]}
+            </button>
+          ))}
         </div>
       </header>
 
       <main style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 80px' }}>
         {/* Tab switcher */}
         <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
-          {(['sessions', 'docs'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
+          {(['sessions', 'docs'] as const).map(tabKey => (
+            <button key={tabKey} onClick={() => setTab(tabKey)} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px',
               fontSize: 14,
-              color: tab === t ? 'var(--text)' : 'var(--text-muted)',
-              borderBottom: tab === t ? '2px solid var(--text)' : '2px solid transparent',
+              color: tab === tabKey ? 'var(--text)' : 'var(--text-muted)',
+              borderBottom: tab === tabKey ? '2px solid var(--text)' : '2px solid transparent',
               transition: 'color 0.1s',
             }}>
-              {t === 'sessions' ? 'сессии' : 'документы'}
+              {tabKey === 'sessions' ? t('history.tab_sessions') : t('history.tab_documents')}
             </button>
           ))}
         </div>
 
-        {loading && <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>загрузка...</div>}
+        {loading && <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>{t('loading')}</div>}
 
         {/* Sessions tab */}
         {!loading && tab === 'sessions' && (
           <>
             {sessions.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-hint)', paddingTop: 16 }}>
-                сессии появятся здесь после анонимизации файлов
+                {t('history.empty_sessions')}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {sessions.map((s, i) => {
                   const totalR = s.files.reduce((acc, f) => acc + f.replacements, 0)
-                  const fileWord = s.files.length === 1 ? 'файл' : s.files.length < 5 ? 'файла' : 'файлов'
+                  const fileCount = t('history.files', { count: s.files.length })
                   return (
                     <div key={s.id} style={{
                       display: 'flex', alignItems: 'flex-start', gap: 16,
@@ -176,7 +175,7 @@ export default function History() {
                         <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 2 }}>
                           {formatDate(s.createdAt)}
                           <span style={{ color: 'var(--text-hint)', marginLeft: 8, fontSize: 11 }}>
-                            {s.files.length} {fileWord} · {totalR} замен
+                            {s.files.length} {fileCount} · {totalR} {t('history.replacements')}
                           </span>
                         </div>
                         {s.files.length > 0 && (
@@ -192,20 +191,20 @@ export default function History() {
                         <button onClick={() => handleContinueSession(s)} style={actionBtn()}
                           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                          продолжить
+                          {t('history.continue')}
                         </button>
                         <button
-                          onClick={() => canDownloadKey ? downloadSessionKey(s, i18n.language) : navigate('/pricing')}
-                          title={!canDownloadKey ? 'Доступно на Pro · от 990 ₽/мес' : undefined}
+                          onClick={() => canDownloadKey ? downloadSessionKey(s, i18n.language, t('history.key_filename')) : navigate('/pricing')}
+                          title={!canDownloadKey ? t('history.pro_key_tooltip') : undefined}
                           style={{ ...actionBtn(), opacity: canDownloadKey ? 1 : 0.45 }}
                           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                          скачать ключ
+                          {t('history.download_key')}
                         </button>
                         <button onClick={() => handleDeleteSession(s.id)} style={actionBtn()}
                           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
                           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                          удалить
+                          {t('history.delete')}
                         </button>
                       </div>
                     </div>
@@ -214,7 +213,7 @@ export default function History() {
               </div>
             )}
             <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 24, lineHeight: 1.6 }}>
-              сессии хранятся только в этом браузере · удаляются через 30 дней
+              {t('history.footer_sessions')}
             </div>
           </>
         )}
@@ -224,7 +223,7 @@ export default function History() {
           <>
             {docs.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-hint)', paddingTop: 16 }}>
-                история пуста — документы появятся здесь после анонимизации
+                {t('history.empty_docs')}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -239,25 +238,25 @@ export default function History() {
                         {doc.name}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 2 }}>
-                        {formatDate(doc.date)} · {doc.tokensCount} токенов
-                        {doc.restored && <span> · восстановлен</span>}
+                        {formatDate(doc.date)} · {doc.tokensCount} {t('history.tokens')}
+                        {doc.restored && <span> · {t('history.restored')}</span>}
                       </div>
                     </div>
                     <div className="history-doc-actions" style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
                       <button onClick={() => handleDownloadDoc(doc)} style={actionBtn()}
                         onMouseEnter={e => (e.currentTarget.style.color = '#1a56db')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                        скачать anon
+                        {t('history.download_anon')}
                       </button>
                       <button onClick={() => handleDeanonymizeDoc(doc)} style={actionBtn()}
                         onMouseEnter={e => (e.currentTarget.style.color = '#1a56db')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                        деанонимизировать
+                        {t('history.deanonymize_action')}
                       </button>
                       <button onClick={() => handleDeleteDoc(doc.id)} style={actionBtn()}
                         onMouseEnter={e => (e.currentTarget.style.color = '#dc2626')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                        удалить
+                        {t('history.delete')}
                       </button>
                     </div>
                   </div>
@@ -265,7 +264,7 @@ export default function History() {
               </div>
             )}
             <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 32, lineHeight: 1.6 }}>
-              история хранится только в этом браузере · {docs.length}/{limit}
+              {t('history.footer_docs', { count: docs.length, limit })}
             </div>
           </>
         )}
@@ -290,15 +289,15 @@ function FileTypeBadge({ name }: { name: string }) {
     csv:  { label: 'CSV', bg: '#dcfce7', color: '#16a34a' },
     txt:  { label: 'TXT', bg: '#f3f4f6', color: '#6b7280' },
   }
-  const t = map[ext] ?? { label: 'FILE', bg: '#f3f4f6', color: '#6b7280' }
+  const badge = map[ext] ?? { label: 'FILE', bg: '#f3f4f6', color: '#6b7280' }
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       width: 32, height: 32, borderRadius: 6,
-      background: t.bg, color: t.color, fontSize: 8, fontWeight: 700,
+      background: badge.bg, color: badge.color, fontSize: 8, fontWeight: 700,
       letterSpacing: '0.02em', flexShrink: 0,
     }}>
-      {t.label}
+      {badge.label}
     </span>
   )
 }

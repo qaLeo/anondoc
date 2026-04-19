@@ -52,7 +52,19 @@
     "empty_sessions": "Sessions will appear here after anonymisation",
     "empty_docs": "History empty — documents will appear here after anonymisation",
     "footer_sessions": "Sessions stored only in this browser · deleted after 30 days",
-    "footer_docs": "History stored only in this browser · {{count}}/{{limit}}"
+    "footer_docs": "History stored only in this browser · {{count}}/{{limit}}",
+    "continue": "Continue",
+    "download_key": "Download key",
+    "delete": "Delete",
+    "tokens": "tokens",
+    "replacements": "replacements",
+    "files_one": "file",
+    "files_other": "files",
+    "restored": "restored",
+    "download_anon": "Download anon",
+    "deanonymize_action": "Deanonymise",
+    "pro_key_tooltip": "Available on Pro",
+    "key_filename": "document_key"
   },
   "pricing": {
     "title": "Pricing",

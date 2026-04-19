@@ -52,7 +52,19 @@
     "empty_sessions": "Les sessions apparaîtront ici après l'anonymisation",
     "empty_docs": "Historique vide — les documents apparaîtront ici après l'anonymisation",
     "footer_sessions": "Les sessions sont stockées uniquement dans ce navigateur · supprimées après 30 jours",
-    "footer_docs": "L'historique est stocké uniquement dans ce navigateur · {{count}}/{{limit}}"
+    "footer_docs": "L'historique est stocké uniquement dans ce navigateur · {{count}}/{{limit}}",
+    "continue": "Continuer",
+    "download_key": "Télécharger la clé",
+    "delete": "Supprimer",
+    "tokens": "jetons",
+    "replacements": "remplacements",
+    "files_one": "fichier",
+    "files_other": "fichiers",
+    "restored": "restauré",
+    "download_anon": "Télécharger anon",
+    "deanonymize_action": "Désanonymiser",
+    "pro_key_tooltip": "Disponible avec Pro",
+    "key_filename": "cle_document"
   },
   "pricing": {
     "title": "Tarifs",
