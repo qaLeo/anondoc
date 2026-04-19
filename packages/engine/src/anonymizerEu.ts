@@ -32,7 +32,7 @@ const EU_TOKEN_TO_PREFIX: Record<string, string> = {
   // Date
   DATE: 'DATE',
   // Tax identifiers
-  STEUER: 'TAX',  UST: 'TAX',  STEUERNR: 'TAX',
+  STEUER: 'STEUER',  UST: 'TAX',  STEUERNR: 'TAX',
   NF:     'TAX',  TVA: 'TAX',  SIREN:    'TAX',  SIRET: 'TAX',
   // National / social insurance numbers
   NIN: 'NIN',  NIR: 'NIN',  SSN: 'NIN',  SVN: 'NIN',
