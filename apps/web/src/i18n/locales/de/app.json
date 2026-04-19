@@ -118,6 +118,16 @@
     "err_credentials": "Ungültige E-Mail oder Passwort",
     "err_generic": "Fehler"
   },
+  "profile": {
+    "plan_label": "Abonnementplan",
+    "upgrade_pro": "Auf Pro upgraden →",
+    "docs_used": "Verwendete Dokumente",
+    "deleting": "Löschen...",
+    "delete_confirm": "Kontolöschung bestätigen?",
+    "delete_account": "Konto löschen",
+    "cancel": "Abbrechen",
+    "delete_error": "Fehler beim Löschen"
+  },
   "demo": {
     "tab_cv": "Lebenslauf",
     "tab_contract": "Arbeitsvertrag",

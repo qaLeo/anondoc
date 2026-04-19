@@ -118,6 +118,16 @@
     "err_credentials": "E-mail ou mot de passe invalide",
     "err_generic": "Erreur"
   },
+  "profile": {
+    "plan_label": "Plan d'abonnement",
+    "upgrade_pro": "Passer à Pro →",
+    "docs_used": "Documents utilisés",
+    "deleting": "Suppression...",
+    "delete_confirm": "Confirmer la suppression du compte ?",
+    "delete_account": "Supprimer le compte",
+    "cancel": "Annuler",
+    "delete_error": "Erreur de suppression"
+  },
   "demo": {
     "tab_cv": "CV",
     "tab_contract": "Contrat",

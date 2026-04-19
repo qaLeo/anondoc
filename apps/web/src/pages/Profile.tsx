@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 import { api, setAccessToken } from '../api/client'
@@ -24,6 +25,7 @@ export default function Profile() {
   const { user, logout } = useAuth()
   const { usage } = useUsage()
   const navigate = useNavigate()
+  const { t } = useTranslation('app')
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +52,7 @@ export default function Profile() {
       setAccessToken(null)
       navigate('/auth', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ошибка удаления')
+      setError(err instanceof Error ? err.message : t('profile.delete_error'))
       setDeleting(false)
       setDeleteConfirm(false)
     }
@@ -81,7 +83,7 @@ export default function Profile() {
             fontSize: 13, color: '#6b7280',
           }}
         >
-          ← назад
+          {t('nav.back')}
         </button>
       </header>
 
@@ -123,7 +125,7 @@ export default function Profile() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>Тарифный план</div>
+              <div style={{ fontSize: 13, color: '#6b7280' }}>{t('profile.plan_label')}</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginTop: 2 }}>
                 {planLabel}
               </div>
@@ -135,7 +137,7 @@ export default function Profile() {
                   fontSize: 13, color: '#1a56db', background: 'none', border: 'none', cursor: 'pointer',
                 }}
               >
-                Перейти на Pro →
+                {t('profile.upgrade_pro')}
               </button>
             )}
           </div>
@@ -147,7 +149,7 @@ export default function Profile() {
           padding: '20px 24px', marginBottom: 24,
         }}>
           <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>
-            Использовано документов
+            {t('profile.docs_used')}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1, height: 6, background: '#e5e7eb', borderRadius: 3 }}>
@@ -173,7 +175,7 @@ export default function Profile() {
               textAlign: 'left',
             }}
           >
-            Выйти
+            {t('nav.logout')}
           </button>
 
           <button
@@ -186,10 +188,10 @@ export default function Profile() {
             }}
           >
             {deleting
-              ? 'Удаление...'
+              ? t('profile.deleting')
               : deleteConfirm
-                ? 'Подтвердить удаление аккаунта?'
-                : 'Удалить аккаунт'}
+                ? t('profile.delete_confirm')
+                : t('profile.delete_account')}
           </button>
 
           {deleteConfirm && !deleting && (
@@ -202,7 +204,7 @@ export default function Profile() {
                 textAlign: 'left',
               }}
             >
-              Отмена
+              {t('profile.cancel')}
             </button>
           )}
         </div>

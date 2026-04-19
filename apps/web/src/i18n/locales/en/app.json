@@ -118,6 +118,16 @@
     "err_credentials": "Invalid email or password",
     "err_generic": "Error"
   },
+  "profile": {
+    "plan_label": "Subscription plan",
+    "upgrade_pro": "Upgrade to Pro →",
+    "docs_used": "Documents used",
+    "deleting": "Deleting...",
+    "delete_confirm": "Confirm account deletion?",
+    "delete_account": "Delete account",
+    "cancel": "Cancel",
+    "delete_error": "Deletion error"
+  },
   "demo": {
     "tab_cv": "CV",
     "tab_contract": "Contract",
