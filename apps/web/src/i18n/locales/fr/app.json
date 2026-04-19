@@ -63,7 +63,9 @@
     "save_as": "→ Enregistrer sous...",
     "download_result": "→ Télécharger {{name}}",
     "close_esc": "fermer esc",
-    "default_filename": "document_restaure"
+    "default_filename": "document_restaure",
+    "free_warning": "Plan gratuit : la désanonymisation ne fonctionne que dans cette session navigateur. Sans clé, les données ne peuvent pas être restaurées après fermeture de l'onglet. Passez à Pro pour sauvegarder et réutiliser la clé.",
+    "pre_load_key": "Charger la clé avant d'importer le fichier"
   },
   "history": {
     "title": "Historique",

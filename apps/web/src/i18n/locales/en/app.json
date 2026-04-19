@@ -63,7 +63,9 @@
     "save_as": "→ Save as...",
     "download_result": "→ Download {{name}}",
     "close_esc": "close esc",
-    "default_filename": "document_restored"
+    "default_filename": "document_restored",
+    "free_warning": "Free plan: deanonymisation only works within this browser session. Without a key, data cannot be restored after closing the tab. Upgrade to Pro to save and reuse the decryption key.",
+    "pre_load_key": "Load key before uploading file"
   },
   "history": {
     "title": "History",

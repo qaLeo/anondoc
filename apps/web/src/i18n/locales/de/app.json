@@ -63,7 +63,9 @@
     "save_as": "→ Speichern als...",
     "download_result": "→ {{name}} herunterladen",
     "close_esc": "schließen esc",
-    "default_filename": "dokument_wiederhergestellt"
+    "default_filename": "dokument_wiederhergestellt",
+    "free_warning": "Free-Plan: Deanonymisierung funktioniert nur in dieser Browser-Sitzung. Ohne Schlüssel können Daten nach dem Schließen des Tabs nicht wiederhergestellt werden. Upgraden Sie auf Pro, um den Schlüssel zu speichern.",
+    "pre_load_key": "Schlüssel vor dem Dateiupload laden"
   },
   "history": {
     "title": "Verlauf",

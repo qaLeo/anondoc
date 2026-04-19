@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../context/AuthContext'
 import { DropZone } from './DropZone'
 import { deanonymizeText } from '@anondoc/engine'
 import { detectDocType, currentDocNumber, makeRestoredName } from '../utils/docNaming'
@@ -51,6 +53,9 @@ function srcBtn(active: boolean): React.CSSProperties {
 
 export function DeanonymizationTab() {
   const { t, i18n } = useTranslation('app')
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const isFree = (user?.plan ?? 'FREE').toUpperCase() === 'FREE'
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -146,6 +151,37 @@ export function DeanonymizationTab() {
         style={{ display: 'none' }}
         onChange={vault.handleLoadKeyFile}
       />
+
+      {/* Free plan warning */}
+      {isFree && (
+        <div style={{
+          padding: '10px 14px', borderRadius: 8, fontSize: 12, lineHeight: 1.6,
+          background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+        }}>
+          <span>{t('deanonymize.free_warning')}</span>
+          <button
+            onClick={() => navigate('/pricing')}
+            style={{ fontSize: 11, color: '#1a56db', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 0 }}
+          >
+            Pro →
+          </button>
+        </div>
+      )}
+
+      {/* Pro: key zone visible before file is loaded */}
+      {!isFree && !selectedFile && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button onClick={() => keyInputRef.current?.click()} style={srcBtn(!!vault.keyFile)}>
+            {vault.keyFile ? `✓ ${vault.keyFile.name}` : t('deanonymize.load_key')}
+          </button>
+          {!vault.keyFile && (
+            <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>
+              {t('deanonymize.pre_load_key')}
+            </span>
+          )}
+        </div>
+      )}
 
       <DropZone
         accept={SUPPORTED_FORMATS}
