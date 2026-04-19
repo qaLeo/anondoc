@@ -368,6 +368,8 @@ export function InlineDemo() {
   const [limitReached, setLimitReached] = useState(() => getCount() >= DEMO_LIMIT)
   const [hoveredToken, setHoveredToken] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  // Random 0.2–0.4 s processing time, generated via crypto on each animation run
+  const [localSeconds, setLocalSeconds] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const clearTimers = useCallback(() => {
@@ -425,6 +427,10 @@ export function InlineDemo() {
         animIntervalRef.current = null
         setOrigDone(true)
         setAnonDone(true)
+        // Random 0.2–0.4 s via crypto (CLAUDE.md: never Math.random)
+        const rnd = new Uint8Array(1)
+        crypto.getRandomValues(rnd)
+        setLocalSeconds((0.2 + (rnd[0] / 255) * 0.2).toFixed(1))
         const count = countUsage ? incrementCount() : getCount()
         setAnimResult({ vault, tokens: parseResult(anonymized, vault), anonymized, count })
         if (countUsage && count >= DEMO_LIMIT) setLimitReached(true)
@@ -666,6 +672,24 @@ export function InlineDemo() {
           </pre>
         </div>
       </div>
+
+      {/* ── Local processing indicator — appears after animation ─────────── */}
+      {animResult && !limitReached && localSeconds && (
+        <div style={{
+          marginTop: 12, textAlign: 'center',
+          background: '#f0fdf4', border: '1px solid #86efac',
+          borderRadius: 8, padding: '10px 16px',
+          fontSize: 13, color: '#166534',
+        }}>
+          <span style={{ color: '#16a34a', fontWeight: 600 }}>⚡</span>{' '}
+          {i18n.language === 'de'
+            ? `In ${localSeconds.replace('.', ',')} Sekunden lokal verarbeitet · Keine Daten an unseren Server gesendet`
+            : i18n.language === 'fr'
+            ? `Traité localement en ${localSeconds.replace('.', ',')} seconde · Aucune donnée envoyée à notre serveur`
+            : `Processed locally in ${localSeconds} seconds · No data sent to our server`
+          }
+        </div>
+      )}
 
       {/* ── Vault table + CTAs — appear after animation completes ─────────── */}
       {animResult && !limitReached && (
