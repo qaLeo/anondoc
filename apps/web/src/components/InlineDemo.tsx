@@ -7,9 +7,7 @@ import { parseFile } from '../parsers'
 
 const DEMO_COUNT_KEY = 'anondoc_demo_count'
 const DEMO_LIMIT = 8
-const SPEED_ORIG = 22   // ms per char — original panel
-const SPEED_ANON = 18   // ms per char — anonymised panel (slightly faster to catch up)
-const ANON_DELAY = 300  // ms before anonymised panel starts
+const SPEED_SYNC = 25   // ms per char — both panels animate together
 
 // Token color map — supports Russian (legacy) and EU (EN/DE/FR) token prefixes
 const TOKEN_COLORS: Record<string, { bg: string; color: string }> = {
@@ -263,28 +261,74 @@ function parseAnonPartial(text: string): ResultToken[] {
   return parts
 }
 
-// Build animation steps for anonymised text:
-// plain chars typed one-by-one, tokens inserted whole in one step
-function buildAnonSteps(text: string): string[] {
+// ── Synchronized animation ────────────────────────────────────────────────────
+
+interface TokenPair {
+  orig: string
+  anon: string
+  isToken: boolean
+}
+
+// Build parallel token pairs: plain text pairs type both sides together;
+// PII token pairs type orig char-by-char and reveal the anon token whole when done.
+function buildTokenPairs(anonymized: string, vault: Record<string, string>): TokenPair[] {
   const re = /\[[А-ЯA-Z]+(?:_[А-ЯA-Z]+)*_\d+\]/g
-  const steps: string[] = []
-  let current = ''
-  let lastIndex = 0
+  const pairs: TokenPair[] = []
+  let last = 0
   let m: RegExpExecArray | null
-  while ((m = re.exec(text)) !== null) {
-    for (const ch of text.slice(lastIndex, m.index)) {
-      current += ch
-      steps.push(current)
+  while ((m = re.exec(anonymized)) !== null) {
+    if (m.index > last) {
+      const plain = anonymized.slice(last, m.index)
+      pairs.push({ orig: plain, anon: plain, isToken: false })
     }
-    current += m[0]
-    steps.push(current)
-    lastIndex = m.index + m[0].length
+    pairs.push({ orig: vault[m[0]] ?? m[0], anon: m[0], isToken: true })
+    last = m.index + m[0].length
   }
-  for (const ch of text.slice(lastIndex)) {
-    current += ch
-    steps.push(current)
+  if (last < anonymized.length) {
+    pairs.push({ orig: anonymized.slice(last), anon: anonymized.slice(last), isToken: false })
   }
-  return steps
+  return pairs
+}
+
+// ── Hover-highlighting helpers ────────────────────────────────────────────────
+
+interface OrigPart {
+  text: string
+  tokenId: string | null
+}
+
+// Split original text into plain + PII spans so each PII span can be highlighted.
+function parseOriginalText(text: string, vault: Record<string, string>): OrigPart[] {
+  const ranges: Array<{ start: number; end: number; tokenId: string }> = []
+  for (const [token, origVal] of Object.entries(vault)) {
+    if (!origVal) continue
+    const tokenId = token.slice(1, -1)  // '[NAME_1]' → 'NAME_1'
+    let pos = 0
+    let idx: number
+    while ((idx = text.indexOf(origVal, pos)) !== -1) {
+      ranges.push({ start: idx, end: idx + origVal.length, tokenId })
+      pos = idx + origVal.length
+    }
+  }
+  ranges.sort((a, b) => a.start - b.start)
+  const parts: OrigPart[] = []
+  let cursor = 0
+  for (const r of ranges) {
+    if (r.start < cursor) continue  // skip overlapping
+    if (r.start > cursor) parts.push({ text: text.slice(cursor, r.start), tokenId: null })
+    parts.push({ text: text.slice(r.start, r.end), tokenId: r.tokenId })
+    cursor = r.end
+  }
+  if (cursor < text.length) parts.push({ text: text.slice(cursor), tokenId: null })
+  return parts
+}
+
+// ── Vault table column headers ────────────────────────────────────────────────
+
+const VAULT_COL_HEADERS: Record<string, { orig: string; token: string }> = {
+  de: { orig: 'Original', token: 'Token' },
+  fr: { orig: 'Original', token: 'Jeton' },
+  en: { orig: 'Original', token: 'Token' },
 }
 
 const SAMPLE_KEYS = ['cv', 'contract', 'medical'] as const
@@ -318,10 +362,8 @@ export function InlineDemo() {
     count: number
   } | null>(null)
 
-  // Timer refs
-  const origIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const anonDelayRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const anonIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Single timer ref — both panels driven by one interval
+  const animIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const [limitReached, setLimitReached] = useState(() => getCount() >= DEMO_LIMIT)
   const [hoveredToken, setHoveredToken] = useState<string | null>(null)
@@ -329,15 +371,11 @@ export function InlineDemo() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const clearTimers = useCallback(() => {
-    if (origIntervalRef.current)  { clearInterval(origIntervalRef.current);  origIntervalRef.current  = null }
-    if (anonDelayRef.current)     { clearTimeout(anonDelayRef.current);       anonDelayRef.current     = null }
-    if (anonIntervalRef.current)  { clearInterval(anonIntervalRef.current);   anonIntervalRef.current  = null }
+    if (animIntervalRef.current) { clearInterval(animIntervalRef.current); animIntervalRef.current = null }
   }, [])
 
-  // Start two-panel animation.
+  // Start synchronized two-panel animation.
   // countUsage: true only for file uploads (sample auto-plays don't consume quota)
-  // lang: current i18n language — selects EU vs RU anonymizer
-  // sampleKey: when set, uses pre-built hardcoded anonymized data instead of the engine
   const startTwoPanel = useCallback((text: string, countUsage: boolean, lang: string, sampleKey?: string) => {
     clearTimers()
     setOrigDisplayed('')
@@ -367,36 +405,56 @@ export function InlineDemo() {
       anonymized = result.anonymized
       vault = result.vault
     }
-    const anonSteps = buildAnonSteps(anonymized)
 
-    // Animate original panel
-    let oi = 0
-    origIntervalRef.current = setInterval(() => {
-      oi++
-      setOrigDisplayed(text.slice(0, oi))
-      if (oi >= text.length) {
-        clearInterval(origIntervalRef.current!)
-        origIntervalRef.current = null
-        setOrigDone(true)
+    const pairs = buildTokenPairs(anonymized, vault)
+    let pairIdx = 0
+    let charIdx = 0
+    let origAcc = ''
+    let anonAcc = ''
+
+    animIntervalRef.current = setInterval(() => {
+      // Skip pairs with empty orig (shouldn't occur in practice but defensive)
+      while (pairIdx < pairs.length && pairs[pairIdx].orig.length === 0) {
+        const p = pairs[pairIdx]
+        if (p.anon) { anonAcc += p.anon; setAnonDisplayed(anonAcc) }
+        pairIdx++
       }
-    }, SPEED_ORIG)
 
-    // Animate anonymised panel after delay
-    anonDelayRef.current = setTimeout(() => {
-      let ai = 0
-      anonIntervalRef.current = setInterval(() => {
-        ai++
-        setAnonDisplayed(anonSteps[ai - 1] ?? anonymized)
-        if (ai >= anonSteps.length) {
-          clearInterval(anonIntervalRef.current!)
-          anonIntervalRef.current = null
-          setAnonDone(true)
-          const count = countUsage ? incrementCount() : getCount()
-          setAnimResult({ vault, tokens: parseResult(anonymized, vault), anonymized, count })
-          if (countUsage && count >= DEMO_LIMIT) setLimitReached(true)
+      if (pairIdx >= pairs.length) {
+        clearInterval(animIntervalRef.current!)
+        animIntervalRef.current = null
+        setOrigDone(true)
+        setAnonDone(true)
+        const count = countUsage ? incrementCount() : getCount()
+        setAnimResult({ vault, tokens: parseResult(anonymized, vault), anonymized, count })
+        if (countUsage && count >= DEMO_LIMIT) setLimitReached(true)
+        return
+      }
+
+      const pair = pairs[pairIdx]
+
+      // Type one character of orig in left panel
+      origAcc += pair.orig[charIdx]
+      setOrigDisplayed(origAcc)
+
+      // For plain text: type the same char in right panel simultaneously
+      if (!pair.isToken) {
+        anonAcc += pair.anon[charIdx]
+        setAnonDisplayed(anonAcc)
+      }
+
+      charIdx++
+
+      if (charIdx >= pair.orig.length) {
+        // PII token pair: reveal anon token whole as orig finishes
+        if (pair.isToken) {
+          anonAcc += pair.anon
+          setAnonDisplayed(anonAcc)
         }
-      }, SPEED_ANON)
-    }, ANON_DELAY)
+        pairIdx++
+        charIdx = 0
+      }
+    }, SPEED_SYNC)
   }, [clearTimers])
 
   // Auto-start when active sample or language changes
@@ -452,8 +510,14 @@ export function InlineDemo() {
 
   const vaultEntries = animResult ? Object.entries(animResult.vault).slice(0, 8) : []
   const vaultCount   = animResult ? Object.keys(animResult.vault).length : 0
+  const vaultColHeader = VAULT_COL_HEADERS[i18n.language] ?? VAULT_COL_HEADERS.en
 
-  // Rendered anonymised panel (during animation = partial string, after = full)
+  // Left panel: tokenized PII spans after animation for hover support
+  const origParts = (origDone && animResult)
+    ? parseOriginalText(origDisplayed, animResult.vault)
+    : null
+
+  // Right panel: parse partial/full anon text for colored tokens + hover
   const anonParts = parseAnonPartial(anonDisplayed)
 
   return (
@@ -525,7 +589,30 @@ export function InlineDemo() {
             lineHeight: 1.7, fontFamily: 'monospace', background: 'var(--bg)',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word', minHeight: 140,
           }}>
-            {origDisplayed}
+            {origParts
+              ? origParts.map((part, idx) => {
+                  if (!part.tokenId) return <span key={idx}>{part.text}</span>
+                  const tid = part.tokenId
+                  const isHovered = hoveredToken === tid
+                  return (
+                    <span
+                      key={idx}
+                      data-token-id={tid}
+                      onMouseEnter={() => setHoveredToken(tid)}
+                      onMouseLeave={() => setHoveredToken(null)}
+                      style={{
+                        background: isHovered ? '#fef08a' : 'transparent',
+                        borderRadius: isHovered ? 3 : 0,
+                        cursor: 'default',
+                        transition: 'background 0.1s',
+                      }}
+                    >
+                      {part.text}
+                    </span>
+                  )
+                })
+              : origDisplayed
+            }
             {!origDone && <span className="demo-cursor" />}
           </pre>
         </div>
@@ -551,17 +638,24 @@ export function InlineDemo() {
           }}>
             {anonParts.map((part, idx) => {
               if (!part.isToken) return <span key={idx}>{part.text}</span>
+              const tokenId = part.text.slice(1, -1)  // '[NAME_1]' → 'NAME_1'
               const style = getTokenStyle(part.text)
+              const isHovered = hoveredToken === tokenId
               return (
                 <span
                   key={idx}
-                  onMouseEnter={() => setHoveredToken(`${idx}`)}
+                  data-token-id={tokenId}
+                  onMouseEnter={() => setHoveredToken(tokenId)}
                   onMouseLeave={() => setHoveredToken(null)}
                   style={{
-                    display: 'inline-block', background: style.bg, color: style.color,
-                    borderRadius: 4, padding: '0 4px', fontWeight: 600,
-                    outline: hoveredToken === `${idx}` ? `1.5px solid ${style.color}` : 'none',
-                    transition: 'outline 0.1s',
+                    display: 'inline-block',
+                    background: isHovered ? '#fef08a' : style.bg,
+                    color: isHovered ? '#92400e' : style.color,
+                    borderRadius: 4,
+                    padding: '0 4px',
+                    fontWeight: 600,
+                    cursor: 'default',
+                    transition: 'background 0.1s, color 0.1s',
                   }}
                 >
                   {part.text}
@@ -587,18 +681,48 @@ export function InlineDemo() {
                 {tApp('demo.vault_label', { count: vaultCount })}
               </div>
               <table className="demo-vault-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-light)', background: 'var(--bg)' }}>
+                    <th style={{ padding: '6px 14px', textAlign: 'left', fontSize: 11, color: 'var(--text-hint)', fontWeight: 500 }}>
+                      {vaultColHeader.orig}
+                    </th>
+                    <th style={{ padding: '6px 14px', textAlign: 'left', fontSize: 11, color: 'var(--text-hint)', fontWeight: 500, width: '40%' }}>
+                      {vaultColHeader.token}
+                    </th>
+                  </tr>
+                </thead>
                 <tbody>
                   {vaultEntries.map(([token, original]) => {
                     const style = getTokenStyle(token)
+                    const tokenId = token.slice(1, -1)  // '[NAME_1]' → 'NAME_1'
+                    const isHovered = hoveredToken === tokenId
                     return (
-                      <tr key={token} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                        <td style={{ padding: '7px 14px', width: '40%' }}>
-                          <span style={{ background: style.bg, color: style.color, borderRadius: 4, padding: '1px 6px', fontWeight: 500 }}>
-                            {token}
-                          </span>
-                        </td>
+                      <tr
+                        key={token}
+                        data-token-id={tokenId}
+                        onMouseEnter={() => setHoveredToken(tokenId)}
+                        onMouseLeave={() => setHoveredToken(null)}
+                        style={{
+                          borderBottom: '1px solid var(--border-light)',
+                          background: isHovered ? '#fef9c3' : 'transparent',
+                          transition: 'background 0.1s',
+                          cursor: 'default',
+                        }}
+                      >
                         <td style={{ padding: '7px 14px', color: 'var(--text-muted)' }}>
                           {original}
+                        </td>
+                        <td style={{ padding: '7px 14px', width: '40%' }}>
+                          <span style={{
+                            background: isHovered ? '#fef08a' : style.bg,
+                            color: isHovered ? '#92400e' : style.color,
+                            borderRadius: 4,
+                            padding: '1px 6px',
+                            fontWeight: 500,
+                            transition: 'background 0.1s, color 0.1s',
+                          }}>
+                            {token}
+                          </span>
                         </td>
                       </tr>
                     )
