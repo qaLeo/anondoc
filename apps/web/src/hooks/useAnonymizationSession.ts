@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { createAnonymizer } from '@anondoc/engine'
-import { parseFile } from '../parsers'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import type { VaultMap } from '@anondoc/engine'
 import {
   loadActiveSession,
   saveSession,
@@ -35,12 +34,29 @@ const NEXT_PLAN: Record<string, string | null> = {
   ENTERPRISE: null,
 }
 
+// ─── Worker result types ───────────────────────────────────────────────────────
+
+interface WorkerResult {
+  type: 'RESULT'
+  anonymized: string
+  vault: VaultMap
+  stats: Record<string, number>
+}
+
+interface WorkerError {
+  type: 'ERROR'
+  message: string
+}
+
+type WorkerOutbound = WorkerResult | WorkerError | { type: 'PROGRESS'; stage: string }
+
+// ─── Hook ──────────────────────────────────────────────────────────────────────
+
 export function useAnonymizationSession() {
   const { user } = useAuth()
   const { usage, trackDocument } = useUsage()
 
   const plan = (user?.plan ?? 'FREE').toUpperCase()
-  // Session file limit comes from server-issued plan (user.plan via JWT auth)
   const fileLimit = SESSION_FILE_LIMITS[plan] ?? 5
   // Monthly limit: -1 = unlimited (server-authoritative via /me/usage)
   const monthlyExhausted = usage !== null && usage.limit !== -1 && usage.remaining <= 0
@@ -50,16 +66,27 @@ export function useAnonymizationSession() {
   const [session, setSession] = useState<SessionRecord | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const anonymizerRef = useRef(createAnonymizer())
 
-  // Load active session on mount; restore counters so numbering continues
+  // ── Web Worker (lazy init) ───────────────────────────────────────────────────
+  const workerRef = useRef<Worker | null>(null)
+
+  const getWorker = useCallback((): Worker => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(
+        new URL('../workers/processingWorker.ts', import.meta.url),
+        { type: 'module' },
+      )
+    }
+    return workerRef.current
+  }, [])
+
+  // Load active session on mount
   useEffect(() => {
-    loadActiveSession().then((s) => {
-      if (s && Object.keys(s.sharedVault).length > 0) {
-        anonymizerRef.current.restoreFromVault(s.sharedVault)
-      }
-      setSession(s)
-    })
+    loadActiveSession().then(setSession)
+    return () => {
+      workerRef.current?.terminate()
+      workerRef.current = null
+    }
   }, [])
 
   const fileCount = session?.files.length ?? 0
@@ -69,11 +96,10 @@ export function useAnonymizationSession() {
     if (isLimitReached) return
     setIsProcessing(true)
     setError(null)
-    try {
-      const text = await parseFile(file)
-      const { anonymized, vault: fileVault, stats } = anonymizerRef.current.anonymize(text)
 
-      const replacements = Object.values(stats as Record<string, number>).reduce((s, v) => s + v, 0)
+    try {
+      const { anonymized, fileVault, stats } = await processInWorker(file, session?.sharedVault)
+      const replacements = Object.values(stats).reduce((s, v) => s + v, 0)
 
       const sessionFile: SessionFile = {
         id: randomUUID(),
@@ -83,7 +109,6 @@ export function useAnonymizationSession() {
         anonymizedText: anonymized,
       }
 
-      // Use existing active session or create a new one
       const prev = session ?? await createSession()
       const sharedVault = { ...prev.sharedVault, ...fileVault }
       const next: SessionRecord = { ...prev, files: [...prev.files, sessionFile], sharedVault }
@@ -91,8 +116,8 @@ export function useAnonymizationSession() {
       await saveSession(next)
       await saveVault(fileVault)
 
-      const docType = detectDocType(text)
-      const n = nextDocNumber(docType)
+      const docType = detectDocType(anonymized)
+      const n = await nextDocNumber(docType)
       const fullName = makeAnonymizedName(docType, n)
       await saveDoc(
         {
@@ -109,7 +134,6 @@ export function useAnonymizationSession() {
       )
 
       setSession(next)
-
       if (user) trackDocument().catch(() => {})
     } catch (e) {
       setError(e instanceof Error ? e.message : 'ошибка обработки файла')
@@ -118,8 +142,30 @@ export function useAnonymizationSession() {
     }
   }
 
-  /** Remove a single file from the current session. Vault entries are kept
-   *  because tokens may be shared across files (dedup). */
+  /** Offload parsing + anonymization to the Web Worker */
+  function processInWorker(
+    file: File,
+    existingVault?: VaultMap,
+  ): Promise<{ anonymized: string; fileVault: VaultMap; stats: Record<string, number> }> {
+    return new Promise((resolve, reject) => {
+      const worker = getWorker()
+
+      const handler = (e: MessageEvent<WorkerOutbound>) => {
+        const msg = e.data
+        if (msg.type === 'PROGRESS') return  // ignore progress updates for now
+        worker.removeEventListener('message', handler)
+        if (msg.type === 'RESULT') {
+          resolve({ anonymized: msg.anonymized, fileVault: msg.vault, stats: msg.stats })
+        } else {
+          reject(new Error(msg.message))
+        }
+      }
+
+      worker.addEventListener('message', handler)
+      worker.postMessage({ type: 'PROCESS', file, existingVault })
+    })
+  }
+
   async function removeFile(fileId: string): Promise<void> {
     if (!session) return
     const next: SessionRecord = { ...session, files: session.files.filter(f => f.id !== fileId) }
@@ -127,10 +173,9 @@ export function useAnonymizationSession() {
     setSession(next)
   }
 
-  /** Archive the current session and start a fresh one with reset counters. */
   async function newSession(): Promise<void> {
-    anonymizerRef.current.reset()
-    // Create a new active session (old one stays in history)
+    // Tell worker to reset its internal anonymizer state
+    workerRef.current?.postMessage({ type: 'RESET' })
     const fresh = await createSession()
     await clearVault()
     setSession(fresh)

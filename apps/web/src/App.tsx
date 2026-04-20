@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { useTranslation } from 'react-i18next'
 import { detectLangFromPath } from './i18n/index'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
@@ -244,6 +245,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
         <UsageProvider>
@@ -270,6 +272,7 @@ export default function App() {
         </UsageProvider>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

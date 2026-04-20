@@ -1,12 +1,14 @@
 import type { VaultMap, PiiStats } from '@anondoc/engine'
 
 const DB_NAME = 'anondoc'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const STORE_NAME = 'vault'
 const VAULT_KEY = 'current'
 const TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
 
 const SESSION_STORE = 'anonymization_sessions'
+const COUNTERS_STORE = 'doc_counters'
+const COUNTERS_KEY = 'counters'
 /** Special record id that stores a pointer to the active session */
 const ACTIVE_PTR = '__active__'
 /** 30 days — sessions older than this are eligible for auto-purge */
@@ -48,6 +50,9 @@ function openDb(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(SESSION_STORE)) {
         db.createObjectStore(SESSION_STORE, { keyPath: 'id' })
+      }
+      if (!db.objectStoreNames.contains(COUNTERS_STORE)) {
+        db.createObjectStore(COUNTERS_STORE, { keyPath: 'id' })
       }
     }
     req.onsuccess = () => resolve(req.result)
@@ -299,6 +304,39 @@ export async function purgeExpiredSessions(): Promise<void> {
     db.close()
   } catch {
     // ignore
+  }
+}
+
+// ── Doc counters ──────────────────────────────────────────────────────────────
+
+export async function loadCounters(): Promise<Record<string, number>> {
+  try {
+    const db = await openDb()
+    const tx = db.transaction(COUNTERS_STORE, 'readonly')
+    const req = tx.objectStore(COUNTERS_STORE).get(COUNTERS_KEY)
+    const record = await new Promise<{ id: string; data: Record<string, number> } | undefined>((resolve) => {
+      req.onsuccess = () => resolve(req.result as { id: string; data: Record<string, number> } | undefined)
+      req.onerror = () => resolve(undefined)
+    })
+    db.close()
+    return record?.data ?? {}
+  } catch {
+    return {}
+  }
+}
+
+export async function saveCounters(counters: Record<string, number>): Promise<void> {
+  try {
+    const db = await openDb()
+    const tx = db.transaction(COUNTERS_STORE, 'readwrite')
+    tx.objectStore(COUNTERS_STORE).put({ id: COUNTERS_KEY, data: counters })
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+    db.close()
+  } catch {
+    // non-critical
   }
 }
 

@@ -1,71 +1,27 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
-import { authApi, setAccessToken, type UserProfile } from '../api/client'
-
-interface AuthState {
-  user: UserProfile | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, name?: string) => Promise<void>
-  logout: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthState | null>(null)
+/**
+ * AuthContext — thin adapter over the Zustand app store.
+ * All components that call useAuth() continue to work unchanged.
+ * AuthProvider initializes auth on mount (restore session via httpOnly cookie).
+ */
+import { useEffect, type ReactNode } from 'react'
+import { useAppStore } from '../store'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const initAuth = useAppStore(s => s.initAuth)
 
-  // On mount — restore session via httpOnly refresh cookie (token never touches localStorage)
-  useEffect(() => {
-    authApi.refresh()
-      .then(({ data }) => {
-        setAccessToken(data.accessToken)
-        return authApi.profile()
-      })
-      .then(({ data }) => setUser(data))
-      .catch(() => setAccessToken(null))
-      .finally(() => setIsLoading(false))
-  }, [])
+  // Restore session on mount — token never touches localStorage
+  useEffect(() => { void initAuth() }, [initAuth])
 
-  const login = useCallback(async (email: string, password: string) => {
-    const { data } = await authApi.login(email, password)
-    setAccessToken(data.accessToken)
-    setUser(data.user)
-  }, [])
-
-  const register = useCallback(async (email: string, password: string, name?: string) => {
-    const { data } = await authApi.register(email, password, name)
-    setAccessToken(data.accessToken)
-    setUser(data.user)
-  }, [])
-
-  const logout = useCallback(async () => {
-    try {
-      await authApi.logout()
-    } catch {
-      // ignore — clear local state regardless
-    }
-    setAccessToken(null)
-    setUser(null)
-  }, [])
-
-  return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading,
-      isAuthenticated: !!user,
-      login,
-      register,
-      logout,
-    }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <>{children}</>
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
-  return ctx
+  return useAppStore(s => ({
+    user:            s.user,
+    isLoading:       s.isAuthLoading,
+    isAuthenticated: s.isAuthenticated,
+    login:           s.login,
+    register:        s.register,
+    logout:          s.logout,
+  }))
 }

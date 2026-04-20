@@ -1,4 +1,4 @@
-const COUNTERS_KEY = 'anondoc_doc_counters'
+import { loadCounters, saveCounters } from '../vault/vaultService'
 
 type DocType = 'Резюме' | 'Договор' | 'Приказ' | 'Акт' | 'Счет' | 'Документ'
 
@@ -20,31 +20,18 @@ export function detectDocType(text: string): DocType {
   return 'Документ'
 }
 
-function loadCounters(): Record<string, number> {
-  try {
-    const raw = localStorage.getItem(COUNTERS_KEY)
-    return raw ? (JSON.parse(raw) as Record<string, number>) : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveCounters(counters: Record<string, number>): void {
-  localStorage.setItem(COUNTERS_KEY, JSON.stringify(counters))
-}
-
 /** Increments counter for docType and returns the new number */
-export function nextDocNumber(docType: DocType): number {
-  const counters = loadCounters()
+export async function nextDocNumber(docType: DocType): Promise<number> {
+  const counters = await loadCounters()
   const next = (counters[docType] ?? 0) + 1
   counters[docType] = next
-  saveCounters(counters)
+  await saveCounters(counters)
   return next
 }
 
 /** Returns current counter value without incrementing (for restored files) */
-export function currentDocNumber(docType: DocType): number {
-  const counters = loadCounters()
+export async function currentDocNumber(docType: DocType): Promise<number> {
+  const counters = await loadCounters()
   return counters[docType] ?? 1
 }
 

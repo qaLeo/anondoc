@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { IDBFactory } from 'fake-indexeddb'
 import { detectDocType, nextDocNumber, currentDocNumber, makeAnonymizedName, makeRestoredName } from './docNaming'
 
 beforeEach(() => {
-  localStorage.clear()
+  ;(globalThis as any).indexedDB = new IDBFactory()
 })
 
 describe('detectDocType', () => {
@@ -57,50 +58,40 @@ describe('detectDocType', () => {
 })
 
 describe('nextDocNumber', () => {
-  it('первый вызов возвращает 1', () => {
-    expect(nextDocNumber('Договор')).toBe(1)
+  it('первый вызов возвращает 1', async () => {
+    expect(await nextDocNumber('Договор')).toBe(1)
   })
 
-  it('каждый последующий вызов увеличивает счётчик', () => {
-    expect(nextDocNumber('Договор')).toBe(1)
-    expect(nextDocNumber('Договор')).toBe(2)
-    expect(nextDocNumber('Договор')).toBe(3)
+  it('каждый последующий вызов увеличивает счётчик', async () => {
+    expect(await nextDocNumber('Договор')).toBe(1)
+    expect(await nextDocNumber('Договор')).toBe(2)
+    expect(await nextDocNumber('Договор')).toBe(3)
   })
 
-  it('счётчики разных типов независимы', () => {
-    expect(nextDocNumber('Договор')).toBe(1)
-    expect(nextDocNumber('Резюме')).toBe(1)
-    expect(nextDocNumber('Договор')).toBe(2)
-    expect(nextDocNumber('Резюме')).toBe(2)
+  it('счётчики разных типов независимы', async () => {
+    expect(await nextDocNumber('Договор')).toBe(1)
+    expect(await nextDocNumber('Резюме')).toBe(1)
+    expect(await nextDocNumber('Договор')).toBe(2)
+    expect(await nextDocNumber('Резюме')).toBe(2)
   })
 
-  it('счётчик сохраняется между вызовами (через localStorage)', () => {
-    nextDocNumber('Приказ')
-    nextDocNumber('Приказ')
-    // Перезагрузка не симулируется, но данные в localStorage
-    expect(nextDocNumber('Приказ')).toBe(3)
-  })
-})
-
-describe('nextDocNumber — catch в loadCounters', () => {
-  afterEach(() => vi.restoreAllMocks())
-
-  it('возвращает 1 если localStorage.getItem бросает исключение', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('storage error') })
-    expect(nextDocNumber('Договор')).toBe(1)
+  it('счётчик сохраняется между вызовами', async () => {
+    await nextDocNumber('Приказ')
+    await nextDocNumber('Приказ')
+    expect(await nextDocNumber('Приказ')).toBe(3)
   })
 })
 
 describe('currentDocNumber', () => {
-  it('возвращает 1 если счётчик ещё не создан', () => {
-    expect(currentDocNumber('Договор')).toBe(1)
+  it('возвращает 1 если счётчик ещё не создан', async () => {
+    expect(await currentDocNumber('Договор')).toBe(1)
   })
 
-  it('возвращает текущее значение без инкремента', () => {
-    nextDocNumber('Резюме')
-    nextDocNumber('Резюме')
-    expect(currentDocNumber('Резюме')).toBe(2)
-    expect(currentDocNumber('Резюме')).toBe(2) // не растёт
+  it('возвращает текущее значение без инкремента', async () => {
+    await nextDocNumber('Резюме')
+    await nextDocNumber('Резюме')
+    expect(await currentDocNumber('Резюме')).toBe(2)
+    expect(await currentDocNumber('Резюме')).toBe(2) // не растёт
   })
 })
 
