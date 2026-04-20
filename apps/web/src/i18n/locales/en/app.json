@@ -132,6 +132,7 @@
     "password_min": "Minimum 8 characters",
     "privacy_text": "I accept the",
     "privacy_link": "privacy policy",
+    "back_home": "← back to home",
     "loading": "Loading...",
     "err_email": "Enter a valid email",
     "err_password": "Password — minimum 8 characters",

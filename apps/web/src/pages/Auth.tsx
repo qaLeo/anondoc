@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
@@ -18,7 +18,8 @@ function AppIcon({ size = 40 }: { size?: number }) {
 export default function Auth() {
   const { login, register } = useAuth()
   const navigate = useNavigate()
-  const { t } = useTranslation('app')
+  const { t, i18n } = useTranslation('app')
+  const currentLang = i18n.language?.split('-')[0] ?? 'en'
 
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
@@ -88,19 +89,46 @@ export default function Auth() {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
       position: 'relative',
     }}>
-      <div style={{ position: 'absolute', top: 16, right: 20 }}>
+      {/* Back to home — top left */}
+      <Link
+        to={`/${currentLang}/`}
+        className="auth-back-link"
+        style={{
+          position: 'absolute', top: 24, left: 24,
+          fontSize: 14, color: '#6b7280', textDecoration: 'none',
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          padding: '8px 12px', borderRadius: 6, transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#111827' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280' }}
+      >
+        {t('auth.back_home')}
+      </Link>
+
+      {/* Language switcher — top right */}
+      <div style={{ position: 'absolute', top: 24, right: 24 }}>
         <LanguageSwitcher />
       </div>
+
       <div style={{ width: '100%', maxWidth: 400 }}>
-        {/* Logo block */}
+        {/* Logo block — clickable, links to landing */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'block', margin: '0 auto 12px', width: 'fit-content' }}>
+          <Link
+            to={`/${currentLang}/`}
+            style={{
+              textDecoration: 'none', color: 'inherit',
+              display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.75')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+          >
             <AppIcon size={40} />
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
-            AnonDoc
-          </div>
-          <p style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
+              AnonDoc
+            </div>
+          </Link>
+          <p style={{ fontSize: 14, color: '#6b7280', marginTop: 8 }}>
             {t('auth.tagline')}
           </p>
         </div>

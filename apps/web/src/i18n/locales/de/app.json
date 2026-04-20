@@ -132,6 +132,7 @@
     "password_min": "Mindestens 8 Zeichen",
     "privacy_text": "Ich akzeptiere die",
     "privacy_link": "Datenschutzrichtlinie",
+    "back_home": "← zur Startseite",
     "loading": "Laden...",
     "err_email": "Gültige E-Mail-Adresse eingeben",
     "err_password": "Passwort — mindestens 8 Zeichen",

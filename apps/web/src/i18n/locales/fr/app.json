@@ -132,6 +132,7 @@
     "password_min": "8 caractères minimum",
     "privacy_text": "J'accepte la",
     "privacy_link": "politique de confidentialité",
+    "back_home": "← à l'accueil",
     "loading": "Chargement...",
     "err_email": "Entrez une adresse e-mail valide",
     "err_password": "Mot de passe — 8 caractères minimum",
