@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 import { api, setAccessToken } from '../api/client'
@@ -76,15 +77,18 @@ export default function Profile() {
             AnonDoc
           </span>
         </button>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            fontSize: 13, color: '#6b7280',
-          }}
-        >
-          {t('nav.back')}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <LanguageSwitcher />
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontSize: 13, color: '#6b7280',
+            }}
+          >
+            {t('nav.back')}
+          </button>
+        </div>
       </header>
 
       <main style={{ maxWidth: 560, margin: '0 auto', padding: '40px 20px 80px' }}>

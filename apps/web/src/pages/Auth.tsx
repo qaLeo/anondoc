@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
 type Mode = 'login' | 'register'
 
@@ -85,7 +86,11 @@ export default function Auth() {
     <div style={{
       minHeight: '100vh', background: '#f9fafb',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+      position: 'relative',
     }}>
+      <div style={{ position: 'absolute', top: 16, right: 20 }}>
+        <LanguageSwitcher />
+      </div>
       <div style={{ width: '100%', maxWidth: 400 }}>
         {/* Logo block */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>

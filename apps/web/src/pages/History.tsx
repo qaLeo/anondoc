@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { getAllDocs, deleteDoc, getHistoryLimit, type DocRecord } from '../lib/documentHistory'
 import {
   getAllSessions,
@@ -123,7 +124,7 @@ export default function History() {
             AnonDoc
           </span>
         </button>
-        <div style={{ display: 'flex', gap: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           {(['/', '/history', '/pricing'] as const).map((path) => (
             <button key={path} onClick={() => navigate(path)} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
@@ -132,6 +133,7 @@ export default function History() {
               {navLabels[path]}
             </button>
           ))}
+          <LanguageSwitcher />
         </div>
       </header>
 
