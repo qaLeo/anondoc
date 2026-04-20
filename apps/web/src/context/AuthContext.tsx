@@ -3,14 +3,20 @@
  * All components that call useAuth() continue to work unchanged.
  * AuthProvider initializes auth on mount (restore session via httpOnly cookie).
  */
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useAppStore } from '../store'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const initAuth = useAppStore(s => s.initAuth)
+  const attempted = useRef(false)
 
-  // Restore session on mount — token never touches localStorage
-  useEffect(() => { void initAuth() }, [initAuth])
+  // Restore session on mount — token never touches localStorage.
+  // Guard prevents double-call in StrictMode / concurrent mode.
+  useEffect(() => {
+    if (attempted.current) return
+    attempted.current = true
+    void initAuth()
+  }, [initAuth])
 
   return <>{children}</>
 }

@@ -151,6 +151,12 @@
     "cancel": "Annuler",
     "delete_error": "Erreur de suppression"
   },
+  "error": {
+    "title": "Une erreur s'est produite",
+    "description": "Une erreur inattendue s'est produite. Vos données sont en sécurité — elles sont stockées uniquement dans votre navigateur.",
+    "technical": "Détails techniques",
+    "reload": "Recharger la page"
+  },
   "demo": {
     "tab_cv": "CV",
     "tab_contract": "Contrat",

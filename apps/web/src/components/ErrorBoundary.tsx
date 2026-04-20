@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import i18n from '../i18n'
 
 interface Props {
   children: ReactNode
@@ -45,15 +46,14 @@ export class ErrorBoundary extends Component<Props, State> {
         }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
-            Что-то пошло не так
+            {i18n.t('error.title', { ns: 'app' })}
           </h2>
           <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 20, lineHeight: 1.6 }}>
-            Произошла неожиданная ошибка. Ваши данные в безопасности — они хранятся
-            только в вашем браузере.
+            {i18n.t('error.description', { ns: 'app' })}
           </p>
           <details style={{ textAlign: 'left', marginBottom: 20 }}>
             <summary style={{ fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>
-              Техническая информация
+              {i18n.t('error.technical', { ns: 'app' })}
             </summary>
             <pre style={{
               marginTop: 8, padding: 12, background: '#f3f4f6', borderRadius: 6,
@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
               cursor: 'pointer',
             }}
           >
-            Перезагрузить страницу
+            {i18n.t('error.reload', { ns: 'app' })}
           </button>
         </div>
       </div>

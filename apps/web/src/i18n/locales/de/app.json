@@ -151,6 +151,12 @@
     "cancel": "Abbrechen",
     "delete_error": "Fehler beim Löschen"
   },
+  "error": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Ihre Daten sind sicher — sie werden nur in Ihrem Browser gespeichert.",
+    "technical": "Technische Details",
+    "reload": "Seite neu laden"
+  },
   "demo": {
     "tab_cv": "Lebenslauf",
     "tab_contract": "Arbeitsvertrag",

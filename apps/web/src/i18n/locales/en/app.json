@@ -151,6 +151,12 @@
     "cancel": "Cancel",
     "delete_error": "Deletion error"
   },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Your data is safe — it is stored only in your browser.",
+    "technical": "Technical details",
+    "reload": "Reload page"
+  },
   "demo": {
     "tab_cv": "CV",
     "tab_contract": "Contract",
