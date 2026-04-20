@@ -4,6 +4,7 @@
  * AuthProvider initializes auth on mount (restore session via httpOnly cookie).
  */
 import { useEffect, useRef, type ReactNode } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '../store'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -22,12 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  return useAppStore(s => ({
+  return useAppStore(useShallow(s => ({
     user:            s.user,
     isLoading:       s.isAuthLoading,
     isAuthenticated: s.isAuthenticated,
     login:           s.login,
     register:        s.register,
     logout:          s.logout,
-  }))
+  })))
 }

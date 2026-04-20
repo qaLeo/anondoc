@@ -24,12 +24,20 @@ const ACCESS_TTL = '15m'
 const REFRESH_TTL = '30d'
 const REFRESH_TTL_SEC = 30 * 24 * 60 * 60 // 30 days in seconds
 
+const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN  // e.g. '.anondoc.app' — leave unset to default to host
+
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: true,
-  sameSite: 'none' as const,
+  sameSite: 'lax' as const,   // same-site: anondoc.app ↔ api.anondoc.app
   path: '/auth/refresh',
   maxAge: 60 * 60 * 24 * 30,
+  ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+}
+
+const CLEAR_OPTS = {
+  path: '/auth/refresh',
+  ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
 }
 
 async function issueTokens(
@@ -138,7 +146,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
     }
     reply
-      .clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none', path: '/auth/refresh' })
+      .clearCookie('refreshToken', CLEAR_OPTS)
       .send({ ok: true })
   })
 

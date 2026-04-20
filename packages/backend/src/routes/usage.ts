@@ -1,6 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { getUsage, incrementUsage } from '../services/usageService.js'
 
+const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN
+const CLEAR_OPTS = {
+  path: '/auth/refresh',
+  ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+}
+
 export async function usageRoutes(app: FastifyInstance) {
   // GET /me/profile
   app.get('/profile', {
@@ -37,7 +43,7 @@ export async function usageRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     await app.prisma.user.delete({ where: { id: req.userId } })
     reply
-      .clearCookie('refreshToken', { path: '/auth/refresh' })
+      .clearCookie('refreshToken', CLEAR_OPTS)
       .status(204).send()
   })
 }

@@ -4,6 +4,7 @@
  * UsageProvider triggers usage refresh when auth state changes.
  */
 import { useEffect, type ReactNode } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '../store'
 
 export function UsageProvider({ children }: { children: ReactNode }) {
@@ -23,7 +24,7 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 }
 
 export function useUsage() {
-  return useAppStore(s => ({
+  return useAppStore(useShallow(s => ({
     usage:          s.usage,
     isLoading:      s.isUsageLoading,
     isLimitReached: s.isLimitReached,
@@ -32,5 +33,5 @@ export function useUsage() {
     trialDaysLeft:  s.trialDaysLeft,
     refresh:        s.refreshUsage,
     trackDocument:  s.trackDocument,
-  }))
+  })))
 }

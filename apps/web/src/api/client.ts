@@ -38,8 +38,14 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
+    const url: string = original?.url ?? ''
 
-    if (error.response?.status === 401 && !original._retry && !original.url?.includes('/auth/refresh')) {
+    // Never retry refresh requests — avoids infinite loop
+    if (url.includes('/auth/refresh')) {
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status === 401 && !original._retry) {
       original._retry = true
 
       if (isRefreshing) {
@@ -54,10 +60,7 @@ api.interceptors.response.use(
 
       isRefreshing = true
       try {
-        const { data } = await api.post<{ accessToken: string }>(
-          '/auth/refresh',
-          {},
-        )
+        const { data } = await api.post<{ accessToken: string }>('/auth/refresh', {})
         const newToken = data.accessToken
         setAccessToken(newToken)
         refreshQueue.forEach((cb) => cb(newToken))
