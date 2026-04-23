@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID, createHash } from 'crypto'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import {
@@ -38,6 +38,12 @@ const COOKIE_OPTS = {
 const CLEAR_OPTS = {
   path: '/auth/refresh',
   ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+}
+
+const COOKIE_DOMAIN_LABEL = COOKIE_DOMAIN ?? 'host-only'
+
+function hashEmail(email: string): string {
+  return createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 16)
 }
 
 async function issueTokens(
@@ -88,15 +94,29 @@ export async function authRoutes(app: FastifyInstance) {
     } catch {
       return reply.status(400).send({ error: 'Invalid input' })
     }
+    req.log.info({
+      event: 'login_attempt',
+      email_hash: hashEmail(body.email),
+      origin: req.headers.origin,
+      userAgent: req.headers['user-agent'],
+    })
     try {
       const user = await loginUser(body.email, body.password)
       const { accessToken, refreshToken } = await issueTokens(app, buildTokenPayload(user))
+      req.log.info({
+        event: 'login_success',
+        userId: user.id,
+        setCookieDomain: COOKIE_DOMAIN_LABEL,
+      })
       reply
         .setCookie('refreshToken', refreshToken, COOKIE_OPTS)
         .send({ accessToken, user: { id: user.id, email: user.email, plan: user.plan } })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Unknown error'
-      if (msg === 'INVALID_CREDENTIALS') return reply.status(401).send({ error: 'INVALID_CREDENTIALS' })
+      if (msg === 'INVALID_CREDENTIALS') {
+        req.log.warn({ event: 'login_failed', reason: 'bad_credentials' })
+        return reply.status(401).send({ error: 'INVALID_CREDENTIALS' })
+      }
       throw e
     }
   })
@@ -104,16 +124,28 @@ export async function authRoutes(app: FastifyInstance) {
   // POST /auth/refresh — validate jti, rotate refresh token
   app.post('/refresh', async (req, reply) => {
     const token = req.cookies?.refreshToken
-    if (!token) return reply.status(401).send({ error: 'No refresh token' })
+    const origin = req.headers.origin
+    req.log.info({ event: 'refresh_attempt', hasRefreshCookie: !!token, origin })
+
+    if (!token) {
+      req.log.warn({ event: 'refresh_failed', reason: 'no_cookie', origin })
+      return reply.status(401).send({ error: 'No refresh token' })
+    }
 
     try {
       const decoded = app.jwt.verify<{ sub: string; email: string; plan: string; jti?: string }>(token)
 
       // Validate jti against Redis (token replay protection)
       if (app.redis) {
-        if (!decoded.jti) return reply.status(401).send({ error: 'Invalid refresh token' })
+        if (!decoded.jti) {
+          req.log.warn({ event: 'refresh_failed', reason: 'invalid_token', origin })
+          return reply.status(401).send({ error: 'Invalid refresh token' })
+        }
         const exists = await app.redis.get(`refresh:jti:${decoded.jti}`)
-        if (!exists) return reply.status(401).send({ error: 'Token revoked' })
+        if (!exists) {
+          req.log.warn({ event: 'refresh_failed', reason: 'revoked', userId: decoded.sub, origin })
+          return reply.status(401).send({ error: 'Token revoked' })
+        }
         await app.redis.del(`refresh:jti:${decoded.jti}`)
       }
 
@@ -123,10 +155,13 @@ export async function authRoutes(app: FastifyInstance) {
         plan: decoded.plan,
       })
 
+      req.log.info({ event: 'refresh_success', userId: decoded.sub, rotated: true })
       reply
         .setCookie('refreshToken', refreshToken, COOKIE_OPTS)
         .send({ accessToken })
-    } catch {
+    } catch (e) {
+      const reason = e instanceof Error && e.name === 'TokenExpiredError' ? 'expired' : 'invalid_token'
+      req.log.warn({ event: 'refresh_failed', reason, origin })
       reply.status(401).send({ error: 'Invalid refresh token' })
     }
   })
@@ -145,6 +180,7 @@ export async function authRoutes(app: FastifyInstance) {
         // token may already be expired — that's fine
       }
     }
+    req.log.info({ event: 'logout', userId: req.userId, clearCookieDomain: COOKIE_DOMAIN_LABEL })
     reply
       .clearCookie('refreshToken', CLEAR_OPTS)
       .send({ ok: true })
