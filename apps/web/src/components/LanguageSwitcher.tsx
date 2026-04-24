@@ -15,14 +15,21 @@ export function LanguageSwitcher() {
     i18n.changeLanguage(lang)
     localStorage.setItem('i18nextLng', lang)
 
-    // Replace language prefix in URL path
-    const parts = location.pathname.split('/')
-    if (SUPPORTED_LANGS.includes(parts[1] as SupportedLang)) {
-      parts[1] = lang
+    // Replace language prefix in URL path, preserving the rest of the path.
+    // Special-case root '/' → go to /{lang}/app so the router hits the app
+    // catch-all, not the /{lang} landing-page route.
+    let newPath: string
+    if (location.pathname === '/') {
+      newPath = `/${lang}/app`
     } else {
-      parts.splice(1, 0, lang)
+      const parts = location.pathname.split('/')
+      if (SUPPORTED_LANGS.includes(parts[1] as SupportedLang)) {
+        parts[1] = lang
+      } else {
+        parts.splice(1, 0, lang)
+      }
+      newPath = parts.join('/').replace('//', '/') || '/'
     }
-    const newPath = parts.join('/').replace('//', '/') || '/'
     navigate(newPath + location.search, { replace: true })
 
     // Update html lang attribute
