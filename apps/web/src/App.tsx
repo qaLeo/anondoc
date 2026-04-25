@@ -299,8 +299,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth()
+  const { i18n } = useTranslation()
   if (isLoading) return <Loader />
-  if (isAuthenticated) return <Navigate to="/" replace />
+  if (isAuthenticated) {
+    const lang = i18n.language?.split('-')[0] ?? 'en'
+    return <Navigate to={lang === 'en' ? '/' : `/${lang}/app`} replace />
+  }
   return <Auth />
 }
 
