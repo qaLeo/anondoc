@@ -29,8 +29,8 @@ describe('ErrorBoundary', () => {
         <Bomb shouldThrow />
       </ErrorBoundary>,
     )
-    expect(screen.getByText('Что-то пошло не так')).toBeTruthy()
-    expect(screen.getByText('Перезагрузить страницу')).toBeTruthy()
+    expect(screen.getByText('Something went wrong')).toBeTruthy()
+    expect(screen.getByText('Reload page')).toBeTruthy()
   })
 
   it('shows error message in the details section', () => {
@@ -56,7 +56,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     )
 
-    fireEvent.click(screen.getByText('Перезагрузить страницу'))
+    fireEvent.click(screen.getByText('Reload page'))
     expect(reloadMock).toHaveBeenCalledOnce()
   })
 
@@ -67,7 +67,7 @@ describe('ErrorBoundary', () => {
         <Bomb shouldThrow />
       </ErrorBoundary>,
     )
-    expect(screen.getByText('Что-то пошло не так')).toBeTruthy()
+    expect(screen.getByText('Something went wrong')).toBeTruthy()
 
     // Re-mount without error
     rerender(
@@ -77,6 +77,6 @@ describe('ErrorBoundary', () => {
     )
     // The boundary only resets on handleReload; re-render with new children doesn't auto-recover.
     // This is expected React class component behavior.
-    expect(screen.getByText('Что-то пошло не так')).toBeTruthy()
+    expect(screen.getByText('Something went wrong')).toBeTruthy()
   })
 })
