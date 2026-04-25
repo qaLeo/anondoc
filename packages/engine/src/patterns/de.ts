@@ -87,7 +87,7 @@ export const DE_PATTERNS: EuPattern[] = [
   },
   // Местный немецкий номер (0 + код города)
   {
-    regex: /\b0\d{2,5}[\s\-\/]?\d{3,8}\b/g,
+    regex: /\b0\d{2,5}[\s\-\/]?\d{3,8}(?:-\d{1,3})?\b/g,
     type: 'PHONE',
     label: 'Telefon',
     token: 'TEL',
