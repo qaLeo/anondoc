@@ -138,7 +138,7 @@ describe('handleLoadKeyFile', () => {
     const file = new File(['not a valid key'], 'bad.key', { type: 'text/plain' })
     await act(async () => { await result.current.handleLoadKeyFile(makeFileEvent(file)) })
 
-    expect(onError).toHaveBeenCalledWith('не удалось прочитать файл ключа')
+    expect(onError).toHaveBeenCalledWith('Failed to read key file')
     expect(result.current.keyFile).toBeNull()
   })
 
@@ -147,7 +147,7 @@ describe('handleLoadKeyFile', () => {
     const file = makeKeyFile({ '[X_1]': 'y' }, 'secret.key')
     await act(async () => { await result.current.handleLoadKeyFile(makeFileEvent(file)) })
 
-    expect(result.current.vaultSourceLabel).toBe('ключ: secret.key ✓')
+    expect(result.current.vaultSourceLabel).toBe('key: secret.key ✓')
   })
 
   it('does nothing when no file selected', async () => {
@@ -184,7 +184,7 @@ describe('UI state toggles', () => {
     act(() => result.current.selectHistoryDoc(sampleDoc))
     expect(result.current.selectedHistoryId).toBe('d1')
     expect(result.current.foundInHistory?.id).toBe('d1')
-    expect(result.current.vaultSourceLabel).toBe('vault найден в истории ✓')
+    expect(result.current.vaultSourceLabel).toBe('found in history ✓')
   })
 
   it('resetVaultSelection clears all state', async () => {

@@ -30,7 +30,13 @@
     "drop_click": "klicken zum Auswählen",
     "formats": "DOCX, XLSX, PDF, TXT",
     "delete_confirm": "«{{name}}» aus der Sitzung entfernen?\nAndere Dateien und der Sitzungsschlüssel bleiben unverändert.",
-    "delete_title": "Datei aus Sitzung entfernen"
+    "delete_title": "Datei aus Sitzung entfernen",
+    "processing": "Verarbeitung...",
+    "download_file": "Herunterladen",
+    "new_session_confirm": "Neue Sitzung starten? Die aktuellen Ergebnisse werden gelöscht.",
+    "upgrade_hint": "Bis zu {{limit}} Dateien im {{plan}}-Plan verfügbar →",
+    "key_pro_tooltip": "Verfügbar im Pro-Plan →",
+    "key_empty_tooltip": "Dateien hinzufügen, um den Schlüssel herunterzuladen"
   },
   "deanonymize": {
     "title": "Dokument deanonymisieren",
@@ -177,5 +183,25 @@
     "panel_original": "Original",
     "panel_anonymised": "Anonymisiert",
     "fictitious": "fiktives Beispiel"
+  },
+  "dropzone": {
+    "placeholder": "Datei hier ablegen oder klicken zum Auswählen",
+    "privacy_note": "Ihre Daten verlassen niemals Ihren Computer",
+    "file_label": "Datei",
+    "replace": "ersetzen",
+    "size_b": "{{size}} B",
+    "size_kb": "{{size}} KB",
+    "size_mb": "{{size}} MB"
+  },
+  "filename": {
+    "label": "Dateiname:",
+    "default": "Dokument"
+  },
+  "vault": {
+    "source_key": "Schlüssel: {{name}} ✓",
+    "source_session": "Sitzung {{date}} ✓",
+    "source_history": "im Verlauf gefunden ✓",
+    "error_invalid_key": "Ungültiges Schlüsseldateiformat",
+    "error_read_key": "Schlüsseldatei konnte nicht gelesen werden"
   }
 }

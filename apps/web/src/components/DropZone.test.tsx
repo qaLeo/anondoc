@@ -28,7 +28,7 @@ function setup(selectedFile: File | null = null, overrides: Partial<{
 describe('DropZone — empty state', () => {
   it('renders drop prompt text', () => {
     setup()
-    expect(screen.getByText(/перетащите файл или нажмите для выбора/)).toBeTruthy()
+    expect(screen.getByText(/Drop a file here or click to select/)).toBeTruthy()
   })
 
   it('shows accepted formats in uppercase', () => {
@@ -38,18 +38,18 @@ describe('DropZone — empty state', () => {
 
   it('shows privacy hint by default', () => {
     setup()
-    expect(screen.getByText('данные не покидают ваш компьютер')).toBeTruthy()
+    expect(screen.getByText('Your data never leaves your computer')).toBeTruthy()
   })
 
   it('hides privacy hint when showPrivacyHint=false', () => {
     setup(null, { showPrivacyHint: false })
-    expect(screen.queryByText('данные не покидают ваш компьютер')).toBeNull()
+    expect(screen.queryByText('Your data never leaves your computer')).toBeNull()
   })
 
   it('calls onFile when a file is dropped', () => {
     const { onFile } = setup()
     const file = new File(['content'], 'doc.txt', { type: 'text/plain' })
-    const dropZone = screen.getByText(/перетащите файл/).closest('div')!
+    const dropZone = screen.getByText(/Drop a file/).closest('div')!
 
     fireEvent.drop(dropZone, {
       dataTransfer: { files: [file] },
@@ -59,14 +59,14 @@ describe('DropZone — empty state', () => {
 
   it('does not call onFile when drop has no files', () => {
     const { onFile } = setup()
-    const dropZone = screen.getByText(/перетащите файл/).closest('div')!
+    const dropZone = screen.getByText(/Drop a file/).closest('div')!
     fireEvent.drop(dropZone, { dataTransfer: { files: [] } })
     expect(onFile).not.toHaveBeenCalled()
   })
 
   it('sets dragging state on dragOver', () => {
     setup()
-    const dropZone = screen.getByText(/перетащите файл/).closest('div')!
+    const dropZone = screen.getByText(/Drop a file/).closest('div')!
     fireEvent.dragOver(dropZone)
     // Background changes — just verify no error thrown and drag-leave resets
     fireEvent.dragLeave(dropZone)
@@ -83,28 +83,28 @@ describe('DropZone — file selected', () => {
     expect(screen.getByText('report.docx')).toBeTruthy()
   })
 
-  it('shows "файл" label', () => {
+  it('shows "file" label', () => {
     setup(new File(['x'], 'test.txt'))
-    expect(screen.getByText('файл')).toBeTruthy()
+    expect(screen.getByText('file')).toBeTruthy()
   })
 
-  it('shows file size in КБ for medium files', () => {
+  it('shows file size in KB for medium files', () => {
     const file = new File(['x'.repeat(2048)], 'medium.txt')
     setup(file)
-    expect(screen.getByText(/КБ/)).toBeTruthy()
+    expect(screen.getByText(/KB/)).toBeTruthy()
   })
 
-  it('shows file size in МБ for large files', () => {
+  it('shows file size in MB for large files', () => {
     const f = new File(['x'], 'big.txt')
     Object.defineProperty(f, 'size', { value: 2 * 1024 * 1024 })
     setup(f)
-    expect(screen.getByText(/МБ/)).toBeTruthy()
+    expect(screen.getByText(/MB/)).toBeTruthy()
   })
 
-  it('shows file size in Б for tiny files', () => {
+  it('shows file size in B for tiny files', () => {
     const f = new File(['hi'], 'tiny.txt')
     setup(f)
-    expect(screen.getByText(/Б/)).toBeTruthy()
+    expect(screen.getByText(/ B/)).toBeTruthy()
   })
 
   it('calls onReset when ✕ button is clicked', () => {
@@ -115,6 +115,6 @@ describe('DropZone — file selected', () => {
 
   it('does not show privacy hint in selected state', () => {
     setup(new File(['x'], 'doc.txt'))
-    expect(screen.queryByText('данные не покидают ваш компьютер')).toBeNull()
+    expect(screen.queryByText('Your data never leaves your computer')).toBeNull()
   })
 })
