@@ -50,7 +50,7 @@ export default function Auth() {
       } else {
         await register(email, password, name.trim() || undefined)
       }
-      navigate('/', { replace: true })
+      navigate(currentLang === 'en' ? '/' : `/${currentLang}/app`, { replace: true })
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('auth.err_generic')
       if (msg.includes('EMAIL_TAKEN')) setError(t('auth.err_taken'))
