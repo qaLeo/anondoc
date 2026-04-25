@@ -99,6 +99,28 @@ describe('DE: Krankenversicherungsnummer (BUG #2 side-fix)', () => {
   })
 })
 
+describe('DE: phone Durchwahl suffix (BUG #7 fix)', () => {
+  it('captures Durchwahl suffix -0 (BUG #7 fix)', () => {
+    const match = findFirst('Tel.: 089/24689-0', DE_PATTERNS, 'TEL')
+    expect(match).toBe('089/24689-0')
+  })
+
+  it('captures Durchwahl suffix -47 (BUG #7 fix)', () => {
+    const match = findFirst('Fax: 030 12345-47', DE_PATTERNS, 'TEL')
+    expect(match).toBe('030 12345-47')
+  })
+
+  it('captures Durchwahl with international prefix +49 (BUG #7 fix)', () => {
+    const match = findFirst('+49 89 24689-12', DE_PATTERNS, 'TEL')
+    expect(match).toBe('+49 89 24689-12')
+  })
+
+  it('still captures plain numbers without Durchwahl (regression check)', () => {
+    const match = findFirst('Tel.: 030-12345678', DE_PATTERNS, 'TEL')
+    expect(match).toBe('030-12345678')
+  })
+})
+
 // ── FR ────────────────────────────────────────────────────────────────────────
 
 describe('FR: Numéro fiscal (BUG #4 fix)', () => {
