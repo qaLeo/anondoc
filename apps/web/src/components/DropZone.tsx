@@ -1,18 +1,26 @@
 import { useRef, useState } from 'react'
 import type { DragEvent, ChangeEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface DropZoneProps {
   accept: string[]
   selectedFile: File | null
   onFile: (file: File) => void
   onReset: () => void
-  /** whether to show "данные не покидают ваш компьютер" hint */
+  /** whether to show privacy hint */
   showPrivacyHint?: boolean
 }
 
 export function DropZone({ accept, selectedFile, onFile, onReset, showPrivacyHint = true }: DropZoneProps) {
+  const { t } = useTranslation('app')
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const formatSize = (bytes: number): string => {
+    if (bytes < 1024) return t('dropzone.size_b', { size: bytes })
+    if (bytes < 1048576) return t('dropzone.size_kb', { size: (bytes / 1024).toFixed(0) })
+    return t('dropzone.size_mb', { size: (bytes / 1048576).toFixed(1) })
+  }
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -46,7 +54,7 @@ export function DropZone({ accept, selectedFile, onFile, onReset, showPrivacyHin
         borderRadius: 8,
         background: 'var(--bg)',
       }}>
-        <span style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0 }}>файл</span>
+        <span style={{ fontSize: 13, color: 'var(--text-muted)', flexShrink: 0 }}>{t('dropzone.file_label')}</span>
         <span style={{
           flex: 1, fontSize: 13, color: 'var(--text)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -66,7 +74,7 @@ export function DropZone({ accept, selectedFile, onFile, onReset, showPrivacyHin
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
         >
-          заменить
+          {t('dropzone.replace')}
         </button>
         <button
           onClick={onReset}
@@ -101,7 +109,7 @@ export function DropZone({ accept, selectedFile, onFile, onReset, showPrivacyHin
         }}
       >
         <div style={{ fontSize: 14, color: dragging ? 'var(--text)' : 'var(--text-muted)', marginBottom: 6 }}>
-          перетащите файл или нажмите для выбора
+          {t('dropzone.placeholder')}
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>
           {accept.map(a => a.toUpperCase()).join(' · ')}
@@ -110,15 +118,9 @@ export function DropZone({ accept, selectedFile, onFile, onReset, showPrivacyHin
       </div>
       {showPrivacyHint && (
         <div style={{ fontSize: 11, color: 'var(--text-hint)', textAlign: 'center', marginTop: 8 }}>
-          данные не покидают ваш компьютер
+          {t('dropzone.privacy_note')}
         </div>
       )}
     </div>
   )
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} Б`
-  if (bytes < 1048576) return `${(bytes / 1024).toFixed(0)} КБ`
-  return `${(bytes / 1048576).toFixed(1)} МБ`
 }

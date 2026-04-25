@@ -30,7 +30,13 @@
     "drop_click": "click to select",
     "formats": "DOCX, XLSX, PDF, TXT",
     "delete_confirm": "Remove «{{name}}» from session?\nOther files and session key remain unchanged.",
-    "delete_title": "Remove file from session"
+    "delete_title": "Remove file from session",
+    "processing": "Processing...",
+    "download_file": "Download",
+    "new_session_confirm": "Start new session? Current results will be cleared.",
+    "upgrade_hint": "Upload up to {{limit}} files available on {{plan}} →",
+    "key_pro_tooltip": "Available on Pro →",
+    "key_empty_tooltip": "Add files to download the key"
   },
   "deanonymize": {
     "title": "Deanonymise document",
@@ -177,5 +183,25 @@
     "panel_original": "Original",
     "panel_anonymised": "Anonymised",
     "fictitious": "fictitious example"
+  },
+  "dropzone": {
+    "placeholder": "Drop a file here or click to select",
+    "privacy_note": "Your data never leaves your computer",
+    "file_label": "file",
+    "replace": "replace",
+    "size_b": "{{size}} B",
+    "size_kb": "{{size}} KB",
+    "size_mb": "{{size}} MB"
+  },
+  "filename": {
+    "label": "File name:",
+    "default": "Document"
+  },
+  "vault": {
+    "source_key": "key: {{name}} ✓",
+    "source_session": "session {{date}} ✓",
+    "source_history": "found in history ✓",
+    "error_invalid_key": "Invalid key file format",
+    "error_read_key": "Failed to read key file"
   }
 }

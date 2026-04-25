@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 interface FilenameInputProps {
   baseName: string          // without extension
   onChange: (name: string) => void
@@ -5,16 +7,18 @@ interface FilenameInputProps {
 
 /** Editable filename field. Extension .txt is fixed and non-editable. */
 export function FilenameInput({ baseName, onChange }: FilenameInputProps) {
+  const { t } = useTranslation('app')
+
   const handleChange = (value: string) => {
     // Strip any dots and slashes to prevent path traversal or extension override
     const safe = value.replace(/[/\\]/g, '').replace(/\.+/g, '_')
-    onChange(safe || 'Документ')
+    onChange(safe || t('filename.default'))
   }
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <span style={{ fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-        Имя файла:
+        {t('filename.label')}
       </span>
       <div style={{
         display: 'flex', alignItems: 'center', flex: 1,

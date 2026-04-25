@@ -17,7 +17,7 @@ function fmtDate(ts: number): string {
 
 export function AnonymizationTab() {
   const navigate = useNavigate()
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation('app')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const {
     session,
@@ -48,12 +48,12 @@ export function AnonymizationTab() {
   }
 
   const handleNewSession = async () => {
-    if (!window.confirm('Начать новую сессию? Текущие результаты будут очищены.')) return
+    if (!window.confirm(t('anonymize.new_session_confirm'))) return
     await newSession()
   }
 
   const handleRemoveFile = async (fileId: string, fileName: string) => {
-    if (!window.confirm(`Удалить «${fileName}» из сессии?\nОстальные файлы и ключ сессии не изменятся.`)) return
+    if (!window.confirm(t('anonymize.delete_confirm', { name: fileName }))) return
     await removeFile(fileId)
   }
 
@@ -76,7 +76,7 @@ export function AnonymizationTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `ключ_документа_${date}_${shortId}.key`
+    a.download = `${t('history.key_filename')}_${date}_${shortId}.key`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -92,14 +92,14 @@ export function AnonymizationTab() {
   }
 
   const addBtnTooltip = isLimitReached && nextPlan
-    ? `Загрузка до ${FILE_LIMITS_NEXT[nextPlan]} файлов доступна на ${nextPlan} →`
+    ? t('anonymize.upgrade_hint', { limit: FILE_LIMITS_NEXT[nextPlan], plan: nextPlan })
     : undefined
 
   const keyBtnDisabled = !session || session.files.length === 0
   const keyBtnTitle = !canDownloadKey
-    ? 'Доступно на Pro · от 990 ₽/мес'
+    ? t('anonymize.key_pro_tooltip')
     : keyBtnDisabled
-      ? 'Добавьте файлы для скачивания ключа'
+      ? t('anonymize.key_empty_tooltip')
       : undefined
 
   return (
@@ -142,7 +142,7 @@ export function AnonymizationTab() {
                 {f.name}
               </span>
               <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
-                {f.replacements} замен
+                {t('app.replacements', { count: f.replacements })}
               </span>
               <button
                 onClick={() => handleDownloadFile(f)}
@@ -153,11 +153,11 @@ export function AnonymizationTab() {
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
               >
-                скачать
+                {t('anonymize.download_file')}
               </button>
               <button
                 onClick={() => handleRemoveFile(f.id, f.name)}
-                title="Удалить файл из сессии"
+                title={t('anonymize.delete_title')}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   fontSize: 14, color: 'var(--text-hint)', padding: '2px 4px', flexShrink: 0,
@@ -195,11 +195,11 @@ export function AnonymizationTab() {
           onMouseEnter={e => { if (!isLimitReached && !isProcessing) e.currentTarget.style.opacity = '0.85' }}
           onMouseLeave={e => { if (!isLimitReached && !isProcessing) e.currentTarget.style.opacity = '1' }}
         >
-          {isProcessing ? 'обрабатываем...' : '+ добавить файл'}
+          {isProcessing ? t('anonymize.processing') : t('app.add_file')}
         </button>
 
         <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
-          {fileCount}&thinsp;/&thinsp;{fileLimit} файлов
+          {t('app.files_count', { count: fileCount, max: fileLimit })}
           {plan === 'FREE' && (
             <button
               onClick={() => navigate('/pricing')}
@@ -220,7 +220,7 @@ export function AnonymizationTab() {
           style={{ fontSize: 12, color: 'var(--text-hint)', cursor: 'pointer' }}
           onClick={() => navigate('/pricing')}
         >
-          Загрузка до {FILE_LIMITS_NEXT[nextPlan]} файлов доступна на {nextPlan} →
+          {t('anonymize.upgrade_hint', { limit: FILE_LIMITS_NEXT[nextPlan], plan: nextPlan })}
         </div>
       )}
 
@@ -233,7 +233,7 @@ export function AnonymizationTab() {
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
           >
-            ↺ новая сессия
+            ↺ {t('app.new_session')}
           </button>
 
           {/* Key download — always visible; disabled for Free or empty session */}
@@ -249,7 +249,7 @@ export function AnonymizationTab() {
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
           >
-            → скачать ключ документа
+            → {t('app.download_key')}
           </button>
         </div>
       )}

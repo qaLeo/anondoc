@@ -30,7 +30,13 @@
     "drop_click": "cliquer pour sélectionner",
     "formats": "DOCX, XLSX, PDF, TXT",
     "delete_confirm": "Supprimer «{{name}}» de la session ?\nLes autres fichiers et la clé de session restent inchangés.",
-    "delete_title": "Supprimer le fichier de la session"
+    "delete_title": "Supprimer le fichier de la session",
+    "processing": "Traitement...",
+    "download_file": "Télécharger",
+    "new_session_confirm": "Démarrer une nouvelle session ? Les résultats actuels seront effacés.",
+    "upgrade_hint": "Jusqu'à {{limit}} fichiers disponibles avec {{plan}} →",
+    "key_pro_tooltip": "Disponible avec Pro →",
+    "key_empty_tooltip": "Ajoutez des fichiers pour télécharger la clé"
   },
   "deanonymize": {
     "title": "Désanonymiser un document",
@@ -177,5 +183,25 @@
     "panel_original": "Original",
     "panel_anonymised": "Anonymisé",
     "fictitious": "exemple fictif"
+  },
+  "dropzone": {
+    "placeholder": "Déposez un fichier ici ou cliquez pour sélectionner",
+    "privacy_note": "Vos données ne quittent jamais votre ordinateur",
+    "file_label": "fichier",
+    "replace": "remplacer",
+    "size_b": "{{size}} B",
+    "size_kb": "{{size}} KB",
+    "size_mb": "{{size}} MB"
+  },
+  "filename": {
+    "label": "Nom du fichier :",
+    "default": "Document"
+  },
+  "vault": {
+    "source_key": "clé : {{name}} ✓",
+    "source_session": "session {{date}} ✓",
+    "source_history": "trouvé dans l'historique ✓",
+    "error_invalid_key": "Format de fichier clé invalide",
+    "error_read_key": "Impossible de lire le fichier clé"
   }
 }

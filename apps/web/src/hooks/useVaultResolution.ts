@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { parseKeyFile } from '@anondoc/engine'
 import { loadVault, getAllSessions, type SessionRecord } from '../vault/vaultService'
 import { getAllDocs, getDocById, markRestored, parseVault, type DocRecord } from '../lib/documentHistory'
@@ -24,6 +25,7 @@ export interface VaultResolution {
 }
 
 export function useVaultResolution(onError: (msg: string) => void): VaultResolution {
+  const { t, i18n } = useTranslation('app')
   const [keyFile, setKeyFile] = useState<{ name: string; vault: Record<string, string> } | null>(null)
   const [historyDocs, setHistoryDocs] = useState<DocRecord[]>([])
   const [foundInHistory, setFoundInHistory] = useState<DocRecord | null>(null)
@@ -56,7 +58,7 @@ export function useVaultResolution(onError: (msg: string) => void): VaultResolut
       const text = await file.text()
       const keyData = parseKeyFile(text)
       if (!keyData.vault || typeof keyData.vault !== 'object') {
-        onError('неверный формат файла ключа')
+        onError(t('vault.error_invalid_key'))
         return
       }
       setKeyFile({ name: file.name, vault: keyData.vault })
@@ -64,7 +66,7 @@ export function useVaultResolution(onError: (msg: string) => void): VaultResolut
       setSelectedSessionId('')
       setFoundInHistory(null)
     } catch {
-      onError('не удалось прочитать файл ключа')
+      onError(t('vault.error_read_key'))
     }
   }
 
@@ -131,12 +133,12 @@ export function useVaultResolution(onError: (msg: string) => void): VaultResolut
   }
 
   const vaultSourceLabel: string | null = (() => {
-    if (keyFile) return `ключ: ${keyFile.name} ✓`
+    if (keyFile) return t('vault.source_key', { name: keyFile.name })
     if (selectedSessionId) {
       const s = sessions.find(s => s.id === selectedSessionId)
-      return s ? `сессия ${new Date(s.createdAt).toLocaleDateString('ru-RU')} ✓` : null
+      return s ? t('vault.source_session', { date: new Date(s.createdAt).toLocaleDateString(i18n.language || 'en') }) : null
     }
-    if (foundInHistory || selectedHistoryId) return 'vault найден в истории ✓'
+    if (foundInHistory || selectedHistoryId) return t('vault.source_history')
     return null
   })()
 

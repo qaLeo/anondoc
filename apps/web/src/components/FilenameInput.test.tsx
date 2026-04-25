@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { FilenameInput } from './FilenameInput'
 
-function setup(baseName = 'Документ', onChange = vi.fn()) {
+function setup(baseName = 'Document', onChange = vi.fn()) {
   render(<FilenameInput baseName={baseName} onChange={onChange} />)
   return { input: screen.getByRole('textbox'), onChange }
 }
@@ -42,10 +42,10 @@ describe('FilenameInput', () => {
     expect(onChange).toHaveBeenCalledWith('file_exe')
   })
 
-  it('falls back to "Документ" when value is empty', () => {
+  it('falls back to "Document" when value is empty', () => {
     const { input, onChange } = setup()
     fireEvent.change(input, { target: { value: '' } })
-    expect(onChange).toHaveBeenCalledWith('Документ')
+    expect(onChange).toHaveBeenCalledWith('Document')
   })
 
   it('collapses multiple dots into single underscore', () => {
