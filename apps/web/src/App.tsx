@@ -251,6 +251,9 @@ export default function App() {
         <UsageProvider>
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
+            <Route path="/de/auth" element={<AuthGate />} />
+            <Route path="/en/auth" element={<AuthGate />} />
+            <Route path="/fr/auth" element={<AuthGate />} />
             <Route path="/pricing" element={<PricingGate />} />
             <Route path="/de/pricing" element={<Pricing />} />
             <Route path="/en/pricing" element={<Pricing />} />
