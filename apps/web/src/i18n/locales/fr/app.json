@@ -189,9 +189,9 @@
     "privacy_note": "Vos données ne quittent jamais votre ordinateur",
     "file_label": "fichier",
     "replace": "remplacer",
-    "size_b": "{{size}} o",
-    "size_kb": "{{size}} Ko",
-    "size_mb": "{{size}} Mo"
+    "size_b": "{{size}} B",
+    "size_kb": "{{size}} KB",
+    "size_mb": "{{size}} MB"
   },
   "filename": {
     "label": "Nom du fichier :",
