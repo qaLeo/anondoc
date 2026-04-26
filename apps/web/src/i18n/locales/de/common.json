@@ -12,5 +12,9 @@
     "aes": "AES-256-Verschlüsselung",
     "privacy": "Datenschutzerklärung",
     "imprint": "Impressum"
+  },
+  "pwa": {
+    "update_available": "Neue Version verfügbar",
+    "update_button": "Aktualisieren"
   }
 }

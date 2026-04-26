@@ -11,5 +11,9 @@
     "gdpr": "GDPR compliant",
     "aes": "AES-256 encryption",
     "privacy": "Privacy Policy"
+  },
+  "pwa": {
+    "update_available": "A new version is available",
+    "update_button": "Update"
   }
 }
