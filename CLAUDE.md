@@ -17,7 +17,7 @@ Offline-first tool for anonymizing Russian personal data (PII) in documents. Com
 
 ## Critical Rules
 1. **NEVER use Math.random()** — use `crypto.getRandomValues()` only (ESLint rule enforces this)
-2. **NEVER persist PII mappings to localStorage** — only to encrypted IndexedDB vault
+2. **NEVER persist any app data to localStorage** — use IndexedDB (vaultService / documentHistory). PII mappings go to encrypted vault only.
 3. **NEVER add external network requests** — this is an offline-first app
 4. **Tesseract.js** must be lazy-loaded: `const t = await import('tesseract.js')`
 5. **PDF export**: must use canvas re-render to produce image-based PDF (no text layer)
@@ -29,7 +29,7 @@ Offline-first tool for anonymizing Russian personal data (PII) in documents. Com
 - `src/vault/` — encryption, Dexie DB, vault service
 - `src/workers/` — single Web Worker for parse + detect
 - `src/components/` — React components
-- `src/pages/` — page components (wizard pattern, no router)
+- `src/pages/` — page components (URL-routed via react-router-dom)
 - `e2e/` — Playwright E2E tests
 - `bench/` — performance benchmarks
 - `scripts/` — build-time utilities
@@ -43,6 +43,6 @@ Offline-first tool for anonymizing Russian personal data (PII) in documents. Com
 
 ## Architecture Notes
 - **Single Web Worker** (`processingWorker.ts`): receives File, parses it, detects PII, returns results
-- **Wizard pattern**: no react-router-dom, state-driven page rendering
+- **URL routing**: react-router-dom for multi-page navigation (SEO landing pages, Stripe redirect, auth flow). Tab-switching within the main app uses local state, not router.
 - **Virtualization**: TokenText uses @tanstack/react-virtual for large documents
 - **Vault destroy**: overwrites with random data → flush → delete DB → generates destruction certificate

@@ -13,10 +13,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Restore session on mount — token never touches localStorage.
   // Guard prevents double-call in StrictMode / concurrent mode.
+  // If offline on mount, skip refresh immediately and retry when connection is restored.
   useEffect(() => {
     if (attempted.current) return
     attempted.current = true
     void initAuth()
+
+    const onOnline = () => { void initAuth().catch(() => {}) }
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
   }, [initAuth])
 
   return <>{children}</>

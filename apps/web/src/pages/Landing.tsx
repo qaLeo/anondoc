@@ -42,16 +42,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
   const isDE = currentLang === 'de'
   const isFR = currentLang === 'fr'
 
-  const comparisonRows: Array<{ label: string; free: string | boolean; pro: string | boolean; team: string | boolean }> = [
-    { label: t('comparison.docs_month'),   free: t('comparison.free_docs'),    pro: t('comparison.pro_docs'),    team: t('comparison.pro_docs') },
-    { label: t('comparison.files_session'),free: t('comparison.free_files'),   pro: t('comparison.pro_files'),   team: t('comparison.pro_files') },
-    { label: t('comparison.key'),          free: false,                        pro: true,                        team: true },
-    { label: t('comparison.deanon'),       free: true,                         pro: true,                        team: true },
-    { label: t('comparison.formats'),      free: 'DOCX · XLSX · PDF · TXT',   pro: 'DOCX · XLSX · PDF · TXT',   team: 'DOCX · XLSX · PDF · TXT' },
-    { label: t('comparison.users'),        free: '1',                          pro: '1',                         team: t('comparison.team_users') },
-    { label: t('comparison.storage'),      free: t('comparison.free_storage'), pro: t('comparison.pro_storage'), team: t('comparison.team_storage') },
-    { label: t('comparison.price'),        free: t('comparison.free_price'),   pro: t('comparison.pro_price'),   team: t('comparison.team_price') },
-  ]
 
   return (
     <div style={{ minHeight: '100vh', background: '#ffffff', fontFamily: 'inherit' }}>
@@ -228,7 +218,7 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
             {t('social_proof.title')}
           </h2>
 
-          <div className="social-proof-grid">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {([
               { icon: '⚖️', key: 'industry_1' },
               { icon: '🏥', key: 'industry_2' },
@@ -575,102 +565,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         </div>
       </section>
 
-      {/* ── Comparison table ─────────────────────────────────────────────────── */}
-      <section id="pricing" style={{ background: '#f9fafb', padding: '64px 32px' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#111827', marginBottom: 8, textAlign: 'center' }}>
-            {t('comparison.title')}
-          </h2>
-          <p style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', marginBottom: 36 }}>
-            {t('comparison.subtitle')}
-          </p>
-
-          <div className="landing-compare-outer">
-            <div className="landing-compare-inner" style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-              {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
-                <div style={{ padding: '14px 20px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#6b7280' }}>
-                  {t('comparison.param')}
-                </div>
-                <div style={{ padding: '14px 20px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', borderLeft: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#374151', textAlign: 'center' }}>
-                  Free
-                </div>
-                <div style={{ padding: '14px 20px', background: '#eff6ff', borderBottom: '1px solid #dbeafe', borderLeft: '1px solid #dbeafe', fontSize: 13, fontWeight: 700, color: '#1a56db', textAlign: 'center', position: 'relative' }}>
-                  Pro
-                  <span style={{
-                    position: 'absolute', top: -1, right: 8,
-                    background: '#1a56db', color: '#ffffff',
-                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: '0 0 8px 8px',
-                  }}>
-                    {t('comparison.popular')}
-                  </span>
-                </div>
-                <div style={{ padding: '14px 20px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', borderLeft: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#374151', textAlign: 'center' }}>
-                  Team
-                </div>
-              </div>
-
-              {/* Data rows */}
-              {comparisonRows.map((row, i) => (
-                <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
-                  <div style={{ padding: '12px 20px', borderTop: i === 0 ? undefined : '1px solid #f3f4f6', fontSize: 13, color: '#374151' }}>
-                    {row.label}
-                  </div>
-                  <div style={{ padding: '12px 20px', borderTop: i === 0 ? undefined : '1px solid #f3f4f6', borderLeft: '1px solid #e5e7eb', fontSize: 13, color: '#6b7280', textAlign: 'center' }}>
-                    {typeof row.free === 'boolean'
-                      ? <span style={{ color: row.free ? '#1a56db' : '#9ca3af', fontWeight: 600 }}>{row.free ? '✓' : '✗'}</span>
-                      : row.free}
-                  </div>
-                  <div style={{ padding: '12px 20px', borderTop: i === 0 ? undefined : '1px solid #dbeafe', borderLeft: '1px solid #dbeafe', background: '#f8fbff', fontSize: 13, color: '#1d4ed8', textAlign: 'center', fontWeight: typeof row.pro === 'string' ? 400 : 600 }}>
-                    {typeof row.pro === 'boolean'
-                      ? <span style={{ color: row.pro ? '#1a56db' : '#9ca3af', fontWeight: 600 }}>{row.pro ? '✓' : '✗'}</span>
-                      : row.pro}
-                  </div>
-                  <div style={{ padding: '12px 20px', borderTop: i === 0 ? undefined : '1px solid #f3f4f6', borderLeft: '1px solid #e5e7eb', fontSize: 13, color: '#374151', textAlign: 'center', fontWeight: typeof row.team === 'string' ? 400 : 600 }}>
-                    {typeof row.team === 'boolean'
-                      ? <span style={{ color: row.team ? '#1a56db' : '#9ca3af', fontWeight: 600 }}>{row.team ? '✓' : '✗'}</span>
-                      : row.team}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Team economy note */}
-          <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: '#6b7280' }}>
-            <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: 6, padding: '4px 12px', fontWeight: 500 }}>
-              {t('comparison.team_economy')}
-            </span>
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 20, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => navigate('/pricing')}
-              style={{
-                background: '#1a56db', color: '#ffffff',
-                padding: '12px 28px', fontSize: 15, fontWeight: 600,
-                border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-            >
-              {t('comparison.cta')}
-            </button>
-            <button
-              onClick={() => navigate('/pricing')}
-              style={{
-                background: '#ffffff', color: '#374151',
-                padding: '12px 28px', fontSize: 15, fontWeight: 600,
-                border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', transition: 'border-color 0.15s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = '#1a56db')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
-            >
-              {t('comparison.team_cta')}
-            </button>
-          </div>
-        </div>
-      </section>
 
       {/* ── Trust block ──────────────────────────────────────────────────────── */}
       <section style={{ background: '#ffffff', padding: '48px 32px' }}>
