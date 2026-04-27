@@ -1,8 +1,11 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { InlineDemo } from '../components/InlineDemo'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+
+const InlineDemo = lazy(() =>
+  import('../components/InlineDemo').then(m => ({ default: m.InlineDemo }))
+)
 import type { SupportedLang } from '../i18n/index'
 
 function AppIcon({ size = 28 }: { size?: number }) {
@@ -121,11 +124,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="landing-hero-section" style={{ padding: '80px 32px 64px' }}>
-        <style>{`
-          @media (max-width: 768px) {
-            .landing-hero-h1 { font-size: 32px !important; }
-          }
-        `}</style>
         <div className="landing-hero-grid" style={{
           maxWidth: 1200, margin: '0 auto',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center',
@@ -167,7 +165,7 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
                 {t('hero.cta_primary')}
               </button>
               <button
-                onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => navigate('/pricing')}
                 style={{
                   background: 'transparent', color: '#374151',
                   padding: '12px 20px', fontSize: 15,
@@ -176,7 +174,7 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
                 onMouseEnter={e => (e.currentTarget.style.borderColor = '#1a56db')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
               >
-                {t('hero.cta_demo')}
+                {t('hero.cta_plans')}
               </button>
             </div>
           </div>
@@ -222,19 +220,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
 
       {/* ── Social Proof ─────────────────────────────────────────────────────── */}
       <section style={{ background: '#f9fafb', padding: '64px 32px' }}>
-        <style>{`
-          .social-proof-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 16px;
-          }
-          @media (max-width: 900px) {
-            .social-proof-grid { grid-template-columns: repeat(3, 1fr); }
-          }
-          @media (max-width: 480px) {
-            .social-proof-grid { grid-template-columns: repeat(2, 1fr); }
-          }
-        `}</style>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <h2 style={{
             fontSize: 24, fontWeight: 800, color: '#111827', marginBottom: 36,
@@ -324,19 +309,15 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
             {isDE ? 'Demo · jetzt ausprobieren' : isFR ? 'Démo · essayez maintenant' : 'Demo · try it now'}
           </div>
           <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
-            <InlineDemo />
+            <Suspense fallback={<div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#9ca3af' }}>Loading demo…</div>}>
+              <InlineDemo />
+            </Suspense>
           </div>
         </div>
       </section>
 
       {/* ── How it works ─────────────────────────────────────────────────────── */}
       <section id="how-it-works" style={{ background: '#ffffff', padding: '64px 32px' }}>
-        <style>{`
-          @media (max-width: 768px) {
-            .hiw-grid { grid-template-columns: 1fr !important; }
-            .hiw-arrow { transform: rotate(90deg); }
-          }
-        `}</style>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <h2 style={{ fontSize: 26, fontWeight: 800, color: '#111827', marginBottom: 8, textAlign: 'center', letterSpacing: '-0.5px' }}>
             {t('how_it_works.title')}
@@ -821,19 +802,27 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         padding: '24px 32px', borderTop: '1px solid #e5e7eb',
         textAlign: 'center', fontSize: 12, color: '#9ca3af',
       }}>
-        <div>
-          {t('footer.offline', { ns: 'common' })} · {t('footer.gdpr', { ns: 'common' })} · {t('footer.aes', { ns: 'common' })} ·{' '}
+        <div style={{ marginBottom: 8, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 12px' }}>
+          <Link to="/pricing" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+            {t('footer.pricing', { ns: 'common' })}
+          </Link>
+          <a href="mailto:info@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+            {t('footer.contact', { ns: 'common' })}
+          </a>
           <Link to="/privacy" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
             {t('footer.privacy', { ns: 'common' })}
           </Link>
+          <a href="mailto:dpo@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+            {t('footer.dpo', { ns: 'common' })}
+          </a>
           {isDE && (
-            <>
-              {' · '}
-              <Link to="/de/impressum" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
-                {t('footer.imprint', { ns: 'common' })}
-              </Link>
-            </>
+            <Link to="/de/impressum" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+              {t('footer.imprint', { ns: 'common' })}
+            </Link>
           )}
+        </div>
+        <div>
+          {t('footer.offline', { ns: 'common' })} · {t('footer.gdpr', { ns: 'common' })} · {t('footer.aes', { ns: 'common' })}
         </div>
         {isDE && (
           <div style={{ marginTop: 10 }}>

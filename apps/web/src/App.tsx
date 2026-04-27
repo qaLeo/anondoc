@@ -15,6 +15,7 @@ function AppIcon({ size = 22 }: { size?: number }) {
 }
 import { AnonymizationTab } from './components/AnonymizationTab'
 import { DeanonymizationTab } from './components/DeanonymizationTab'
+import { RateLimitModal } from './components/RateLimitModal'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { UsageProvider, useUsage } from './context/UsageContext'
 import Auth from './pages/Auth'
@@ -26,6 +27,8 @@ import History from './pages/History'
 import Landing from './pages/Landing'
 import Impressum from './pages/Impressum'
 import Datenschutz from './pages/Datenschutz'
+
+const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED !== 'false'
 
 type Tab = 'anonymize' | 'deanonymize'
 
@@ -54,9 +57,11 @@ function MainPage() {
   const location = useLocation()
   const params = new URLSearchParams(location.search)
   const [tab, setTab] = useState<Tab>(params.get('deanon') === '1' ? 'deanonymize' : 'anonymize')
+  const { isDailyLimitReached, clearDailyLimit } = useUsage()
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      {isDailyLimitReached && <RateLimitModal onClose={clearDailyLimit} />}
       <AppHeader activeTab={tab} onTabChange={setTab} />
       <main style={{ maxWidth: 700, margin: '0 auto', padding: '32px 20px 80px' }}>
         {tab === 'anonymize' ? <AnonymizationTab /> : <DeanonymizationTab />}
@@ -259,7 +264,9 @@ export default function App() {
             <Route path="/en/pricing" element={<Pricing />} />
             <Route path="/fr/pricing" element={<Pricing />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/billing/success" element={<ProtectedRoute><BillingSuccess /></ProtectedRoute>} />
+            <Route path="/billing/success" element={STRIPE_ENABLED ? <ProtectedRoute><BillingSuccess /></ProtectedRoute> : <PricingGate />} />
+            <Route path="/billing" element={<PricingGate />} />
+            <Route path="/checkout" element={<PricingGate />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             {/* Language-prefixed landing pages */}

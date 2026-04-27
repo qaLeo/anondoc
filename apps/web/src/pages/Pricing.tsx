@@ -1,29 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
-import { useUsage } from '../context/UsageContext'
-import { billingApi } from '../api/client'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
-
-type Region = 'EU' | 'OTHER'
-
-const EU_LOCALES = ['de','fr','nl','it','es','pl','sv','da','fi','nb','pt','cs','sk','hu','ro','bg','hr','sl','et','lv','lt','el','ga','mt','lb','ru','uk','be','kk']
-
-const PRICE_BY_REGION: Record<Region, { pro: string; team: string }> = {
-  EU:    { pro: '€29', team: '€99' },
-  OTHER: { pro: '$29', team: '$99' },
-}
-
-/** Detect region from browser locale — no network request */
-function detectRegion(): Region {
-  const cached = sessionStorage.getItem('anondoc_region') as Region | null
-  if (cached === 'EU' || cached === 'OTHER') return cached
-  const lang = navigator.language.split('-')[0].toLowerCase()
-  const region: Region = EU_LOCALES.includes(lang) ? 'EU' : 'OTHER'
-  sessionStorage.setItem('anondoc_region', region)
-  return region
-}
+import { BusinessContactModal } from '../components/BusinessContactModal'
+import { api } from '../api/client'
 
 function AppIcon({ size = 22 }: { size?: number }) {
   return (
@@ -34,94 +15,43 @@ function AppIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-const PLAN_API: Record<string, string> = {
-  FREE: 'FREE',
-  PRO: 'PRO',
-  TEAM: 'BUSINESS',
-}
-
 export default function Pricing() {
-  const { t } = useTranslation('app')
+  const { t, i18n } = useTranslation('app')
   const { isAuthenticated } = useAuth()
-  const { usage, isTrial, trialDaysLeft, refresh: refreshUsage } = useUsage()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [trialStarted, setTrialStarted] = useState(false)
-  const [region, setRegion] = useState<Region>('EU')
+  const lang = i18n.language?.split('-')[0] ?? 'en'
 
-  useEffect(() => {
-    setRegion(detectRegion())
-  }, [])
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [waitlistEmail, setWaitlistEmail] = useState('')
+  const [waitlistLoading, setWaitlistLoading] = useState(false)
+  const [waitlistDone, setWaitlistDone] = useState(false)
+  const [waitlistError, setWaitlistError] = useState<string | null>(null)
 
-  const prices = PRICE_BY_REGION[region]
-
-  const rawPlan = usage?.plan ?? 'FREE'
-  const currentUiPlan = rawPlan === 'BUSINESS' ? 'TEAM' : rawPlan
-  const trialUsed = usage?.trialUsed ?? false
-
-  const plans = [
-    {
-      id: 'FREE',
-      name: 'Free',
-      subtitle: t('pricing.free_subtitle'),
-      price: '0',
-      features: t('pricing.free_features', { returnObjects: true }) as string[],
-    },
-    {
-      id: 'PRO',
-      name: 'Pro',
-      subtitle: t('pricing.pro_subtitle'),
-      price: prices.pro,
-      features: t('pricing.pro_features', { returnObjects: true }) as string[],
-    },
-    {
-      id: 'TEAM',
-      name: 'Team',
-      subtitle: t('pricing.team_subtitle'),
-      price: prices.team,
-      features: t('pricing.team_features', { returnObjects: true }) as string[],
-    },
-  ]
-
-  const handleSubscribe = async (planId: string) => {
-    if (!isAuthenticated) { navigate('/auth'); return }
-    if (planId === 'FREE' || planId === currentUiPlan) return
-    setError(null)
-    setLoading(planId)
-    try {
-      const returnUrl = `${window.location.origin}/billing/success`
-      const { data } = await billingApi.subscribe(PLAN_API[planId], returnUrl)
-      window.location.href = data.url
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('pricing.title'))
-      setLoading(null)
+  const handleWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waitlistEmail)) {
+      setWaitlistError(t('pricing.pro_waitlist_err_email'))
+      return
     }
-  }
-
-  const handleTrial = async () => {
-    if (!isAuthenticated) { navigate('/auth'); return }
-    setError(null)
-    setLoading('TRIAL')
+    setWaitlistLoading(true)
+    setWaitlistError(null)
     try {
-      await billingApi.startTrial()
-      await refreshUsage()
-      setTrialStarted(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('pricing.title'))
+      await api.post('/api/v1/waitlist/pro', { email: waitlistEmail, locale: lang })
+      setWaitlistDone(true)
+    } catch {
+      setWaitlistError(t('pricing.pro_waitlist_err_generic'))
     } finally {
-      setLoading(null)
+      setWaitlistLoading(false)
     }
   }
-
-  const period = t('pricing.period')
 
   return (
     <div style={{ minHeight: '100vh', background: '#ffffff' }}>
+      {showContactModal && <BusinessContactModal onClose={() => setShowContactModal(false)} />}
+
       {/* Header */}
       <header style={{
-        borderBottom: '1px solid #e5e7eb',
-        padding: '0 28px', height: 56,
+        borderBottom: '1px solid #e5e7eb', padding: '0 28px', height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: '#ffffff', gap: 16,
       }}>
@@ -130,9 +60,7 @@ export default function Pricing() {
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }}
         >
           <AppIcon size={22} />
-          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.3px' }}>
-            AnonDoc
-          </span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827', letterSpacing: '-0.3px' }}>AnonDoc</span>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <LanguageSwitcher />
@@ -145,165 +73,139 @@ export default function Pricing() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 80px' }}>
-        <h1 style={{ fontSize: 32, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>
+      <main style={{ maxWidth: 860, margin: '0 auto', padding: '48px 20px 80px' }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, color: '#111827', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
           {t('pricing.title')}
         </h1>
-        <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 32 }}>
-          {t('pricing.subtitle')}
-        </div>
-
-        {error && (
-          <div style={{ fontSize: 13, color: '#dc2626', marginBottom: 20 }}>{error}</div>
-        )}
-
-        {trialStarted && (
-          <div style={{ fontSize: 13, color: '#374151', marginBottom: 20 }}>
-            {t('pricing.trial_active')}
-          </div>
-        )}
+        <p style={{ fontSize: 15, color: '#6b7280', margin: '0 0 40px' }}>
+          {t('pricing.subtitle_new')}
+        </p>
 
         {/* 3-column grid */}
-        <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {plans.map((plan) => {
-            const isCurrent = isAuthenticated && plan.id === currentUiPlan && !isTrial
-            const isCurrentTrial = isAuthenticated && plan.id === 'PRO' && isTrial
-            const canActivateTrial = isAuthenticated && plan.id === 'PRO' && !trialUsed && !isTrial && !trialStarted
-            const isLoadingThis = loading === plan.id
-            const isPro = plan.id === 'PRO'
+        <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, alignItems: 'start' }}>
 
-            return (
-              <div
-                key={plan.id}
-                className={isPro ? 'pricing-card-pro' : undefined}
-                style={{
-                  position: 'relative',
-                  background: isPro ? '#f8fbff' : '#ffffff',
-                  border: isPro ? '2px solid #1a56db' : '1px solid #e5e7eb',
-                  borderRadius: 12,
-                  padding: '24px 20px',
-                  overflow: 'visible',
-                }}
-              >
-                {isPro && (
-                  <div style={{
-                    position: 'absolute', top: -12, left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: '#1a56db', color: '#ffffff',
-                    fontSize: 11, fontWeight: 600, padding: '3px 12px', borderRadius: 20,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {t('pricing.popular')}
-                  </div>
-                )}
+          {/* ── FREE ─────────────────────────────────────────────── */}
+          <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: '24px 20px' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Free</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#111827', marginBottom: 4 }}>€0</div>
+            <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>{t('pricing.free_subtitle_new')}</div>
 
-                <div style={{
-                  fontSize: 16, fontWeight: 700, color: '#111827',
-                  textDecoration: (isCurrent || isCurrentTrial) ? 'underline' : 'none',
-                  marginBottom: 4,
-                }}>
-                  {plan.name}
-                  {isCurrentTrial && trialDaysLeft !== null && (
-                    <span style={{ fontSize: 11, color: '#6b7280', marginLeft: 6 }}>
-                      · {trialDaysLeft} d.
-                    </span>
-                  )}
-                </div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(t('pricing.free_features_new', { returnObjects: true }) as string[]).map((f, i) => (
+                <li key={i} style={{ fontSize: 13, color: '#374151', display: 'flex', gap: 8 }}>
+                  <span style={{ color: '#10b981', flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
 
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
-                  {plan.subtitle}
-                </div>
-
-                <div style={{ marginBottom: 20 }}>
-                  <span style={{ fontSize: 20, fontWeight: 600, color: '#111827', letterSpacing: '-0.5px' }}>
-                    {plan.price}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 4 }}>
-                    {period}
-                  </span>
-                </div>
-
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {(Array.isArray(plan.features) ? plan.features : []).map((f, i) => (
-                    <li key={i} style={{ fontSize: 13, color: '#374151' }}>
-                      <span style={{ color: '#1a56db', marginRight: 6 }}>✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                {(isCurrent || isCurrentTrial) ? (
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>{t('pricing.label_current')}</div>
-                ) : canActivateTrial ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <button
-                      onClick={handleTrial}
-                      disabled={loading === 'TRIAL'}
-                      style={{
-                        padding: '10px 0', fontSize: 14, fontWeight: 500,
-                        background: 'none', color: '#1a56db',
-                        border: '1.5px solid #1a56db', borderRadius: 8,
-                        cursor: loading === 'TRIAL' ? 'default' : 'pointer',
-                        opacity: loading === 'TRIAL' ? 0.6 : 1, width: '100%',
-                      }}
-                    >
-                      {loading === 'TRIAL' ? '...' : t('pricing.trial_cta')}
-                    </button>
-                    <button
-                      onClick={() => handleSubscribe(plan.id)}
-                      disabled={!!isLoadingThis}
-                      style={{
-                        padding: '10px 0', fontSize: 14, fontWeight: 500,
-                        background: '#1a56db', color: '#ffffff',
-                        border: 'none', borderRadius: 8,
-                        cursor: isLoadingThis ? 'default' : 'pointer',
-                        opacity: isLoadingThis ? 0.6 : 1, width: '100%',
-                      }}
-                    >
-                      {isLoadingThis ? '...' : t('pricing.subscribe')}
-                    </button>
-                  </div>
-                ) : plan.id !== 'FREE' ? (
-                  <button
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={!!isLoadingThis}
-                    style={{
-                      width: '100%', padding: '10px 0', fontSize: 14, fontWeight: 500,
-                      background: '#1a56db', color: '#ffffff',
-                      border: 'none', borderRadius: 8,
-                      cursor: isLoadingThis ? 'default' : 'pointer',
-                      opacity: isLoadingThis ? 0.6 : 1,
-                    }}
-                  >
-                    {isLoadingThis ? '...' : t('pricing.subscribe')}
-                  </button>
-                ) : (
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>{t('pricing.label_free')}</div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Enterprise */}
-        <div className="pricing-enterprise" style={{
-          marginTop: 20, padding: '16px 20px',
-          border: '1px solid #e5e7eb', borderRadius: 8,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div>
-            <span style={{ fontSize: 13, color: '#111827' }}>Enterprise</span>
-            <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 12 }}>
-              {t('pricing.enterprise_desc')}
-            </span>
+            <button
+              onClick={() => navigate('/auth')}
+              style={{
+                width: '100%', padding: '11px 0', fontSize: 14, fontWeight: 600,
+                background: '#111827', color: '#ffffff',
+                border: 'none', borderRadius: 8, cursor: 'pointer',
+              }}
+            >
+              {t('pricing.free_cta')}
+            </button>
           </div>
-          <a
-            href="mailto:sales@anondoc.app?subject=Enterprise"
-            style={{ fontSize: 12, color: '#6b7280', textDecoration: 'none' }}
+
+          {/* ── PRO (coming soon) ─────────────────────────────────── */}
+          <div
+            className="pricing-card-pro"
+            style={{ position: 'relative', border: '2px solid #1a56db', borderRadius: 12, padding: '24px 20px', background: '#f8fbff' }}
           >
-            {t('pricing.contact')}
-          </a>
+            <div style={{
+              position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
+              background: '#1a56db', color: '#fff', fontSize: 11, fontWeight: 600,
+              padding: '3px 12px', borderRadius: 20, whiteSpace: 'nowrap',
+            }}>
+              {t('pricing.pro_badge')}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1a56db', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Pro</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#111827', marginBottom: 4 }}>—</div>
+            <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>{t('pricing.pro_subtitle_new')}</div>
+
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(t('pricing.pro_features_new', { returnObjects: true }) as string[]).map((f, i) => (
+                <li key={i} style={{ fontSize: 13, color: '#374151', display: 'flex', gap: 8 }}>
+                  <span style={{ color: '#1a56db', flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
+
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 12, textAlign: 'center' }}>
+              {t('pricing.pro_launch')}
+            </div>
+
+            {waitlistDone ? (
+              <div style={{
+                padding: '10px 12px', background: '#f0fdf4', border: '1px solid #86efac',
+                borderRadius: 8, fontSize: 13, color: '#15803d', textAlign: 'center',
+              }}>
+                ✓ {t('pricing.pro_waitlist_done')}
+              </div>
+            ) : (
+              <form onSubmit={handleWaitlist} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <input
+                  type="email"
+                  placeholder={t('pricing.pro_waitlist_placeholder')}
+                  value={waitlistEmail}
+                  onChange={e => { setWaitlistEmail(e.target.value); setWaitlistError(null) }}
+                  style={{
+                    width: '100%', padding: '9px 12px', fontSize: 13,
+                    border: '1px solid #e5e7eb', borderRadius: 7, outline: 'none',
+                    fontFamily: 'inherit', boxSizing: 'border-box',
+                  }}
+                />
+                {waitlistError && <div style={{ fontSize: 12, color: '#dc2626' }}>{waitlistError}</div>}
+                <button
+                  type="submit"
+                  disabled={waitlistLoading}
+                  style={{
+                    width: '100%', padding: '10px 0', fontSize: 13, fontWeight: 600,
+                    background: '#1a56db', color: '#fff',
+                    border: 'none', borderRadius: 7, cursor: waitlistLoading ? 'default' : 'pointer',
+                    opacity: waitlistLoading ? 0.7 : 1,
+                  }}
+                >
+                  {waitlistLoading ? '...' : t('pricing.pro_waitlist_cta')}
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* ── BUSINESS ─────────────────────────────────────────── */}
+          <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: '24px 20px' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Business</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#111827', marginBottom: 4 }}>{t('pricing.biz_price')}</div>
+            <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>{t('pricing.biz_subtitle')}</div>
+
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(t('pricing.biz_features', { returnObjects: true }) as string[]).map((f, i) => (
+                <li key={i} style={{ fontSize: 13, color: '#374151', display: 'flex', gap: 8 }}>
+                  <span style={{ color: '#10b981', flexShrink: 0 }}>✓</span>{f}
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={() => setShowContactModal(true)}
+              style={{
+                width: '100%', padding: '11px 0', fontSize: 14, fontWeight: 600,
+                background: 'transparent', color: '#111827',
+                border: '1.5px solid #111827', borderRadius: 8, cursor: 'pointer',
+              }}
+            >
+              {t('pricing.biz_cta')}
+            </button>
+          </div>
         </div>
+
+        {/* Bottom note */}
+        <p style={{ textAlign: 'center', marginTop: 32, fontSize: 12, color: '#9ca3af' }}>
+          {t('pricing.gdpr_note')}
+        </p>
       </main>
     </div>
   )

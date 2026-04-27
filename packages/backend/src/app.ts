@@ -14,6 +14,7 @@ import { billingRoutes } from './routes/billing.js'
 import { anonymizeRoutes } from './routes/api/v1/anonymize.js'
 import { deanonymizeRoutes } from './routes/api/v1/deanonymize.js'
 import { keysRoutes } from './routes/api/v1/keys.js'
+import { contactRoutes } from './routes/api/v1/contact.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -102,6 +103,7 @@ export async function buildApp() {
   await app.register(anonymizeRoutes, { prefix: '/api/v1' })
   await app.register(deanonymizeRoutes, { prefix: '/api/v1' })
   await app.register(keysRoutes, { prefix: '/api/v1' })
+  await app.register(contactRoutes, { prefix: '/api/v1' })
 
   // Health check
   app.get('/health', async () => {

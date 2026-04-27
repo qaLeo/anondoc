@@ -6,17 +6,20 @@ export interface UsageSlice {
   usage: UsageData | null
   isUsageLoading: boolean
   isLimitReached: boolean
+  isDailyLimitReached: boolean
   isNearLimit: boolean
   isTrial: boolean
   trialDaysLeft: number | null
   refreshUsage: () => Promise<void>
   trackDocument: () => Promise<void>
+  clearDailyLimit: () => void
 }
 
 export const createUsageSlice: StateCreator<AppStore, [], [], UsageSlice> = (set, get) => ({
   usage: null,
   isUsageLoading: false,
   isLimitReached: false,
+  isDailyLimitReached: false,
   isNearLimit: false,
   isTrial: false,
   trialDaysLeft: null,
@@ -46,8 +49,14 @@ export const createUsageSlice: StateCreator<AppStore, [], [], UsageSlice> = (set
     try {
       await usageApi.track()
       await get().refreshUsage()
-    } catch {
-      // non-critical
+    } catch (err: unknown) {
+      // Surface 429 rate limit to UI
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 429) {
+        set({ isDailyLimitReached: true })
+      }
     }
   },
+
+  clearDailyLimit: () => set({ isDailyLimitReached: false }),
 })

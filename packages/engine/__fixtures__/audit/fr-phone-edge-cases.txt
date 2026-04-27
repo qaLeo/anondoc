@@ -1,0 +1,13 @@
+Standard: 01 23 45 67 89
+With country code: +33 1 23 45 67 89
+With extension (poste): 01 23 45 67 89 poste 123
+With extension (ext): 01 23 45 67 89 ext. 45
+Old format (no spaces): 0123456789
+Mobile: 06 12 34 56 78
+Mobile international: +33 6 12 34 56 78
+With dot separator: 01.23.45.67.89
+With dash: 01-23-45-67-89
+In context: Tél: 01 23 45 67 89 (poste 4567)
+In context with name: François Dupont — 06 12 34 56 78
+Mid-text: appelez le 01 23 45 67 89 entre 9h et 17h
+0033 format: 0033 1 23 45 67 89

@@ -1,0 +1,13 @@
+US standard: (555) 123-4567
+US with extension: (555) 123-4567 ext. 890
+US with extension (alt): (555) 123-4567 x890
+US international: +1 555 123 4567
+UK landline: 020 7946 0958
+UK with country: +44 20 7946 0958
+UK mobile: 07700 900123
+UK with extension: 020 7946 0958 ext 4567
+Plain digits US: 5551234567
+Plain digits UK: 02079460958
+In context: Call us at (555) 123-4567 between 9am and 5pm
+With name: John Smith — +1 (555) 123-4567
+BUPA regression: Contact BUPA at 0800 600 500 for medical insurance

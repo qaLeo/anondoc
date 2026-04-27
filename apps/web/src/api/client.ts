@@ -125,6 +125,16 @@ export const keysApi = {
   revoke: (id: string) => api.delete(`/api/v1/keys/${id}`),
 }
 
+// Contact + waitlist
+export const contactApi = {
+  business: (data: {
+    companyName: string; role: string; country: string
+    industry: string; expectedVolume: string; email: string; message?: string
+  }) => api.post<{ ok: boolean; id: string }>('/api/v1/contact/business', data),
+  proWaitlist: (email: string, locale: string) =>
+    api.post<{ ok: boolean }>('/api/v1/waitlist/pro', { email, locale }),
+}
+
 // Types
 export interface AuthResponse {
   accessToken: string

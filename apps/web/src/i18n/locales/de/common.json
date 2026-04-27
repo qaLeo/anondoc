@@ -11,7 +11,10 @@
     "gdpr": "DSGVO-konform",
     "aes": "AES-256-Verschlüsselung",
     "privacy": "Datenschutzerklärung",
-    "imprint": "Impressum"
+    "imprint": "Impressum",
+    "pricing": "Preise",
+    "contact": "Kontakt",
+    "dpo": "DSB"
   },
   "pwa": {
     "update_available": "Neue Version verfügbar",

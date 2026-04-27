@@ -1,0 +1,137 @@
+======================================================================
+FR PHONE AUDIT
+======================================================================
+
+INPUT : Standard: 01 23 45 67 89
+OUTPUT: Standard: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : With country code: +33 1 23 45 67 89
+OUTPUT: With country code: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : With extension (poste): 01 23 45 67 89 poste 123
+OUTPUT: With extension (poste): [TEL_1] poste 123
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : With extension (ext): 01 23 45 67 89 ext. 45
+OUTPUT: With extension (ext): [TEL_1] ext. 45
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : Old format (no spaces): 0123456789
+OUTPUT: Old format (no spaces): [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : Mobile: 06 12 34 56 78
+OUTPUT: Mobile: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : Mobile international: +33 6 12 34 56 78
+OUTPUT: Mobile international: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : With dot separator: 01.23.45.67.89
+OUTPUT: With dot separator: 01.23.45.67.89
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : With dash: 01-23-45-67-89
+OUTPUT: With dash: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : In context: Tél: 01 23 45 67 89 (poste 4567)
+OUTPUT: In context: Tél: [TEL_1] (poste 4567)
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : In context with name: François Dupont — 06 12 34 56 78
+OUTPUT: In context with name: [NAME_1] — [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : Mid-text: appelez le 01 23 45 67 89 entre 9h et 17h
+OUTPUT: Mid-text: appelez le [TEL_1] entre 9h et 17h
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : 0033 format: 0033 1 23 45 67 89
+OUTPUT: 0033 format: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+======================================================================
+EN PHONE AUDIT
+======================================================================
+
+INPUT : US standard: (555) 123-4567
+OUTPUT: US standard: (555) 123-4567
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : US with extension: (555) 123-4567 ext. 890
+OUTPUT: US with extension: (555) 123-4567 ext. 890
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : US with extension (alt): (555) 123-4567 x890
+OUTPUT: US with extension (alt): (555) 123-4567 x890
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : US international: +1 555 123 4567
+OUTPUT: US international: +1 555 123 4567
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : UK landline: 020 7946 0958
+OUTPUT: UK landline: 020 7946 0958
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : UK with country: +44 20 7946 0958
+OUTPUT: UK with country: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : UK mobile: 07700 900123
+OUTPUT: UK mobile: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : UK with extension: 020 7946 0958 ext 4567
+OUTPUT: UK with extension: 020 7946 0958 ext 4567
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : Plain digits US: 5551234567
+OUTPUT: Plain digits US: 5551234567
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : Plain digits UK: 02079460958
+OUTPUT: Plain digits UK: [TEL_1]
+VAULT : (none)
+STATUS: DETECTED
+
+INPUT : In context: Call us at (555) 123-4567 between 9am and 5pm
+OUTPUT: In context: Call us at (555) 123-4567 between 9am and 5pm
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : With name: John Smith — +1 (555) 123-4567
+OUTPUT: With name: [NAME_1] — +1 (555) 123-4567
+VAULT : (none)
+STATUS: *** MISSED ***
+
+INPUT : BUPA regression: Contact BUPA at 0800 600 500 for medical insurance
+OUTPUT: BUPA regression: Contact BUPA at 0800 600 500 for medical insurance
+VAULT : (none)
+STATUS: *** MISSED ***

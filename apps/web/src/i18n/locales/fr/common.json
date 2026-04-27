@@ -10,7 +10,10 @@
     "offline": "Fonctionne hors ligne",
     "gdpr": "Conforme RGPD",
     "aes": "Chiffrement AES-256",
-    "privacy": "Politique de confidentialité"
+    "privacy": "Politique de confidentialité",
+    "pricing": "Tarifs",
+    "contact": "Contact",
+    "dpo": "DPD"
   },
   "pwa": {
     "update_available": "Nouvelle version disponible",

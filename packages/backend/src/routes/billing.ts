@@ -14,11 +14,14 @@ const FREE_EMAIL_DOMAINS = new Set([
 
 const TRIAL_DAYS = 10
 
+const STRIPE_ENABLED = process.env.STRIPE_ENABLED !== 'false'
+
 export async function billingRoutes(app: FastifyInstance) {
   // POST /billing/subscribe
   app.post('/subscribe', {
     preHandler: [app.authenticate],
   }, async (req, reply) => {
+    if (!STRIPE_ENABLED) return reply.status(404).send({ error: 'billing_disabled' })
     const { plan, returnUrl } = req.body as { plan: string; returnUrl: string }
     const planEnum = plan.toUpperCase() as Plan
 

@@ -10,7 +10,10 @@
     "offline": "Works offline",
     "gdpr": "GDPR compliant",
     "aes": "AES-256 encryption",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "dpo": "DPO"
   },
   "pwa": {
     "update_available": "A new version is available",

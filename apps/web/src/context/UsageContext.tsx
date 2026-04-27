@@ -25,13 +25,15 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
 export function useUsage() {
   return useAppStore(useShallow(s => ({
-    usage:          s.usage,
-    isLoading:      s.isUsageLoading,
-    isLimitReached: s.isLimitReached,
-    isNearLimit:    s.isNearLimit,
-    isTrial:        s.isTrial,
-    trialDaysLeft:  s.trialDaysLeft,
-    refresh:        s.refreshUsage,
-    trackDocument:  s.trackDocument,
+    usage:               s.usage,
+    isLoading:           s.isUsageLoading,
+    isLimitReached:      s.isLimitReached,
+    isDailyLimitReached: s.isDailyLimitReached,
+    isNearLimit:         s.isNearLimit,
+    isTrial:             s.isTrial,
+    trialDaysLeft:       s.trialDaysLeft,
+    refresh:             s.refreshUsage,
+    trackDocument:       s.trackDocument,
+    clearDailyLimit:     s.clearDailyLimit,
   })))
 }

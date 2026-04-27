@@ -29,9 +29,33 @@ export async function usageRoutes(app: FastifyInstance) {
   })
 
   // POST /me/usage/track — called by frontend after local anonymization
+  // Daily rate limit: FREE users → 25 docs/day (Redis TTL 86400)
+  // PRO/BUSINESS/ENTERPRISE → unlimited (bypass Redis check)
   app.post('/usage/track', {
     preHandler: [app.authenticate],
   }, async (req, reply) => {
+    const user = await app.prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { plan: true },
+    })
+    const plan = user?.plan ?? 'FREE'
+    const isUnlimited = plan === 'PRO' || plan === 'BUSINESS' || plan === 'ENTERPRISE'
+
+    if (!isUnlimited && app.redis) {
+      const key = `ratelimit:user:${req.userId}`
+      const count = await app.redis.incr(key)
+      // Set TTL on first increment
+      if (count === 1) await app.redis.expire(key, 86400)
+      if (count > 25) {
+        const ttl = await app.redis.ttl(key)
+        return reply.status(429).send({
+          error: 'rate_limit_exceeded',
+          retry_after: ttl > 0 ? ttl : 86400,
+          upgrade_url: '/pricing',
+        })
+      }
+    }
+
     await incrementUsage(req.userId, 0)
     const usage = await getUsage(req.userId)
     reply.send(usage)
