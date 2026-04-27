@@ -1,7 +1,8 @@
-import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense, type ReactNode } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { BusinessContactModal } from '../components/BusinessContactModal'
 
 const InlineDemo = lazy(() =>
   import('../components/InlineDemo').then(m => ({ default: m.InlineDemo }))
@@ -24,6 +25,14 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('landing')
   const [openFaq, setOpenFaq] = useState<Set<number>>(new Set())
+  const [showBizModal, setShowBizModal] = useState(false)
+  const bizBtnRef = useRef<HTMLButtonElement>(null)
+
+  const openBizModal = () => setShowBizModal(true)
+  const closeBizModal = () => {
+    setShowBizModal(false)
+    setTimeout(() => bizBtnRef.current?.focus(), 50)
+  }
 
   useEffect(() => {
     if (lang && i18n.language !== lang) {
@@ -46,6 +55,8 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
   return (
     <div style={{ minHeight: '100vh', background: '#ffffff', fontFamily: 'inherit' }}>
 
+      {showBizModal && <BusinessContactModal onClose={closeBizModal} />}
+
       {/* ── Nav ──────────────────────────────────────────────────────────────── */}
       <header style={{
         borderBottom: '1px solid #e5e7eb', padding: '0 32px', height: 56,
@@ -62,7 +73,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
             {[
               { label: t('nav.features', { ns: 'common' }), href: '#how-it-works' },
               { label: t('nav.pricing',  { ns: 'common' }), href: '/pricing' },
-              { label: t('nav.business', { ns: 'common' }), href: '#pricing' },
             ].map(({ label, href }) => (
               <a
                 key={label}
@@ -78,6 +88,18 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
                 {label}
               </a>
             ))}
+            <button
+              ref={bizBtnRef}
+              onClick={openBizModal}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontSize: 14, color: '#6b7280', transition: 'color 0.1s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#111827')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#6b7280')}
+            >
+              {t('nav.business', { ns: 'common' })}
+            </button>
           </nav>
 
           <div className="landing-nav-cta" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
