@@ -8,6 +8,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,wasm}'],
         runtimeCaching: [
           // Auth & billing: NetworkOnly — must never be served from cache
@@ -25,24 +28,6 @@ export default defineConfig({
               cacheName: 'api-cache',
               networkTimeoutSeconds: 5,
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
-            },
-          },
-          // Google Fonts stylesheets: StaleWhileRevalidate, 30-day expiry
-          {
-            urlPattern: ({ url }) => url.hostname === 'fonts.googleapis.com',
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          // Google Fonts files: StaleWhileRevalidate, 30-day expiry
-          {
-            urlPattern: ({ url }) => url.hostname === 'fonts.gstatic.com',
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
           // Images: CacheFirst, 30-day expiry
@@ -83,6 +68,22 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
+          },
+        ],
+        screenshots: [
+          {
+            src: '/screenshots/desktop-1.png',
+            sizes: '1886x905',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'AnonDoc — GDPR-safe AI privacy layer (desktop)',
+          },
+          {
+            src: '/screenshots/mobile-1.png',
+            sizes: '380x807',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'AnonDoc on mobile',
           },
         ],
       },
