@@ -22,11 +22,11 @@ import Auth from './pages/Auth'
 import Pricing from './pages/Pricing'
 import BillingSuccess from './pages/BillingSuccess'
 import Profile from './pages/Profile'
-import PrivacyPolicy from './pages/PrivacyPolicy'
 import History from './pages/History'
 import Landing from './pages/Landing'
 import Impressum from './pages/Impressum'
 import Datenschutz from './pages/Datenschutz'
+import { Privacy } from './pages/legal/Privacy'
 
 const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED !== 'false'
 
@@ -263,7 +263,12 @@ export default function App() {
             <Route path="/de/pricing" element={<Pricing />} />
             <Route path="/en/pricing" element={<Pricing />} />
             <Route path="/fr/pricing" element={<Pricing />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/en/privacy" element={<Privacy />} />
+            <Route path="/de/privacy" element={<Privacy />} />
+            <Route path="/fr/privacy" element={<Privacy />} />
+            {/* /ru/privacy → redirect to EN (RU content archived for future CIS release) */}
+            <Route path="/ru/privacy" element={<Navigate to="/en/privacy" replace />} />
             <Route path="/billing/success" element={STRIPE_ENABLED ? <ProtectedRoute><BillingSuccess /></ProtectedRoute> : <PricingGate />} />
             <Route path="/billing" element={<PricingGate />} />
             <Route path="/checkout" element={<PricingGate />} />

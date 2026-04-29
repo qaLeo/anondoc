@@ -725,7 +725,10 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
           <a href="mailto:info@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
             {t('footer.contact', { ns: 'common' })}
           </a>
-          <Link to="/privacy" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+          <Link
+            to={`/${currentLang === 'en' ? 'en' : currentLang}/privacy`}
+            style={{ color: '#9ca3af', textDecoration: 'underline' }}
+          >
             {t('footer.privacy', { ns: 'common' })}
           </Link>
           <a href="mailto:dpo@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
@@ -739,6 +742,9 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         </div>
         <div>
           {t('footer.offline', { ns: 'common' })} · {t('footer.gdpr', { ns: 'common' })} · {t('footer.aes', { ns: 'common' })}
+        </div>
+        <div style={{ marginTop: 10, fontSize: 11, opacity: 0.6 }}>
+          {t('footer.legalDisclaimer', { ns: 'common' })}
         </div>
         {isDE && (
           <div style={{ marginTop: 10 }}>
