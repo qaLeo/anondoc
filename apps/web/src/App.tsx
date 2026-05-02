@@ -24,7 +24,7 @@ import BillingSuccess from './pages/BillingSuccess'
 import Profile from './pages/Profile'
 import History from './pages/History'
 import Landing from './pages/Landing'
-import Impressum from './pages/Impressum'
+// import Impressum from './pages/Impressum' // not published yet — no legal entity address
 import Datenschutz from './pages/Datenschutz'
 import { Privacy } from './pages/legal/Privacy'
 
@@ -275,7 +275,7 @@ export default function App() {
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             {/* Language-prefixed landing pages */}
-            <Route path="/de/impressum" element={<Impressum />} />
+            {/* /de/impressum — not published yet, will 404 */}
             <Route path="/de/datenschutz" element={<Datenschutz />} />
             <Route path="/de" element={<Landing lang="de" />} />
             <Route path="/en" element={<Landing lang="en" />} />

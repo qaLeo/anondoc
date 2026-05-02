@@ -11,10 +11,8 @@
     "gdpr": "DSGVO-konform",
     "aes": "AES-256-Verschlüsselung",
     "privacy": "Datenschutzerklärung",
-    "imprint": "Impressum",
     "pricing": "Preise",
     "contact": "Kontakt",
-    "dpo": "DSB",
     "legalDisclaimer": "AnonDoc wird aus Armenien betrieben. Vollständige rechtliche Angaben werden mit unserem offiziellen EU-Launch veröffentlicht."
   },
   "pwa": {

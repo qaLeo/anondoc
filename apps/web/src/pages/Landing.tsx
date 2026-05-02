@@ -731,14 +731,6 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
           >
             {t('footer.privacy', { ns: 'common' })}
           </Link>
-          <a href="mailto:dpo@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
-            {t('footer.dpo', { ns: 'common' })}
-          </a>
-          {isDE && (
-            <Link to="/de/impressum" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
-              {t('footer.imprint', { ns: 'common' })}
-            </Link>
-          )}
         </div>
         <div>
           {t('footer.offline', { ns: 'common' })} · {t('footer.gdpr', { ns: 'common' })} · {t('footer.aes', { ns: 'common' })}
