@@ -127,12 +127,12 @@
     "pro_waitlist_err_email": "Gültige E-Mail-Adresse eingeben",
     "pro_waitlist_err_generic": "Ein Fehler ist aufgetreten. Bitte erneut versuchen.",
     "pro_features_new": [
-      "Unbegrenzte Dokumente",
+      "Unbegrenzte Dokumente pro Tag",
       "Bis zu 50 MB pro Datei",
-      "Stapelverarbeitung",
-      "Anonymisierungsverlauf (verschlüsselt)",
-      "Pro-Schlüssel (Offline-Zugriff)",
-      "E-Mail-Support"
+      "Stapelverarbeitung (mehrere Dateien gleichzeitig)",
+      "Anonymisierungsverlauf (verschlüsselt, 90 Tage)",
+      "E-Mail-Support",
+      "Vorrangige Verarbeitung"
     ],
     "biz_price": "Auf Anfrage",
     "biz_subtitle": "Für Unternehmen · Volumen besprechen",

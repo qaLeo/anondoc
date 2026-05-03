@@ -127,12 +127,12 @@
     "pro_waitlist_err_email": "Enter a valid email",
     "pro_waitlist_err_generic": "Something went wrong. Try again.",
     "pro_features_new": [
-      "Unlimited documents",
+      "Unlimited documents per day",
       "Up to 50 MB per file",
-      "Batch processing",
-      "Anonymisation history (encrypted)",
-      "Pro key (offline access)",
-      "Email support"
+      "Batch processing (multiple files at once)",
+      "Anonymisation history (encrypted, 90 days)",
+      "Email support",
+      "Priority processing"
     ],
     "biz_price": "Custom",
     "biz_subtitle": "For business · discuss volume",

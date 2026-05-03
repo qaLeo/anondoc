@@ -4,7 +4,7 @@ import { DropZone } from './DropZone'
 import { useAnonymizationSession } from '../hooks/useAnonymizationSession'
 import type { SessionFile } from '../vault/vaultService'
 import { useNavigate } from 'react-router-dom'
-import { serializeKey, anonymizeEu, detectDocumentLanguage } from '@anondoc/engine'
+import { serializeKey, anonymizeEu } from '@anondoc/engine'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 
@@ -18,7 +18,6 @@ function fmtDate(ts: number): string {
 }
 
 const EU_LANGS = ['en', 'de', 'fr'] as const
-type EuLang = typeof EU_LANGS[number]
 
 const TEXT_MAX = 50000
 
@@ -39,7 +38,6 @@ export function AnonymizationTab() {
     fileLimit,
     fileCount,
     isLimitReached,
-    canDownloadKey,
     nextPlan,
     plan,
   } = useAnonymizationSession()
@@ -128,16 +126,19 @@ export function AnonymizationTab() {
     if (!inputText.trim() || inputText.length > TEXT_MAX || isLimitReached) return
     setIsProcessingText(true)
     try {
-      const detected = detectDocumentLanguage(inputText)
-      const uiLang = i18n.language.split('-')[0]
-      const safeLang: EuLang = EU_LANGS.includes(detected as EuLang)
-        ? (detected as EuLang)
-        : EU_LANGS.includes(uiLang as EuLang)
-          ? (uiLang as EuLang)
-          : 'en'
-      const { anonymized, vault } = anonymizeEu(inputText, safeLang)
-      setAnonymizedText(anonymized)
-      setTextReplacements(Object.keys(vault).length)
+      // Apply all three EU pattern sets sequentially (EN first, then DE, then FR)
+      // so mixed-language text gets maximum PII coverage regardless of UI language.
+      // EN runs first to catch UK/US patterns (0800, (NPA) NXX-XXXX) before the
+      // DE local-phone pattern can partially consume the same digits.
+      let currentText = inputText
+      const mergedVault: Record<string, string> = {}
+      for (const lang of EU_LANGS) {
+        const { anonymized, vault } = anonymizeEu(currentText, lang)
+        currentText = anonymized
+        Object.assign(mergedVault, vault)
+      }
+      setAnonymizedText(currentText)
+      setTextReplacements(Object.keys(mergedVault).length)
       if (user) trackDocument().catch(() => {})
     } finally {
       setIsProcessingText(false)
@@ -158,11 +159,6 @@ export function AnonymizationTab() {
     : undefined
 
   const keyBtnDisabled = !session || session.files.length === 0
-  const keyBtnTitle = !canDownloadKey
-    ? t('anonymize.key_pro_tooltip')
-    : keyBtnDisabled
-      ? t('anonymize.key_empty_tooltip')
-      : undefined
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -206,16 +202,6 @@ export function AnonymizationTab() {
                 onFile={setPendingFile}
                 onReset={() => setPendingFile(null)}
               />
-              {pendingFile && !isProcessing && (
-                <button onClick={handleAnonymize} style={primaryBtn()}>
-                  {t('anonymize.startButton')}
-                </button>
-              )}
-              {isProcessing && (
-                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                  {t('anonymize.processing')}
-                </span>
-              )}
             </>
           )}
 
@@ -347,13 +333,13 @@ export function AnonymizationTab() {
               </button>
 
               <button
-                onClick={canDownloadKey ? handleDownloadKey : () => navigate('/pricing')}
-                disabled={canDownloadKey && keyBtnDisabled}
-                title={keyBtnTitle}
+                onClick={handleDownloadKey}
+                disabled={keyBtnDisabled}
+                title={keyBtnDisabled ? t('anonymize.key_empty_tooltip') : undefined}
                 style={{
                   ...secondaryBtn(),
-                  opacity: canDownloadKey && !keyBtnDisabled ? 1 : 0.5,
-                  cursor: canDownloadKey && !keyBtnDisabled ? 'pointer' : !canDownloadKey ? 'pointer' : 'not-allowed',
+                  opacity: keyBtnDisabled ? 0.5 : 1,
+                  cursor: keyBtnDisabled ? 'not-allowed' : 'pointer',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}

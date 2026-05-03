@@ -127,12 +127,12 @@
     "pro_waitlist_err_email": "Entrez une adresse e-mail valide",
     "pro_waitlist_err_generic": "Une erreur s'est produite. Réessayez.",
     "pro_features_new": [
-      "Documents illimités",
+      "Documents illimités par jour",
       "Jusqu'à 50 Mo par fichier",
-      "Traitement par lot",
-      "Historique d'anonymisation (chiffré)",
-      "Clé Pro (accès hors ligne)",
-      "Support par e-mail"
+      "Traitement par lot (plusieurs fichiers à la fois)",
+      "Historique d'anonymisation (chiffré, 90 jours)",
+      "Support par e-mail",
+      "Traitement prioritaire"
     ],
     "biz_price": "Sur devis",
     "biz_subtitle": "Pour les entreprises · volumes à discuter",
