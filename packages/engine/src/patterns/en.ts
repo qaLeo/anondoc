@@ -54,20 +54,88 @@ export const EN_PATTERNS: EuPattern[] = [
     token: 'SSN',
   },
 
-  // UK телефон: +44 или 0 + 10 цифр
+  // ── Phone patterns (ordered: most specific first) ────────────────────────
+
+  // US: (NPA) NXX-XXXX with optional ext./x suffix
   {
-    regex: /(?:\+44|0044)[\s\-]?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}/g,
+    regex: /\(\d{3}\)\s?\d{3}-\d{4}(?:\s*(?:ext\.?|x)\s*\d+)?/g,
     type: 'PHONE',
     label: 'Phone',
     token: 'TEL',
   },
-  // UK местный: 07XX или 01XX / 02XX
+
+  // US: +1 (NPA) NXX-XXXX
   {
-    regex: /\b0[1-9]\d{3}[\s]?\d{6}\b/g,
+    regex: /\+1\s\(\d{3}\)\s\d{3}-\d{4}/g,
     type: 'PHONE',
     label: 'Phone',
     token: 'TEL',
   },
+
+  // US: +1 NPA NXX XXXX
+  {
+    regex: /\+1\s\d{3}\s\d{3}\s\d{4}/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // US: bare 10-digit (NPA-NXX-XXXX without formatting) — not preceded by # or another digit
+  {
+    regex: /(?<![#\d])\d{10}(?!\d)/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // US: plain 10 digits only with explicit tel/phone/call/fax context (avoids false positives on order#/account#)
+  {
+    regex: /(?<=(?:tel|phone|call|fax|mobile|mob|cell)[:\s]\s*)\d{10}\b/gi,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // UK: +44 or 0044 international prefix with optional ext suffix
+  {
+    regex: /(?:\+44|0044)[\s\-]?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}(?:\s*(?:ext\.?|x)\s*\d+)?/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // UK: London 020 XXXX XXXX with optional ext suffix
+  {
+    regex: /\b020\s\d{4}\s\d{4}(?:\s*(?:ext\.?|x)\s*\d+)?\b/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // UK: 0800 freephone 3-segment (0800 XXX XXX)
+  {
+    regex: /\b0800\s\d{3}\s\d{3}\b/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // UK: mobile 07XXX XXXXXX
+  {
+    regex: /\b07\d{3}\s\d{6}\b/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
+  // UK: general local 0[1-9]XXX XXXXXX (catches non-London landlines; 0800 already caught above)
+  {
+    regex: /\b0[1-9]\d{3}\s\d{6}\b/g,
+    type: 'PHONE',
+    label: 'Phone',
+    token: 'TEL',
+  },
+
 
   // UK Driver's Licence: буква + 4 цифры + буква + 5 цифр + 2 символа (упрощённо)
   {

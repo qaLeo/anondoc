@@ -2,11 +2,18 @@
  * EU PII pattern tests — DE, FR, EN
  * Tests patterns from packages/engine/src/patterns/ directly.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, test } from 'vitest'
 import { DE_PATTERNS } from './patterns/de'
 import { FR_PATTERNS } from './patterns/fr'
 import { EN_PATTERNS } from './patterns/en'
 import type { EuPattern } from './patterns/de'
+import { anonymizeEu } from './anonymizerEu'
+
+/** Thin wrapper matching the pseudocode API in the task */
+function anonymize(input: string, lang: 'en' | 'de' | 'fr') {
+  const { anonymized } = anonymizeEu(input, lang)
+  return { text: anonymized }
+}
 
 function matchesPattern(text: string, patterns: EuPattern[], token: string): boolean {
   return patterns
@@ -419,5 +426,92 @@ describe('EN documents: ≥23 PII objects', () => {
 
   it('EMP: "EMP-UK-2023-0847" detected', () => {
     expect(matchesPattern('Employee ID: EMP-UK-2023-0847', EN_PATTERNS, 'EMP')).toBe(true)
+  })
+})
+
+
+// ── Phone audit fixes ─────────────────────────────────────────────────────────
+
+describe('Phone audit fixes — P0 leaks', () => {
+  // EN-3: US formats
+  test.each([
+    { input: '(555) 123-4567', expected: '[TEL_1]' },
+    { input: 'Call (555) 123-4567 today', expectedContains: '[TEL_' },
+    { input: '+1 555 123 4567', expected: '[TEL_1]' },
+    { input: '5551234567', expected: '[TEL_1]' },
+    { input: '+1 (555) 123-4567', expected: '[TEL_1]' },
+  ])('EN US phone: $input', ({ input, expected, expectedContains }) => {
+    const result = anonymize(input, 'en')
+    if (expected) expect(result.text).toBe(expected)
+    if (expectedContains) expect(result.text).toContain(expectedContains)
+  })
+
+  // EN-1: London 020
+  test.each([
+    { input: '020 7946 0958', expected: '[TEL_1]' },
+    { input: 'Office: 020 7946 0958', expectedContains: '[TEL_' },
+  ])('EN London 020: $input', ({ input, expected, expectedContains }) => {
+    const result = anonymize(input, 'en')
+    if (expected) expect(result.text).toBe(expected)
+    if (expectedContains) expect(result.text).toContain(expectedContains)
+  })
+
+  // EN-2: UK 0800 freephone (3-segment) + BUPA regression
+  test('EN UK 0800 freephone: 0800 600 500', () => {
+    const result = anonymize('0800 600 500', 'en')
+    expect(result.text).toBe('[TEL_1]')
+  })
+
+  test('EN BUPA + 0800 (BUG #5 regression check)', () => {
+    const result = anonymize('Contact BUPA at 0800 600 500 for medical insurance', 'en')
+    expect(result.text).toContain('BUPA')
+    expect(result.text).toContain('[TEL_')
+    expect(result.text).not.toMatch(/\[NAME_\d+\] at /)
+  })
+
+  // FR-1: dot separator
+  test.each([
+    { input: '01.23.45.67.89', expected: '[TEL_1]' },
+    { input: '06.12.34.56.78', expected: '[TEL_1]' },
+  ])('FR dot separator: $input', ({ input, expected }) => {
+    const result = anonymize(input, 'fr')
+    expect(result.text).toBe(expected)
+  })
+})
+
+describe('Phone audit fixes — P2 extension suffix masking', () => {
+  // FR-2: poste N
+  test('FR poste suffix: 01 23 45 67 89 poste 123', () => {
+    const result = anonymize('01 23 45 67 89 poste 123', 'fr')
+    expect(result.text).not.toMatch(/poste \d/)
+    expect(result.text).toMatch(/^\[TEL_/)
+  })
+
+  // FR-3: ext. N
+  test('FR ext. suffix: 01 23 45 67 89 ext. 45', () => {
+    const result = anonymize('01 23 45 67 89 ext. 45', 'fr')
+    expect(result.text).not.toMatch(/ext\. \d/)
+    expect(result.text).toMatch(/^\[TEL_/)
+  })
+
+  // FR-4: (poste N) parenthesized
+  test('FR (poste N) parenthesized: Tél: 01 23 45 67 89 (poste 4567)', () => {
+    const result = anonymize('Tél: 01 23 45 67 89 (poste 4567)', 'fr')
+    expect(result.text).not.toMatch(/poste \d/)
+    expect(result.text).toContain('[TEL_')
+  })
+
+  // EN-4: ext N after London 020
+  test('EN ext N after London 020: 020 7946 0958 ext 4567', () => {
+    const result = anonymize('020 7946 0958 ext 4567', 'en')
+    expect(result.text).not.toMatch(/ext \d/)
+    expect(result.text).toMatch(/^\[TEL_/)
+  })
+
+  // EN-4 variant: x890 suffix
+  test('EN x suffix: (555) 123-4567 x890', () => {
+    const result = anonymize('(555) 123-4567 x890', 'en')
+    expect(result.text).not.toMatch(/x\d/)
+    expect(result.text).toMatch(/^\[TEL_/)
   })
 })

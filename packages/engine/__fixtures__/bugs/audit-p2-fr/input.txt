@@ -1,0 +1,4 @@
+01 23 45 67 89 poste 123
+01 23 45 67 89 ext. 45
+Tél: 01 23 45 67 89 (poste 4567)
+François Dupont — 06 12 34 56 78 poste 999

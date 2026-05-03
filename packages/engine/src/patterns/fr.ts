@@ -73,20 +73,40 @@ export const FR_PATTERNS: EuPattern[] = [
     token: 'PASS',
   },
 
-  // Телефон Франции: +33 или 0 + 9 цифр
+  // ── Phone patterns (ordered: most specific first) ────────────────────────────────────
+
+  // FR: +33 international prefix
   {
     regex: /(?:\+33|0033)[\s\-]?[1-9](?:[\s\-]?\d{2}){4}/g,
     type: 'PHONE',
     label: 'Téléphone',
     token: 'TEL',
   },
-  // Французский местный: 0X XX XX XX XX
+
+  // FR: local with (poste N) parenthesized suffix — must come before bare poste variant
   {
-    regex: /\b0[1-9](?:[\s\-]?\d{2}){4}\b/g,
+    regex: /\b0[1-9](?:[\s\-\.]\d{2}){4}\s\((?:poste|ext\.?)\s?\d+\)/g,
     type: 'PHONE',
     label: 'Téléphone',
     token: 'TEL',
   },
+
+  // FR: local with bare poste/ext. suffix
+  {
+    regex: /\b0[1-9](?:[\s\-\.]\d{2}){4}\s(?:poste|ext\.?)\s?\d+/g,
+    type: 'PHONE',
+    label: 'Téléphone',
+    token: 'TEL',
+  },
+
+  // FR: local base — dot/hyphen/space separator (0X XX XX XX XX or 0X.XX.XX.XX.XX)
+  {
+    regex: /\b0[1-9](?:[\s\-\.]\d{2}){4}\b/g,
+    type: 'PHONE',
+    label: 'Téléphone',
+    token: 'TEL',
+  },
+
 
   // Code postal: 5 цифр + французский город (с диакритикой)
   {
