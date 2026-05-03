@@ -10,10 +10,12 @@ declare module 'fastify' {
     prisma: PrismaClient
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>
     authenticateApiKey: (req: FastifyRequest, reply: FastifyReply) => Promise<void>
+    adminOnly: (req: FastifyRequest, reply: FastifyReply) => Promise<void>
   }
   interface FastifyRequest {
     userId: string
     userPlan: string
+    userEmail: string
   }
 }
 
@@ -29,9 +31,23 @@ export const authPlugin = fp(async (app: FastifyInstance) => {
   app.decorate('authenticate', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
       await req.jwtVerify()
-      const payload = req.user as { sub: string; plan: string }
+      const payload = req.user as { sub: string; email: string; plan: string }
       req.userId = payload.sub
+      req.userEmail = payload.email ?? ''
       req.userPlan = payload.plan
+    } catch {
+      reply.status(401).send({ error: 'Unauthorized' })
+    }
+  })
+
+  // Admin-only JWT auth — requires role: 'admin' in token
+  app.decorate('adminOnly', async (req: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await req.jwtVerify()
+      const payload = req.user as { role?: string }
+      if (payload.role !== 'admin') {
+        return reply.status(403).send({ error: 'Forbidden' })
+      }
     } catch {
       reply.status(401).send({ error: 'Unauthorized' })
     }

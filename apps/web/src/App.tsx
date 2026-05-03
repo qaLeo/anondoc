@@ -27,6 +27,11 @@ import Landing from './pages/Landing'
 // import Impressum from './pages/Impressum' // not published yet — no legal entity address
 import Datenschutz from './pages/Datenschutz'
 import { Privacy } from './pages/legal/Privacy'
+import AdminLogin from './pages/admin/AdminLogin'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminLeads from './pages/admin/AdminLeads'
+import AdminWaitlist from './pages/admin/AdminWaitlist'
+import { useAdminStore } from './store/adminAuthSlice'
 
 const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED !== 'false'
 
@@ -258,6 +263,9 @@ export default function App() {
       <AuthProvider>
         <UsageProvider>
           <Routes>
+            <Route path="/admin" element={<AdminGate />} />
+            <Route path="/admin/leads" element={<AdminProtected><AdminLeads /></AdminProtected>} />
+            <Route path="/admin/waitlist" element={<AdminProtected><AdminWaitlist /></AdminProtected>} />
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/de/auth" element={<AuthGate />} />
             <Route path="/en/auth" element={<AuthGate />} />
@@ -324,6 +332,18 @@ function AuthGate() {
     return <Navigate to={lang === 'en' ? '/' : `/${lang}/app`} replace />
   }
   return <Auth />
+}
+
+function AdminGate() {
+  const isAuthenticated = useAdminStore(s => s.isAuthenticated)
+  return isAuthenticated ? <AdminDashboard /> : <AdminLogin />
+}
+
+function AdminProtected({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAdminStore(s => s.isAuthenticated)
+  const navigate = useNavigate()
+  if (!isAuthenticated) { navigate('/admin', { replace: true }); return null }
+  return <>{children}</>
 }
 
 function Loader() {

@@ -1,6 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { getUsage, incrementUsage } from '../services/usageService.js'
 
+function isAdminEmail(email: string): boolean {
+  const list = process.env.ADMIN_EMAILS
+  if (!list || !email) return false
+  return list.split(',').map(e => e.trim()).includes(email)
+}
+
 const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN
 const CLEAR_OPTS = {
   path: '/auth/refresh',
@@ -17,7 +23,7 @@ export async function usageRoutes(app: FastifyInstance) {
       select: { id: true, email: true, name: true, avatarUrl: true, plan: true, createdAt: true },
     })
     if (!user) return reply.status(404).send({ error: 'User not found' })
-    reply.send(user)
+    reply.send({ ...user, isUnlimited: isAdminEmail(user.email) })
   })
 
   // GET /me/usage
@@ -25,15 +31,26 @@ export async function usageRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate],
   }, async (req, reply) => {
     const usage = await getUsage(req.userId)
-    reply.send(usage)
+    if (isAdminEmail(req.userEmail)) {
+      reply.send({ ...usage, limit: -1, remaining: -1, isUnlimited: true })
+    } else {
+      reply.send(usage)
+    }
   })
 
   // POST /me/usage/track — called by frontend after local anonymization
   // Daily rate limit: FREE users → 25 docs/day (Redis TTL 86400)
   // PRO/BUSINESS/ENTERPRISE → unlimited (bypass Redis check)
+  // ADMIN_EMAILS → bypass entirely, no increment
   app.post('/usage/track', {
     preHandler: [app.authenticate],
   }, async (req, reply) => {
+    // Admin email bypass — no increment, no rate limit check
+    if (isAdminEmail(req.userEmail)) {
+      const usage = await getUsage(req.userId)
+      return reply.send({ ...usage, limit: -1, remaining: -1, isUnlimited: true })
+    }
+
     const user = await app.prisma.user.findUnique({
       where: { id: req.userId },
       select: { plan: true },
