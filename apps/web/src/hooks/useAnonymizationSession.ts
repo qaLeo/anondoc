@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { VaultMap } from '@anondoc/engine'
 import {
   loadActiveSession,
@@ -55,6 +56,7 @@ type WorkerOutbound = WorkerResult | WorkerError | { type: 'PROGRESS'; stage: st
 export function useAnonymizationSession() {
   const { user } = useAuth()
   const { usage, trackDocument } = useUsage()
+  const { i18n } = useTranslation()
 
   const plan = (user?.plan ?? 'FREE').toUpperCase()
   const fileLimit = SESSION_FILE_LIMITS[plan] ?? 5
@@ -162,7 +164,7 @@ export function useAnonymizationSession() {
       }
 
       worker.addEventListener('message', handler)
-      worker.postMessage({ type: 'PROCESS', file, existingVault })
+      worker.postMessage({ type: 'PROCESS', file, existingVault, lang: i18n.language.split('-')[0] })
     })
   }
 

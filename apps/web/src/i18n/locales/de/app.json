@@ -36,7 +36,15 @@
     "new_session_confirm": "Neue Sitzung starten? Die aktuellen Ergebnisse werden gelöscht.",
     "upgrade_hint": "Bis zu {{limit}} Dateien im {{plan}}-Plan verfügbar →",
     "key_pro_tooltip": "Verfügbar im Pro-Plan →",
-    "key_empty_tooltip": "Dateien hinzufügen, um den Schlüssel herunterzuladen"
+    "key_empty_tooltip": "Dateien hinzufügen, um den Schlüssel herunterzuladen",
+    "startButton": "Anonymisieren",
+    "modeFile": "Datei",
+    "modeText": "Text",
+    "textPlaceholder": "Text hier einfügen…",
+    "characters": "Zeichen",
+    "textTooLong": "Text zu lang. Verwenden Sie stattdessen den Datei-Upload.",
+    "copy": "Kopieren",
+    "copied": "Kopiert ✓"
   },
   "deanonymize": {
     "title": "Dokument deanonymisieren",

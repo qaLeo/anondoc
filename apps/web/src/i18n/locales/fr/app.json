@@ -36,7 +36,15 @@
     "new_session_confirm": "Démarrer une nouvelle session ? Les résultats actuels seront effacés.",
     "upgrade_hint": "Jusqu'à {{limit}} fichiers disponibles avec {{plan}} →",
     "key_pro_tooltip": "Disponible avec Pro →",
-    "key_empty_tooltip": "Ajoutez des fichiers pour télécharger la clé"
+    "key_empty_tooltip": "Ajoutez des fichiers pour télécharger la clé",
+    "startButton": "Anonymiser",
+    "modeFile": "Fichier",
+    "modeText": "Texte",
+    "textPlaceholder": "Collez votre texte ici…",
+    "characters": "caractères",
+    "textTooLong": "Texte trop long. Utilisez le téléchargement de fichiers.",
+    "copy": "Copier",
+    "copied": "Copié ✓"
   },
   "deanonymize": {
     "title": "Désanonymiser un document",

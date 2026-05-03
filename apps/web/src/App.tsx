@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useTranslation } from 'react-i18next'
-import { detectLangFromPath } from './i18n/index'
+import { detectLangFromPath, SUPPORTED_LANGS } from './i18n/index'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 
 function AppIcon({ size = 22 }: { size?: number }) {
@@ -97,7 +97,10 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
   const displayName = user?.name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? ''
   const docsText = unlimited ? '∞' : `${docsUsed}/${docsLimit}`
 
-  const isOnMain = location.pathname === '/' || location.pathname === ''
+  const lang = i18n.language.split('-')[0]
+  const homePath = lang === 'en' ? '/' : `/${lang}/app`
+  const isOnMain = location.pathname === '/' || location.pathname === '' ||
+    SUPPORTED_LANGS.some(l => location.pathname === `/${l}/app`)
 
   const planBadge = { FREE: 'Free', PRO: 'Pro', BUSINESS: 'Team', ENTERPRISE: 'Enterprise' }[usage?.plan ?? 'FREE'] ?? 'Free'
 
@@ -132,7 +135,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
       }}>
         {/* Logo */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate(homePath)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}
         >
           <AppIcon size={22} />
@@ -144,7 +147,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
         {/* Nav */}
         <nav className="app-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 20, flex: 1 }}>
           <button
-            onClick={() => { if (isOnMain && onTabChange) onTabChange('anonymize'); else navigate('/') }}
+            onClick={() => { if (isOnMain && onTabChange) onTabChange('anonymize'); else navigate(homePath) }}
             style={navStyle(isOnMain && activeTab === 'anonymize')}
             onMouseEnter={e => { if (!(isOnMain && activeTab === 'anonymize')) e.currentTarget.style.color = '#374151' }}
             onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'anonymize' ? '#1a56db' : '#6b7280' }}
@@ -152,7 +155,7 @@ function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             {t('nav.anonymize')}
           </button>
           <button
-            onClick={() => { if (isOnMain && onTabChange) onTabChange('deanonymize'); else navigate('/?deanon=1') }}
+            onClick={() => { if (isOnMain && onTabChange) onTabChange('deanonymize'); else navigate(`${homePath}?deanon=1`) }}
             style={navStyle(isOnMain && activeTab === 'deanonymize')}
             onMouseEnter={e => { if (!(isOnMain && activeTab === 'deanonymize')) e.currentTarget.style.color = '#374151' }}
             onMouseLeave={e => { e.currentTarget.style.color = isOnMain && activeTab === 'deanonymize' ? '#1a56db' : '#6b7280' }}

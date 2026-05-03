@@ -1,10 +1,12 @@
-import { useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DropZone } from './DropZone'
 import { useAnonymizationSession } from '../hooks/useAnonymizationSession'
 import type { SessionFile } from '../vault/vaultService'
 import { useNavigate } from 'react-router-dom'
-import { serializeKey } from '@anondoc/engine'
+import { serializeKey, anonymizeEu, detectDocumentLanguage } from '@anondoc/engine'
+import { useAuth } from '../context/AuthContext'
+import { useUsage } from '../context/UsageContext'
 
 /** Formats Date.now() as YYYY-MM-DD in local time */
 function fmtDate(ts: number): string {
@@ -15,10 +17,18 @@ function fmtDate(ts: number): string {
   return `${y}-${m}-${dd}`
 }
 
+const EU_LANGS = ['en', 'de', 'fr'] as const
+type EuLang = typeof EU_LANGS[number]
+
+const TEXT_MAX = 50000
+
 export function AnonymizationTab() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('app')
+  const { user } = useAuth()
+  const { trackDocument } = useUsage()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
   const {
     session,
     addFile,
@@ -34,17 +44,38 @@ export function AnonymizationTab() {
     plan,
   } = useAnonymizationSession()
 
+  // Mode toggle
+  const [mode, setMode] = useState<'file' | 'text'>('file')
+
+  // File mode: pending selection before user clicks Anonymise
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+
+  // Text mode
+  const [inputText, setInputText] = useState('')
+  const [anonymizedText, setAnonymizedText] = useState<string | null>(null)
+  const [textReplacements, setTextReplacements] = useState(0)
+  const [isProcessingText, setIsProcessingText] = useState(false)
+  const [copied, setCopied] = useState(false)
+
   const files = session?.files ?? []
   const isEmpty = files.length === 0
 
+  // ── File mode handlers ──────────────────────────────────────────────────────
+
   const handlePickFile = () => fileInputRef.current?.click()
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      await addFile(file)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (f) {
+      setPendingFile(f)
       e.target.value = ''
     }
+  }
+
+  const handleAnonymize = async () => {
+    if (!pendingFile) return
+    await addFile(pendingFile)
+    setPendingFile(null)
   }
 
   const handleNewSession = async () => {
@@ -91,6 +122,37 @@ export function AnonymizationTab() {
     URL.revokeObjectURL(url)
   }
 
+  // ── Text mode handlers ──────────────────────────────────────────────────────
+
+  const handleAnonymizeText = async () => {
+    if (!inputText.trim() || inputText.length > TEXT_MAX || isLimitReached) return
+    setIsProcessingText(true)
+    try {
+      const detected = detectDocumentLanguage(inputText)
+      const uiLang = i18n.language.split('-')[0]
+      const safeLang: EuLang = EU_LANGS.includes(detected as EuLang)
+        ? (detected as EuLang)
+        : EU_LANGS.includes(uiLang as EuLang)
+          ? (uiLang as EuLang)
+          : 'en'
+      const { anonymized, vault } = anonymizeEu(inputText, safeLang)
+      setAnonymizedText(anonymized)
+      setTextReplacements(Object.keys(vault).length)
+      if (user) trackDocument().catch(() => {})
+    } finally {
+      setIsProcessingText(false)
+    }
+  }
+
+  const handleCopy = () => {
+    if (!anonymizedText) return
+    navigator.clipboard.writeText(anonymizedText)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  // ── Derived UI state ────────────────────────────────────────────────────────
+
   const addBtnTooltip = isLimitReached && nextPlan
     ? t('anonymize.upgrade_hint', { limit: FILE_LIMITS_NEXT[nextPlan], plan: nextPlan })
     : undefined
@@ -112,145 +174,249 @@ export function AnonymizationTab() {
         onChange={handleInputChange}
       />
 
-      {/* Empty state: DropZone */}
-      {isEmpty && (
-        <DropZone
-          accept={['txt', 'docx', 'xlsx', 'csv', 'pdf']}
-          selectedFile={null}
-          onFile={addFile}
-          onReset={() => {}}
-        />
-      )}
-
-      {/* File list */}
-      {!isEmpty && (
-        <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
-          {files.map((f, i) => (
-            <div
-              key={f.id}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '9px 14px',
-                borderTop: i > 0 ? '1px solid var(--border-light)' : undefined,
-              }}
-            >
-              <FileTypeIcon name={f.name} />
-              <span style={{
-                fontSize: 14, fontWeight: 500, color: 'var(--text)',
-                flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {f.name}
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
-                {t('app.replacements', { count: f.replacements })}
-              </span>
-              <button
-                onClick={() => handleDownloadFile(f)}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 12, color: 'var(--text-hint)', padding: '2px 4px', flexShrink: 0,
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
-              >
-                {t('anonymize.download_file')}
-              </button>
-              <button
-                onClick={() => handleRemoveFile(f.id, f.name)}
-                title={t('anonymize.delete_title')}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 14, color: 'var(--text-hint)', padding: '2px 4px', flexShrink: 0,
-                  lineHeight: 1,
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#C00')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Error */}
-      {error && <div style={{ fontSize: 13, color: '#C00', padding: '2px 0' }}>{error}</div>}
-
-      {/* Add file + counter row */}
-      <div className="anon-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <button
-          onClick={handlePickFile}
-          disabled={isLimitReached || isProcessing}
-          title={addBtnTooltip}
-          style={{
-            padding: '10px 20px', fontSize: 14, fontWeight: 500,
-            background: isLimitReached ? 'var(--bg)' : '#1a56db',
-            color: isLimitReached ? 'var(--text-muted)' : 'var(--bg)',
-            border: isLimitReached ? '1px solid var(--border-light)' : 'none',
-            borderRadius: 6,
-            cursor: isLimitReached ? 'not-allowed' : 'pointer',
-            opacity: isProcessing ? 0.6 : 1,
-            transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={e => { if (!isLimitReached && !isProcessing) e.currentTarget.style.opacity = '0.85' }}
-          onMouseLeave={e => { if (!isLimitReached && !isProcessing) e.currentTarget.style.opacity = '1' }}
-        >
-          {isProcessing ? t('anonymize.processing') : t('app.add_file')}
-        </button>
-
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
-          {t('app.files_count', { count: fileCount, max: fileLimit })}
-          {plan === 'FREE' && (
-            <button
-              onClick={() => navigate('/pricing')}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 12, color: 'var(--text-hint)', paddingLeft: 6, textDecoration: 'underline',
-              }}
-            >
-              Free
-            </button>
-          )}
-        </span>
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', marginBottom: 4 }}>
+        {(['file', 'text'] as const).map(m => (
+          <button
+            key={m}
+            onClick={() => { setMode(m); setAnonymizedText(null) }}
+            style={{
+              padding: '8px 16px', fontSize: 13,
+              fontWeight: mode === m ? 600 : 400,
+              color: mode === m ? '#1a56db' : '#6b7280',
+              background: 'none', border: 'none',
+              borderBottom: mode === m ? '2px solid #1a56db' : '2px solid transparent',
+              cursor: 'pointer', marginBottom: -1,
+            }}
+          >
+            {t(`anonymize.mode${m.charAt(0).toUpperCase() + m.slice(1)}`)}
+          </button>
+        ))}
       </div>
 
-      {/* Upgrade hint when limit reached */}
-      {isLimitReached && nextPlan && (
-        <div
-          style={{ fontSize: 12, color: 'var(--text-hint)', cursor: 'pointer' }}
-          onClick={() => navigate('/pricing')}
-        >
-          {t('anonymize.upgrade_hint', { limit: FILE_LIMITS_NEXT[nextPlan], plan: nextPlan })}
-        </div>
+      {/* ── FILE MODE ──────────────────────────────────────────────────────── */}
+      {mode === 'file' && (
+        <>
+          {/* Empty state: DropZone */}
+          {isEmpty && (
+            <>
+              <DropZone
+                accept={['txt', 'docx', 'xlsx', 'csv', 'pdf']}
+                selectedFile={pendingFile}
+                onFile={setPendingFile}
+                onReset={() => setPendingFile(null)}
+              />
+              {pendingFile && !isProcessing && (
+                <button onClick={handleAnonymize} style={primaryBtn()}>
+                  {t('anonymize.startButton')}
+                </button>
+              )}
+              {isProcessing && (
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                  {t('anonymize.processing')}
+                </span>
+              )}
+            </>
+          )}
+
+          {/* File list */}
+          {!isEmpty && (
+            <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
+              {files.map((f, i) => (
+                <div
+                  key={f.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '9px 14px',
+                    borderTop: i > 0 ? '1px solid var(--border-light)' : undefined,
+                  }}
+                >
+                  <FileTypeIcon name={f.name} />
+                  <span style={{
+                    fontSize: 14, fontWeight: 500, color: 'var(--text)',
+                    flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {f.name}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
+                    {t('app.replacements', { count: f.replacements })}
+                  </span>
+                  <button
+                    onClick={() => handleDownloadFile(f)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 12, color: 'var(--text-hint)', padding: '2px 4px', flexShrink: 0,
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
+                  >
+                    {t('anonymize.download_file')}
+                  </button>
+                  <button
+                    onClick={() => handleRemoveFile(f.id, f.name)}
+                    title={t('anonymize.delete_title')}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 14, color: 'var(--text-hint)', padding: '2px 4px', flexShrink: 0,
+                      lineHeight: 1,
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#C00')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-hint)')}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {error && <div style={{ fontSize: 13, color: '#C00', padding: '2px 0' }}>{error}</div>}
+
+          {/* Add file + counter row */}
+          <div className="anon-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={handlePickFile}
+                disabled={isLimitReached || isProcessing}
+                title={addBtnTooltip}
+                style={{
+                  padding: '10px 20px', fontSize: 14, fontWeight: 500,
+                  background: isLimitReached ? 'var(--bg)' : '#1a56db',
+                  color: isLimitReached ? 'var(--text-muted)' : '#ffffff',
+                  border: isLimitReached ? '1px solid var(--border-light)' : 'none',
+                  borderRadius: 6,
+                  cursor: isLimitReached ? 'not-allowed' : 'pointer',
+                  opacity: isProcessing ? 0.6 : 1,
+                  transition: 'opacity 0.15s',
+                }}
+                onMouseEnter={e => { if (!isLimitReached && !isProcessing) e.currentTarget.style.opacity = '0.85' }}
+                onMouseLeave={e => { if (!isLimitReached && !isProcessing) e.currentTarget.style.opacity = '1' }}
+              >
+                {t('app.add_file')}
+              </button>
+
+              {pendingFile && !isProcessing && (
+                <button onClick={handleAnonymize} style={primaryBtn()}>
+                  {t('anonymize.startButton')}
+                </button>
+              )}
+              {isProcessing && (
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                  {t('anonymize.processing')}
+                </span>
+              )}
+            </div>
+
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
+              {t('app.files_count', { count: fileCount, max: fileLimit })}
+              {plan === 'FREE' && (
+                <button
+                  onClick={() => navigate('/pricing')}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 12, color: 'var(--text-hint)', paddingLeft: 6, textDecoration: 'underline',
+                  }}
+                >
+                  Free
+                </button>
+              )}
+            </span>
+          </div>
+
+          {/* Upgrade hint when limit reached */}
+          {isLimitReached && nextPlan && (
+            <div
+              style={{ fontSize: 12, color: 'var(--text-hint)', cursor: 'pointer' }}
+              onClick={() => navigate('/pricing')}
+            >
+              {t('anonymize.upgrade_hint', { limit: FILE_LIMITS_NEXT[nextPlan], plan: nextPlan })}
+            </div>
+          )}
+
+          {/* Session actions — shown once there are files */}
+          {!isEmpty && (
+            <div className="session-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <button
+                onClick={handleNewSession}
+                style={secondaryBtn()}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+              >
+                ↺ {t('app.new_session')}
+              </button>
+
+              <button
+                onClick={canDownloadKey ? handleDownloadKey : () => navigate('/pricing')}
+                disabled={canDownloadKey && keyBtnDisabled}
+                title={keyBtnTitle}
+                style={{
+                  ...secondaryBtn(),
+                  opacity: canDownloadKey && !keyBtnDisabled ? 1 : 0.5,
+                  cursor: canDownloadKey && !keyBtnDisabled ? 'pointer' : !canDownloadKey ? 'pointer' : 'not-allowed',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+              >
+                → {t('app.download_key')}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Actions row — shown once there are files */}
-      {!isEmpty && (
-        <div className="session-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      {/* ── TEXT MODE ──────────────────────────────────────────────────────── */}
+      {mode === 'text' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <textarea
+            value={inputText}
+            onChange={e => { setInputText(e.target.value); setAnonymizedText(null) }}
+            placeholder={t('anonymize.textPlaceholder')}
+            style={{
+              width: '100%', minHeight: 200, maxHeight: 500, resize: 'vertical',
+              fontSize: 13, padding: '10px 12px', borderRadius: 6,
+              border: '1px solid var(--border-light)', fontFamily: 'inherit',
+              boxSizing: 'border-box',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: inputText.length > TEXT_MAX ? '#C00' : 'var(--text-muted)' }}>
+              {inputText.length.toLocaleString()} / {TEXT_MAX.toLocaleString()} {t('anonymize.characters')}
+            </span>
+            {inputText.length > TEXT_MAX && (
+              <span style={{ fontSize: 12, color: '#C00' }}>{t('anonymize.textTooLong')}</span>
+            )}
+          </div>
           <button
-            onClick={handleNewSession}
-            style={secondaryBtn()}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
+            onClick={handleAnonymizeText}
+            disabled={!inputText.trim() || inputText.length > TEXT_MAX || isProcessingText || isLimitReached}
+            style={primaryBtn()}
           >
-            ↺ {t('app.new_session')}
+            {isProcessingText ? t('anonymize.processing') : t('anonymize.startButton')}
           </button>
 
-          {/* Key download — always visible; disabled for Free or empty session */}
-          <button
-            onClick={canDownloadKey ? handleDownloadKey : () => navigate('/pricing')}
-            disabled={canDownloadKey && keyBtnDisabled}
-            title={keyBtnTitle}
-            style={{
-              ...secondaryBtn(),
-              opacity: canDownloadKey && !keyBtnDisabled ? 1 : 0.5,
-              cursor: canDownloadKey && !keyBtnDisabled ? 'pointer' : !canDownloadKey ? 'pointer' : 'not-allowed',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-light)')}
-          >
-            → {t('app.download_key')}
-          </button>
+          {anonymizedText !== null && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <textarea
+                readOnly
+                value={anonymizedText}
+                style={{
+                  width: '100%', minHeight: 200, maxHeight: 500, resize: 'vertical',
+                  fontSize: 13, padding: '10px 12px', borderRadius: 6,
+                  border: '1px solid var(--border-light)', background: 'var(--bg-secondary)',
+                  fontFamily: 'inherit', boxSizing: 'border-box',
+                }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button onClick={handleCopy} style={secondaryBtn()}>
+                  {copied ? t('anonymize.copied') : t('anonymize.copy')}
+                </button>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {t('app.replacements', { count: textReplacements })}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -260,6 +426,19 @@ export function AnonymizationTab() {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const FILE_LIMITS_NEXT: Record<string, number> = { Pro: 50, Team: 200 }
+
+function primaryBtn(): React.CSSProperties {
+  return {
+    padding: '10px 20px', fontSize: 14, fontWeight: 500,
+    background: '#1a56db',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    transition: 'opacity 0.15s',
+    alignSelf: 'flex-start',
+  }
+}
 
 function secondaryBtn(): React.CSSProperties {
   return {

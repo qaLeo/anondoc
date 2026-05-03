@@ -36,7 +36,15 @@
     "new_session_confirm": "Start new session? Current results will be cleared.",
     "upgrade_hint": "Upload up to {{limit}} files available on {{plan}} →",
     "key_pro_tooltip": "Available on Pro →",
-    "key_empty_tooltip": "Add files to download the key"
+    "key_empty_tooltip": "Add files to download the key",
+    "startButton": "Anonymise",
+    "modeFile": "File",
+    "modeText": "Text",
+    "textPlaceholder": "Paste your text here…",
+    "characters": "characters",
+    "textTooLong": "Text too long. Use file upload instead.",
+    "copy": "Copy",
+    "copied": "Copied ✓"
   },
   "deanonymize": {
     "title": "Deanonymise document",
