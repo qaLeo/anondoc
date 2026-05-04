@@ -94,6 +94,7 @@ export function AnonymizationTab() {
 
     const keyContent = serializeKey({
       version: 'AnonDoc/1.0',
+      engineVersion: 2,
       document: firstName,
       session: session.id,
       created: new Date(session.createdAt).toISOString(),

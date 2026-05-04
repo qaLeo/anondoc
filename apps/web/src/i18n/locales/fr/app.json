@@ -272,6 +272,7 @@
     "source_session": "session {{date}} ✓",
     "source_history": "trouvé dans l'historique ✓",
     "error_invalid_key": "Format de fichier clé invalide",
-    "error_read_key": "Impossible de lire le fichier clé"
+    "error_read_key": "Impossible de lire le fichier clé",
+    "legacy_key_warning": "Cette clé de déchiffrement a été générée avec une version antérieure et peut produire des résultats incomplets. Veuillez ré-anonymiser le document original."
   }
 }

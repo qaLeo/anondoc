@@ -6,6 +6,7 @@ import { getAllDocs, getDocById, markRestored, parseVault, type DocRecord } from
 
 export interface VaultResolution {
   keyFile: { name: string; vault: Record<string, string> } | null
+  legacyKeyWarning: string | null
   historyDocs: DocRecord[]
   foundInHistory: DocRecord | null
   selectedHistoryId: string
@@ -27,6 +28,7 @@ export interface VaultResolution {
 export function useVaultResolution(onError: (msg: string) => void): VaultResolution {
   const { t, i18n } = useTranslation('app')
   const [keyFile, setKeyFile] = useState<{ name: string; vault: Record<string, string> } | null>(null)
+  const [legacyKeyWarning, setLegacyKeyWarning] = useState<string | null>(null)
   const [historyDocs, setHistoryDocs] = useState<DocRecord[]>([])
   const [foundInHistory, setFoundInHistory] = useState<DocRecord | null>(null)
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>('')
@@ -65,6 +67,12 @@ export function useVaultResolution(onError: (msg: string) => void): VaultResolut
       setSelectedHistoryId('')
       setSelectedSessionId('')
       setFoundInHistory(null)
+      // Warn if the key was produced by the pre-fix engine (no engineVersion or version < 2)
+      if (!keyData.engineVersion || keyData.engineVersion < 2) {
+        setLegacyKeyWarning(t('vault.legacy_key_warning'))
+      } else {
+        setLegacyKeyWarning(null)
+      }
     } catch {
       onError(t('vault.error_read_key'))
     }
@@ -101,6 +109,7 @@ export function useVaultResolution(onError: (msg: string) => void): VaultResolut
 
   const clearVaultSource = () => {
     setKeyFile(null)
+    setLegacyKeyWarning(null)
     setSelectedSessionId('')
     setSelectedHistoryId('')
     setFoundInHistory(null)
@@ -144,6 +153,7 @@ export function useVaultResolution(onError: (msg: string) => void): VaultResolut
 
   return {
     keyFile,
+    legacyKeyWarning,
     historyDocs,
     foundInHistory,
     selectedHistoryId,

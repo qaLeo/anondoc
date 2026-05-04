@@ -22,6 +22,12 @@ export interface KeyFileContent {
   created: string
   language: string
   vault: Record<string, string>
+  /**
+   * Engine version that produced this key.
+   * undefined | 1 = legacy (pre-fix, multi-lang token counter was broken)
+   * 2            = post-fix (anonymizeMultiLang single-pass, tokens are unique)
+   */
+  engineVersion?: number
 }
 
 const BEGIN_MARKER = '-----BEGIN ANONDOC KEY-----'
@@ -51,9 +57,11 @@ function fromBase64(b64: string): string {
 }
 
 export function serializeKey(content: KeyFileContent): string {
+  const engineVersion = content.engineVersion ?? 2
   const headers = [
     BEGIN_MARKER,
     `Version: AnonDoc/1.0`,
+    `Engine-Version: ${engineVersion}`,
     `Document: ${content.document}`,
     `Session: ${content.session}`,
     `Created: ${content.created}`,
@@ -98,8 +106,10 @@ export function parseKey(text: string): KeyFileContent {
 
   const vault = JSON.parse(fromBase64(base64)) as Record<string, string>
 
+  const engineVersionRaw = headers['Engine-Version']
   return {
     version: headers['Version'] ?? 'AnonDoc/1.0',
+    engineVersion: engineVersionRaw ? parseInt(engineVersionRaw, 10) : undefined,
     document: headers['Document'] ?? 'unknown',
     session: headers['Session'] ?? '',
     created: headers['Created'] ?? new Date().toISOString(),

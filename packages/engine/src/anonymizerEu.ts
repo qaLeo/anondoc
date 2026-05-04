@@ -63,6 +63,23 @@ interface Span {
 }
 
 /**
+ * Module-level WeakMap cache: EuPattern object → compiled RegExp with 'g' flag.
+ * EuPattern objects are module-level singletons so this cache lives for the
+ * duration of the module (process/worker lifetime). Safe for single-threaded JS:
+ * we reset lastIndex = 0 before each use so sequential calls don't interfere.
+ */
+const compiledRegexCache = new WeakMap<EuPattern, RegExp>()
+
+function getCompiledRegex(p: EuPattern): RegExp {
+  let re = compiledRegexCache.get(p)
+  if (!re) {
+    re = new RegExp(p.regex.source, p.regex.flags.includes('g') ? p.regex.flags : p.regex.flags + 'g')
+    compiledRegexCache.set(p, re)
+  }
+  return re
+}
+
+/**
  * Core single-pass anonymizer: runs all given patterns over `text` in one pass,
  * then does a dictionary scan for capitalized names, deduplicates overlapping
  * spans, assigns sequential [PREFIX_N] tokens, and replaces them.
@@ -80,10 +97,7 @@ function anonymizeWithPatterns(
   // 1. Collect all raw spans from every pattern
   const spans: Span[] = []
   for (const p of patterns) {
-    const re = new RegExp(
-      p.regex.source,
-      p.regex.flags.includes('g') ? p.regex.flags : p.regex.flags + 'g',
-    )
+    const re = getCompiledRegex(p)
     re.lastIndex = 0
     let m: RegExpExecArray | null
     while ((m = re.exec(text)) !== null) {
@@ -150,6 +164,9 @@ export function anonymizeEu(
   return anonymizeWithPatterns(text, patternSet(lang))
 }
 
+/** Cache merged pattern arrays keyed by sorted lang-tuple string, e.g. "de|en|fr". */
+const mergedPatternCache = new Map<string, EuPattern[]>()
+
 /**
  * Anonymize `text` using merged PII patterns from all requested `langs` in a
  * single pass. Because patterns are merged before scanning, the token counter
@@ -165,14 +182,19 @@ export function anonymizeMultiLang(
   text: string,
   langs: SupportedEuLang[],
 ): { anonymized: string; vault: VaultMap } {
-  // Merge pattern arrays; skip reference-duplicate entries that appear in
-  // multiple language sets (none currently, but guard for future shared rules).
-  const merged: EuPattern[] = []
-  const seen = new Set<EuPattern>()
-  for (const lang of langs) {
-    for (const p of patternSet(lang)) {
-      if (!seen.has(p)) { seen.add(p); merged.push(p) }
+  const cacheKey = langs.join('|')
+  let merged = mergedPatternCache.get(cacheKey)
+  if (!merged) {
+    // Merge pattern arrays in order; skip reference-duplicate entries that appear
+    // in multiple language sets (none currently, but guard for future shared rules).
+    merged = []
+    const seen = new Set<EuPattern>()
+    for (const lang of langs) {
+      for (const p of patternSet(lang)) {
+        if (!seen.has(p)) { seen.add(p); merged.push(p) }
+      }
     }
+    mergedPatternCache.set(cacheKey, merged)
   }
   return anonymizeWithPatterns(text, merged)
 }
