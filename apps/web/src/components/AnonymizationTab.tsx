@@ -4,7 +4,7 @@ import { DropZone } from './DropZone'
 import { useAnonymizationSession } from '../hooks/useAnonymizationSession'
 import type { SessionFile } from '../vault/vaultService'
 import { useNavigate } from 'react-router-dom'
-import { serializeKey, anonymizeEu } from '@anondoc/engine'
+import { serializeKey, anonymizeMultiLang } from '@anondoc/engine'
 import { useAuth } from '../context/AuthContext'
 import { useUsage } from '../context/UsageContext'
 
@@ -126,19 +126,13 @@ export function AnonymizationTab() {
     if (!inputText.trim() || inputText.length > TEXT_MAX || isLimitReached) return
     setIsProcessingText(true)
     try {
-      // Apply all three EU pattern sets sequentially (EN first, then DE, then FR)
-      // so mixed-language text gets maximum PII coverage regardless of UI language.
-      // EN runs first to catch UK/US patterns (0800, (NPA) NXX-XXXX) before the
-      // DE local-phone pattern can partially consume the same digits.
-      let currentText = inputText
-      const mergedVault: Record<string, string> = {}
-      for (const lang of EU_LANGS) {
-        const { anonymized, vault } = anonymizeEu(currentText, lang)
-        currentText = anonymized
-        Object.assign(mergedVault, vault)
-      }
-      setAnonymizedText(currentText)
-      setTextReplacements(Object.keys(mergedVault).length)
+      // Single pass over merged EN+DE+FR patterns — token counter is global so
+      // every unique PII value gets a unique [PREFIX_N] token even in mixed text.
+      // EN listed first so its broader patterns (0800, NPA-NXX) take precedence
+      // over narrower locale-specific patterns when spans overlap.
+      const { anonymized, vault } = anonymizeMultiLang(inputText, [...EU_LANGS])
+      setAnonymizedText(anonymized)
+      setTextReplacements(Object.keys(vault).length)
       if (user) trackDocument().catch(() => {})
     } finally {
       setIsProcessingText(false)

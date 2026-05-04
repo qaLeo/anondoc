@@ -7,7 +7,7 @@ import { DE_PATTERNS } from './patterns/de'
 import { FR_PATTERNS } from './patterns/fr'
 import { EN_PATTERNS } from './patterns/en'
 import type { EuPattern } from './patterns/de'
-import { anonymizeEu } from './anonymizerEu'
+import { anonymizeEu, anonymizeMultiLang } from './anonymizerEu'
 
 /** Thin wrapper matching the pseudocode API in the task */
 function anonymize(input: string, lang: 'en' | 'de' | 'fr') {
@@ -513,5 +513,47 @@ describe('Phone audit fixes — P2 extension suffix masking', () => {
     const result = anonymize('(555) 123-4567 x890', 'en')
     expect(result.text).not.toMatch(/x\d/)
     expect(result.text).toMatch(/^\[TEL_/)
+  })
+})
+
+// ── anonymizeMultiLang regression test ───────────────────────────────────────
+
+describe('anonymizeMultiLang: unique tokens across languages (regression)', () => {
+  const MIXED_INPUT = [
+    'John Smith called from (555) 123-4567 about the case.',
+    'François Dupont — 06.12.34.56.78',
+    'Contact BUPA at 0800 600 500 for medical insurance.',
+    'Hans Müller, Telefon 030 12345-67',
+  ].join('\n')
+
+  test('all 4 phone numbers get unique TEL tokens', () => {
+    const { anonymized } = anonymizeMultiLang(MIXED_INPUT, ['en', 'de', 'fr'])
+    const telTokens = anonymized.match(/\[TEL_\d+\]/g) ?? []
+    expect(telTokens).toHaveLength(4)
+    expect(new Set(telTokens).size).toBe(4)
+  })
+
+  test('all 3 names get unique NAME tokens', () => {
+    const { anonymized } = anonymizeMultiLang(MIXED_INPUT, ['en', 'de', 'fr'])
+    const nameTokens = anonymized.match(/\[NAME_\d+\]/g) ?? []
+    expect(nameTokens).toHaveLength(3)
+    expect(new Set(nameTokens).size).toBe(3)
+  })
+
+  test('BUPA is not redacted (not a personal name)', () => {
+    const { anonymized } = anonymizeMultiLang(MIXED_INPUT, ['en', 'de', 'fr'])
+    expect(anonymized).toContain('BUPA')
+  })
+
+  test('vault has 7 entries total', () => {
+    const { vault } = anonymizeMultiLang(MIXED_INPUT, ['en', 'de', 'fr'])
+    expect(Object.keys(vault)).toHaveLength(7)
+  })
+
+  test('single-lang anonymizeEu still works unchanged', () => {
+    const { anonymized, vault } = anonymizeEu('Hans Müller, Telefon 030 12345-67', 'de')
+    expect(anonymized).toContain('[NAME_1]')
+    expect(anonymized).toContain('[TEL_1]')
+    expect(Object.keys(vault)).toHaveLength(2)
   })
 })

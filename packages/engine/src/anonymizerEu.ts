@@ -63,15 +63,20 @@ interface Span {
 }
 
 /**
- * Anonymize `text` using EU/EN-specific PII patterns for the given `lang`.
- * Returns anonymized text and a vault mapping each token to its original value.
+ * Core single-pass anonymizer: runs all given patterns over `text` in one pass,
+ * then does a dictionary scan for capitalized names, deduplicates overlapping
+ * spans, assigns sequential [PREFIX_N] tokens, and replaces them.
+ *
+ * By accepting an explicit `patterns` array, callers can merge patterns from
+ * multiple languages (anonymizeMultiLang) or use a single language's set
+ * (anonymizeEu) — the token counters are always global within the call, so
+ * every unique PII value gets a unique token regardless of which language's
+ * pattern detected it.
  */
-export function anonymizeEu(
+function anonymizeWithPatterns(
   text: string,
-  lang: SupportedEuLang,
+  patterns: EuPattern[],
 ): { anonymized: string; vault: VaultMap } {
-  const patterns = patternSet(lang)
-
   // 1. Collect all raw spans from every pattern
   const spans: Span[] = []
   for (const p of patterns) {
@@ -132,4 +137,42 @@ export function anonymizeEu(
   }
 
   return { anonymized: result, vault }
+}
+
+/**
+ * Anonymize `text` using EU/EN-specific PII patterns for the given `lang`.
+ * Returns anonymized text and a vault mapping each token to its original value.
+ */
+export function anonymizeEu(
+  text: string,
+  lang: SupportedEuLang,
+): { anonymized: string; vault: VaultMap } {
+  return anonymizeWithPatterns(text, patternSet(lang))
+}
+
+/**
+ * Anonymize `text` using merged PII patterns from all requested `langs` in a
+ * single pass. Because patterns are merged before scanning, the token counter
+ * is global — each unique PII value gets a unique `[PREFIX_N]` token even when
+ * the document mixes English, German, and French content.
+ *
+ * Pattern priority on overlap: patterns from earlier langs in the array win
+ * (same deduplication rule as anonymizeEu: earlier start → longer match wins).
+ * Recommended order: ['en', 'de', 'fr'] so broad EN patterns (0800, NPA-NXX)
+ * take precedence before narrower locale patterns consume part of the same span.
+ */
+export function anonymizeMultiLang(
+  text: string,
+  langs: SupportedEuLang[],
+): { anonymized: string; vault: VaultMap } {
+  // Merge pattern arrays; skip reference-duplicate entries that appear in
+  // multiple language sets (none currently, but guard for future shared rules).
+  const merged: EuPattern[] = []
+  const seen = new Set<EuPattern>()
+  for (const lang of langs) {
+    for (const p of patternSet(lang)) {
+      if (!seen.has(p)) { seen.add(p); merged.push(p) }
+    }
+  }
+  return anonymizeWithPatterns(text, merged)
 }
