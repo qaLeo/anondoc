@@ -272,6 +272,7 @@
     "source_session": "Sitzung {{date}} ✓",
     "source_history": "im Verlauf gefunden ✓",
     "error_invalid_key": "Ungültiges Schlüsseldateiformat",
-    "error_read_key": "Schlüsseldatei konnte nicht gelesen werden"
+    "error_read_key": "Schlüsseldatei konnte nicht gelesen werden",
+    "legacy_key_warning": "Dieser Entschlüsselungsschlüssel wurde mit einer früheren Version erstellt und kann unvollständige Ergebnisse liefern. Bitte das Originaldokument erneut anonymisieren."
   }
 }

@@ -272,6 +272,7 @@
     "source_session": "session {{date}} ✓",
     "source_history": "found in history ✓",
     "error_invalid_key": "Invalid key file format",
-    "error_read_key": "Failed to read key file"
+    "error_read_key": "Failed to read key file",
+    "legacy_key_warning": "This decryption key was generated with a previous version and may produce incomplete results. Please re-anonymize the source document."
   }
 }

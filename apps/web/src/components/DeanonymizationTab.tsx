@@ -191,6 +191,15 @@ export function DeanonymizationTab() {
         showPrivacyHint={false}
       />
 
+      {vault.legacyKeyWarning && (
+        <div style={{
+          padding: '10px 14px', borderRadius: 8, fontSize: 12, lineHeight: 1.6,
+          background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e',
+        }}>
+          ⚠ {vault.legacyKeyWarning}
+        </div>
+      )}
+
       {error && <div style={{ fontSize: 13, color: '#C00', padding: '6px 0' }}>{error}</div>}
       {loading && <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>{t('deanonymize.processing')}</div>}
 
