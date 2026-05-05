@@ -8,7 +8,22 @@
     "cta_primary": "Kostenlos starten",
     "cta_demo": "Demo ansehen ↓",
     "formats_title": "Unterstützte Formate",
-    "cta_plans": "Preise ansehen"
+    "cta_plans": "Preise ansehen",
+    "h1": "KI sicher nutzen — ohne DSGVO-Risiko",
+    "subheadline": "Anonymisieren Sie Dokumente direkt im Browser, bevor Sie sie an ChatGPT, Claude oder andere KI-Tools senden. Originaldaten verlassen Ihren Computer nie.",
+    "primary_cta": "Kostenlos testen",
+    "secondary_cta": "Demo buchen",
+    "trust_line": "Keine Kreditkarte · DSGVO-konform · 100% im Browser"
+  },
+  "trust_strip": {
+    "item1_title": "100% im Browser",
+    "item1_subtitle": "Server sehen nichts",
+    "item2_title": "DSGVO-konform",
+    "item2_subtitle": "Strukturell durch Architektur",
+    "item3_title": "AES-256",
+    "item3_subtitle": "Verschlüsselung",
+    "cta": "Wie funktioniert das?",
+    "cta_target": "/de/dsgvo"
   },
   "social_proof": {
     "title": "Vertraut von Unternehmen in sensiblen Branchen",

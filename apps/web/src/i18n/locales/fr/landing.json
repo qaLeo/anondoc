@@ -8,7 +8,22 @@
     "cta_primary": "Commencer gratuitement",
     "cta_demo": "Voir la démo ↓",
     "formats_title": "Formats supportés",
-    "cta_plans": "Voir les tarifs"
+    "cta_plans": "Voir les tarifs",
+    "h1": "Votre bouclier RGPD pour l'IA",
+    "subheadline": "Anonymisez vos documents directement dans le navigateur avant de les envoyer à ChatGPT, Claude ou d'autres outils IA. Les données originales ne quittent jamais votre ordinateur.",
+    "primary_cta": "Essayer gratuitement",
+    "secondary_cta": "Réserver une démo",
+    "trust_line": "Sans carte bancaire · Conforme RGPD · 100% dans le navigateur"
+  },
+  "trust_strip": {
+    "item1_title": "100% dans le navigateur",
+    "item1_subtitle": "Les serveurs ne voient rien",
+    "item2_title": "Conforme RGPD",
+    "item2_subtitle": "Structurellement par architecture",
+    "item3_title": "AES-256",
+    "item3_subtitle": "Chiffrement",
+    "cta": "Comment ça marche ?",
+    "cta_target": "/fr/rgpd"
   },
   "social_proof": {
     "title": "Utilisé par des entreprises dans des secteurs sensibles",

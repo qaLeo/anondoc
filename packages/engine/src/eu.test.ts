@@ -516,6 +516,50 @@ describe('Phone audit fixes — P2 extension suffix masking', () => {
   })
 })
 
+// ── Cross-language overlapping spans ─────────────────────────────────────────
+
+describe('anonymizeMultiLang: overlapping spans between language patterns', () => {
+  // 12/06/2023 matches BOTH:
+  //   DE date pattern: \b\d{1,2}[./]\d{1,2}[./]\d{4}\b  (DE_PATTERNS)
+  //   FR date pattern: \b\d{1,2}\/\d{1,2}\/\d{4}\b      (FR_PATTERNS)
+  //
+  // Priority rule: in the merged pattern array (order: EN → DE → FR), DE date
+  // fires first; its span is added to the spans array before the FR one.
+  // Deduplication keeps the first non-overlapping span at each position, so DE wins.
+  // Result is deterministic regardless of run order (same merged array every call).
+
+  test('12/06/2023 produces exactly one DATE token when DE and FR both match', () => {
+    const input = 'Contract date: 12/06/2023'
+    const { anonymized, vault } = anonymizeMultiLang(input, ['en', 'de', 'fr'])
+    const dateTokens = anonymized.match(/\[DATE_\d+\]/g) ?? []
+    expect(dateTokens).toHaveLength(1)
+    const dateEntries = Object.entries(vault).filter(([k]) => k.startsWith('[DATE_'))
+    expect(dateEntries).toHaveLength(1)
+    expect(dateEntries[0][1]).toBe('12/06/2023')
+  })
+
+  test('overlap resolution is deterministic across multiple calls', () => {
+    const input = 'Signed 12/06/2023 and 05/11/2025'
+    const results = Array.from({ length: 5 }, () => anonymizeMultiLang(input, ['en', 'de', 'fr']))
+    const first = results[0].anonymized
+    for (const r of results.slice(1)) {
+      expect(r.anonymized).toBe(first)
+    }
+  })
+
+  test('two dates from different langs each get unique tokens', () => {
+    // 12/06/2023 → matched by both DE and FR (DE wins by order)
+    // The second date is also a slash format — still only one DATE type
+    const input = 'Date 1: 12/06/2023, Date 2: 05/11/2025'
+    const { anonymized, vault } = anonymizeMultiLang(input, ['en', 'de', 'fr'])
+    const dateTokens = anonymized.match(/\[DATE_\d+\]/g) ?? []
+    expect(dateTokens).toHaveLength(2)
+    expect(new Set(dateTokens).size).toBe(2)
+    const vaultValues = Object.values(vault).filter(v => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v))
+    expect(vaultValues).toHaveLength(2)
+  })
+})
+
 // ── anonymizeMultiLang regression test ───────────────────────────────────────
 
 describe('anonymizeMultiLang: unique tokens across languages (regression)', () => {

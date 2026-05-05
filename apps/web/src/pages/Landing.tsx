@@ -3,9 +3,10 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { BusinessContactModal } from '../components/BusinessContactModal'
+import { TrustStrip } from '../components/landing/TrustStrip'
 
-const InlineDemo = lazy(() =>
-  import('../components/InlineDemo').then(m => ({ default: m.InlineDemo }))
+const AnonymizationDemo = lazy(() =>
+  import('../components/demo/AnonymizationDemo').then(m => ({ default: m.AnonymizationDemo }))
 )
 import type { SupportedLang } from '../i18n/index'
 
@@ -143,27 +144,16 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
           <div>
             <h1 className="landing-hero-h1" style={{
               fontSize: 48, fontWeight: 800, letterSpacing: '-1px',
-              color: '#111827', lineHeight: 1.15, margin: '0 0 20px', whiteSpace: 'pre-line',
+              color: '#111827', lineHeight: 1.15, margin: '0 0 20px',
             }}>
-              {t('hero.title')}
+              {t('hero.h1') || t('hero.title')}
             </h1>
 
-            <p style={{ fontSize: 18, color: '#6b7280', lineHeight: 1.7, marginBottom: 20 }}>
-              {renderSubtitleWithAccent(t('hero.subtitle'))}
+            <p style={{ fontSize: 18, color: '#6b7280', lineHeight: 1.7, marginBottom: 28 }}>
+              {t('hero.subheadline') || renderSubtitleWithAccent(t('hero.subtitle'))}
             </p>
 
-            <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
-              {[t('hero.badge_gdpr'), t('hero.badge_local'), t('hero.badge_aes')].map((badge) => (
-                <span key={badge} style={{
-                  background: '#eff6ff', color: '#1a56db',
-                  fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
-                }}>
-                  {badge}
-                </span>
-              ))}
-            </div>
-
-            <div className="landing-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div className="landing-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
               <button
                 onClick={() => navigate('/auth')}
                 style={{
@@ -174,10 +164,13 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
               >
-                {t('hero.cta_primary')}
+                {t('hero.primary_cta') || t('hero.cta_primary')}
               </button>
               <button
-                onClick={() => navigate('/pricing')}
+                onClick={() => {
+                  const lang = currentLang
+                  navigate(lang === 'en' ? '/en/demo' : `/${lang}/demo`)
+                }}
                 style={{
                   background: 'transparent', color: '#374151',
                   padding: '12px 20px', fontSize: 15,
@@ -186,9 +179,13 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
                 onMouseEnter={e => (e.currentTarget.style.borderColor = '#1a56db')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
               >
-                {t('hero.cta_plans')}
+                {t('hero.secondary_cta') || t('hero.cta_plans')}
               </button>
             </div>
+
+            <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
+              {t('hero.trust_line')}
+            </p>
           </div>
 
           {/* Formats card */}
@@ -310,19 +307,31 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         </div>
       </section>
 
-      {/* ── Demo ─────────────────────────────────────────────────────────────── */}
-      <section id="demo" style={{ background: '#f9fafb', padding: '48px 32px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div style={{
-            fontSize: 11, color: '#6b7280', fontWeight: 600,
-            letterSpacing: '0.05em', textTransform: 'uppercase',
-            textAlign: 'center', marginBottom: 20,
-          }}>
-            {isDE ? 'Demo · jetzt ausprobieren' : isFR ? 'Démo · essayez maintenant' : 'Demo · try it now'}
+      {/* ── Trust Strip ──────────────────────────────────────────────────────── */}
+      <TrustStrip />
+
+      {/* ── Demo (2-step) ────────────────────────────────────────────────────── */}
+      <section id="demo" style={{ background: '#f9fafb', padding: '56px 32px' }}>
+        <div style={{ maxWidth: 860, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{
+              fontSize: 11, color: '#1a56db', fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8,
+            }}>
+              {isDE ? 'Demo' : isFR ? 'Démo' : 'Demo'}
+            </div>
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: '#111827', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
+              {isDE ? 'Probieren Sie es jetzt' : isFR ? 'Essayez maintenant' : 'Try it now'}
+            </h2>
+            <p style={{ fontSize: 15, color: '#6b7280', margin: 0 }}>
+              {isDE ? 'Kein Konto nötig. Ihr Dokument verlässt diesen Browser nicht.'
+                : isFR ? 'Pas de compte nécessaire. Votre document ne quitte pas ce navigateur.'
+                : 'No account needed. Your document doesn\'t leave this browser.'}
+            </p>
           </div>
           <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
             <Suspense fallback={<div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#9ca3af' }}>Loading demo…</div>}>
-              <InlineDemo />
+              <AnonymizationDemo />
             </Suspense>
           </div>
         </div>
@@ -718,47 +727,26 @@ export default function Landing({ lang }: { lang?: SupportedLang }) {
         padding: '24px 32px', borderTop: '1px solid #e5e7eb',
         textAlign: 'center', fontSize: 12, color: '#9ca3af',
       }}>
-        <div style={{ marginBottom: 8, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 12px' }}>
-          <Link to="/pricing" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
-            {t('footer.pricing', { ns: 'common' })}
-          </Link>
-          <a href="mailto:info@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
-            {t('footer.contact', { ns: 'common' })}
-          </a>
+        <div style={{ marginBottom: 8, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 16px' }}>
           <Link
             to={`/${currentLang === 'en' ? 'en' : currentLang}/privacy`}
             style={{ color: '#9ca3af', textDecoration: 'underline' }}
           >
-            {t('footer.privacy', { ns: 'common' })}
+            {isDE ? 'Datenschutz' : isFR ? 'Confidentialité' : 'Privacy'}
           </Link>
+          <Link to="/impressum" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+            {isDE ? 'AGB' : isFR ? 'CGU' : 'Terms'}
+          </Link>
+          <Link to="/impressum" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+            Impressum
+          </Link>
+          <a href="mailto:info@anondoc.app" style={{ color: '#9ca3af', textDecoration: 'underline' }}>
+            {isDE ? 'Kontakt' : isFR ? 'Contact' : 'Contact'}
+          </a>
         </div>
-        <div>
-          {t('footer.offline', { ns: 'common' })} · {t('footer.gdpr', { ns: 'common' })} · {t('footer.aes', { ns: 'common' })}
+        <div style={{ fontSize: 11, opacity: 0.7 }}>
+          © {new Date().getFullYear()} AnonDoc
         </div>
-        <div style={{ marginTop: 10, fontSize: 11, opacity: 0.6 }}>
-          {t('footer.legalDisclaimer', { ns: 'common' })}
-        </div>
-        {isDE && (
-          <div style={{ marginTop: 10 }}>
-            <a
-              href="https://www.xing.com/spi/shares/new?url=https%3A%2F%2Fanondoc.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                color: '#006567', fontSize: 12, fontWeight: 600,
-                textDecoration: 'none', padding: '5px 12px',
-                border: '1px solid #006567', borderRadius: 20,
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f0fdfa' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              <span style={{ fontWeight: 800, fontSize: 13 }}>✕</span>
-              {t('share.xing')}
-            </a>
-          </div>
-        )}
       </footer>
     </div>
   )
