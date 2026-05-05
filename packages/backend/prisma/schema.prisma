@@ -20,12 +20,54 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Tier model: 'free' | 'business'
+  tier                   String    @default("free")
+  teamId                 String?
+  documentsUsedThisMonth Int       @default(0)
+  documentsResetAt       DateTime?
+
   subscription Subscription?
   usage        Usage[]
   apiKeys      ApiKey[]
   orgMembers   OrganizationMember[]
+  team         Team?     @relation(fields: [teamId], references: [id])
+  auditEvents  AuditEvent[]
 
   @@index([email])
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  members   User[]
+}
+
+model AuditEvent {
+  id           String   @id @default(uuid())
+  userId       String
+  teamId       String?
+  action       String   // 'anonymize' | 'decrypt'
+  documentHash String
+  tokensCount  Int
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model DemoRequest {
+  id             String   @id @default(uuid())
+  name           String
+  email          String
+  company        String
+  teamSize       String
+  industry       String
+  message        String?
+  calendlyBooked Boolean  @default(false)
+  createdAt      DateTime @default(now())
 }
 
 model Subscription {

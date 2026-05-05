@@ -8,7 +8,22 @@
     "cta_primary": "Start for free",
     "cta_demo": "See demo ↓",
     "formats_title": "Supported formats",
-    "cta_plans": "See plans"
+    "cta_plans": "See plans",
+    "h1": "The privacy layer for AI",
+    "subheadline": "Anonymize documents in your browser before sending them to ChatGPT, Claude, or other AI tools. Original data never leaves your computer.",
+    "primary_cta": "Try free",
+    "secondary_cta": "Book a demo",
+    "trust_line": "No credit card · GDPR-compliant · 100% in browser"
+  },
+  "trust_strip": {
+    "item1_title": "100% in browser",
+    "item1_subtitle": "Servers see nothing",
+    "item2_title": "GDPR-compliant",
+    "item2_subtitle": "Structurally by architecture",
+    "item3_title": "AES-256",
+    "item3_subtitle": "Encryption",
+    "cta": "How does it work?",
+    "cta_target": "/en/gdpr"
   },
   "social_proof": {
     "title": "Trusted by companies in sensitive industries",

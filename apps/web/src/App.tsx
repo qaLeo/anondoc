@@ -32,6 +32,8 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminLeads from './pages/admin/AdminLeads'
 import AdminWaitlist from './pages/admin/AdminWaitlist'
 import { useAdminStore } from './store/adminAuthSlice'
+import DemoBooking from './pages/DemoBooking'
+import Dsgvo from './pages/Dsgvo'
 
 const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED !== 'false'
 
@@ -288,9 +290,22 @@ export default function App() {
             {/* Language-prefixed landing pages */}
             {/* /de/impressum — not published yet, will 404 */}
             <Route path="/de/datenschutz" element={<Datenschutz />} />
+            {/* New routes */}
+            <Route path="/de/demo" element={<DemoBooking />} />
+            <Route path="/en/demo" element={<DemoBooking />} />
+            <Route path="/fr/demo" element={<DemoBooking />} />
+            <Route path="/de/dsgvo" element={<Dsgvo lang="de" />} />
+            <Route path="/fr/rgpd" element={<Dsgvo lang="fr" />} />
+            <Route path="/en/gdpr" element={<Dsgvo lang="en" />} />
+            <Route path="/de/preise" element={<Pricing />} />
+            <Route path="/fr/tarifs" element={<Pricing />} />
             <Route path="/de" element={<Landing lang="de" />} />
             <Route path="/en" element={<Landing lang="en" />} />
             <Route path="/fr" element={<Landing lang="fr" />} />
+            {/* Language-prefixed /app paths */}
+            <Route path="/de/app" element={<AppLayout />} />
+            <Route path="/en/app" element={<AppLayout />} />
+            <Route path="/fr/app" element={<AppLayout />} />
             {/* Root: redirect to detected language */}
             <Route path="/" element={<LangRedirect />} />
             <Route path="/*" element={<AppLayout />} />
